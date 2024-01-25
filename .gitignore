@@ -1,0 +1,18 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+*.dll
+*.pdb
+bin/
+obj/
+*.suo
+v15/
+*.user
+.vs/
+*.jfm
+*.dbmdl
+#*.data
+CStore.config
+*.log
+*.rptproj.rsuser

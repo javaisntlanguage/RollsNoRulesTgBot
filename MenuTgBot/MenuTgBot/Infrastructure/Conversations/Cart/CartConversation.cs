@@ -16,6 +16,7 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 using Telegram.Util.Core;
 using Telegram.Bot.Types.Enums;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace MenuTgBot.Infrastructure.Conversations.Cart
 {
@@ -115,13 +116,15 @@ namespace MenuTgBot.Infrastructure.Conversations.Cart
                             case Command.DecreaseCount:
                                 {
                                     int productId = data["ProductId"].Value<int>();
-                                    await DecreaseCountAsync(productId, query.Message);
+                                    int page = data["Page"].Value<int>();
+                                    await DecreaseCountAsync(productId, page);
                                     return Trigger.Ignore;
                                 }
                             case Command.IncreaseCount:
                                 {
                                     int productId = data["ProductId"].Value<int>();
-                                    await IncreaseCountAsync(productId, query.Message);
+                                    int page = data["Page"].Value<int>();
+                                    await IncreaseCountAsync(productId, page);
                                     return Trigger.Ignore;
                                 }
                             case Command.AddToCartFromCart:
@@ -184,6 +187,7 @@ namespace MenuTgBot.Infrastructure.Conversations.Cart
 
             if (cartProduct.Count == 1)
             {
+                cartProduct.Count = 0;
                 Cart.Remove(cartProduct);
             }
             else
@@ -192,22 +196,27 @@ namespace MenuTgBot.Infrastructure.Conversations.Cart
             }
         }
 
-        private InlineKeyboardMarkup GetCartMarkup(CartProduct cartProduct, Product product)
+        private InlineKeyboardMarkup GetCartMarkup(CartProduct cartProduct, Product product, int? page = null)
         {
-            int page = Cart.IndexOf(cartProduct) + 1;
-            InlineKeyboardButton[] pagination = GetPagination(page);
-            InlineKeyboardButton[] productCountInfo = GetProductCountInfo(cartProduct, product.IsVisible);
-            InlineKeyboardButton[] takeOrderButton = GetTakeOrderButton();
+            bool forDelete = page.IsNotNull();
+            page ??= Cart.IndexOf(cartProduct) + 1;
+            InlineKeyboardButton[] pagination = GetPagination(page.Value, forDelete);
+            InlineKeyboardButton[] productCountInfo = GetProductCountInfo(cartProduct, page.Value, product.IsVisible);
+            InlineKeyboardButton[] takeOrderButton = GetTakeOrderButton(forDelete);
 
             List<InlineKeyboardButton[]> keyboard = new List<InlineKeyboardButton[]>
             {
-                productCountInfo,
-                takeOrderButton
+                productCountInfo
             };
 
             if (pagination.IsNotNull())
             {
-                keyboard.Insert(1, pagination);
+                keyboard.Add(pagination);
+            }
+
+            if (takeOrderButton.IsNotNull())
+            {
+                keyboard.Add(takeOrderButton);
             }
 
             InlineKeyboardMarkup markup = new InlineKeyboardMarkup(keyboard);
@@ -226,54 +235,30 @@ namespace MenuTgBot.Infrastructure.Conversations.Cart
                 Cart.Insert(position, cartProduct);
             }
 
-            InlineKeyboardMarkup markup = GetCartMarkup(cartProduct, product);
+            int page = position + 1;
 
-            await _stateManager.EditMessageReplyMarkupAsync(message.MessageId, replyMarkup: markup);
+            await ShowCartAsync(page);
         }
 
-        private async Task DecreaseCountAsync(int productId, Message message)
+        private async Task DecreaseCountAsync(int productId, int page)
         {
             CartProduct cartProduct = Cart.First(product => product.Id == productId);
 
             if (cartProduct.Count == 1)
             {
-                int index = Cart.IndexOf(cartProduct);
-                int page = index + 1;
+                cartProduct.Count = 0;
+                await ShowCartAsync(cartProduct, page);
                 Cart.Remove(cartProduct);
-
-                InlineKeyboardButton[] addToCartButton = GetAddToCartButton(productId, index);
-                InlineKeyboardButton[] takeOrderButton = GetTakeOrderButton();
-                InlineKeyboardButton[] pagination = GetPagination(page, forDelete: true);
-
-                List<InlineKeyboardButton[]> keyboard = new List<InlineKeyboardButton[]>
-                {
-                    addToCartButton,
-                    takeOrderButton
-                };
-
-                if (pagination.IsNotNull())
-                {
-                    keyboard.Insert(1, pagination);
-                }
-
-                InlineKeyboardMarkup markup = new InlineKeyboardMarkup(keyboard);
-
-                if (Cart.Count == 0)
-                {
-                    markup = new(markup.InlineKeyboard.Take(1));
-                }
-
-                await _stateManager.EditMessageReplyMarkupAsync(message.MessageId, replyMarkup: markup);
             }
             else
             {
-                await ChangeCountAsync(productId, message, increase: false, cartProduct);
+                await ChangeCountAsync(productId, page, increase: false, cartProduct: cartProduct);
             }
         }
 
-        private async Task IncreaseCountAsync(int productId, Message message)
+        private async Task IncreaseCountAsync(int productId, int page)
         {
-            await ChangeCountAsync(productId, message, increase: true);
+            await ChangeCountAsync(productId, page, increase: true);
         }
 
         private InlineKeyboardButton[] GetAddToCartButton(int productId, int index)
@@ -294,20 +279,46 @@ namespace MenuTgBot.Infrastructure.Conversations.Cart
             return result;
         }
 
-        private async Task ChangeCountAsync(int productId, Message message, bool increase, CartProduct cartProduct = null)
+        private async Task ChangeCountAsync(int productId, int page, bool increase, CartProduct cartProduct = null)
         {
             cartProduct ??= Cart.First(product => product.Id == productId);
             cartProduct.Count = increase ? cartProduct.Count + 1 : cartProduct.Count - 1;
 
-            InlineKeyboardButton buttonCount = message.ReplyMarkup.InlineKeyboard
-                .SelectMany(buttons => buttons)
-                .First(button => button.CallbackData.Contains($"\"Cmd\":{(int)Command.ProductCount}"));
-
-            buttonCount.Text = cartProduct.Count.ToString();
-
-            await _stateManager.EditMessageReplyMarkupAsync(message.MessageId, message.ReplyMarkup);
+            await ShowCartAsync(page);
         }
 
+        private async Task ShowCartAsync(CartProduct cartProduct, int page)
+        {
+            Product product = await _dataSource.Products
+                .FirstOrDefaultAsync(product => product.Id == cartProduct.Id);
+
+            InlineKeyboardMarkup markup = GetCartMarkup(cartProduct, product, page);
+
+            string totalSum = Cart
+                .Sum(cp =>
+                {
+                    Product? product = _dataSource.Products
+                    .FirstOrDefault();
+
+                    if (product.IsNull())
+                    {
+                        return 0m;
+                    }
+
+                    return product.Price * cp.Count;
+                })
+                .ToString(TelegramHelper.PRICE_FORMAT);
+
+            string text = string.Format(CartText.CartZeroCountProductDetails,
+                product.Name,
+                product.Description,
+                product.Price.ToString(TelegramHelper.PRICE_FORMAT),
+                totalSum);
+
+            await _stateManager.SendMessageAsync(text, ParseMode.Html, markup, product.Photo);
+
+
+        }
         private async Task ShowCartAsync(int page)
         {
             if(Cart.IsEmpty())
@@ -346,12 +357,16 @@ namespace MenuTgBot.Infrastructure.Conversations.Cart
                 productSum,
                 totalSum);
 
-            await _stateManager.SendMessageAsync(CartText.Welcome);
             await _stateManager.SendMessageAsync(text, ParseMode.Html, markup, product.Photo);
         }
 
-        private InlineKeyboardButton[] GetTakeOrderButton()
+        private InlineKeyboardButton[] GetTakeOrderButton(bool forDelete)
         {
+            if (Cart.Count == 1 && forDelete)
+            {
+                return null;
+            }
+
             InlineKeyboardButton[] result = new InlineKeyboardButton[]
                 {
                     new InlineKeyboardButton(CartText.TakeOrder)
@@ -366,20 +381,23 @@ namespace MenuTgBot.Infrastructure.Conversations.Cart
             return result;
         }
 
-        private InlineKeyboardButton[] GetProductCountInfo(CartProduct cartProduct, bool isVisible)
+        private InlineKeyboardButton[] GetProductCountInfo(CartProduct cartProduct, int page, bool isVisible)
         {
             InlineKeyboardButton[] result = null;
 
             if (isVisible)
             {
-                result = new InlineKeyboardButton[]
+                if (cartProduct.Count > 0)
                 {
+                    result = new InlineKeyboardButton[]
+                    {
                     new InlineKeyboardButton(CartText.DecreaseCount)
                     {
                         CallbackData = JsonConvert.SerializeObject(new
                         {
                             Cmd = Command.DecreaseCount,
                             ProductId = cartProduct.Id,
+                            Page = page,
                         })
                     },
                     new InlineKeyboardButton(cartProduct.Count.ToString())
@@ -395,10 +413,16 @@ namespace MenuTgBot.Infrastructure.Conversations.Cart
                         {
                             Cmd = Command.IncreaseCount,
                             ProductId = cartProduct.Id,
+                            Page = page,
                         })
                     }
-                };
-
+                    };
+                }
+                else
+                {
+                    int index = page - 1;
+                    result = GetAddToCartButton(cartProduct.Id, index);
+                }
             }
             else
             {
@@ -419,15 +443,15 @@ namespace MenuTgBot.Infrastructure.Conversations.Cart
 
         private InlineKeyboardButton[] GetPagination(int currentPage, bool forDelete = false)
         {
-            if(Cart.Count == 1 && !forDelete)
+            if(Cart.Count == 1)
             {
                 return null;
             }
 
-            int nextButtonPage = forDelete ? currentPage - 1 : currentPage;
+            int nextButtonPage = currentPage;
 
             InlineKeyboardButton buttonPrevious = GetButtonPrevious(currentPage);
-            InlineKeyboardButton buttonNext = GetButtonNext(nextButtonPage);
+            InlineKeyboardButton buttonNext = GetButtonNext(nextButtonPage, forDelete);
 
             InlineKeyboardButton[] result = new InlineKeyboardButton[]
             {
@@ -438,9 +462,10 @@ namespace MenuTgBot.Infrastructure.Conversations.Cart
             return result;
         }
 
-        private InlineKeyboardButton GetButtonNext(int currentPage)
+        private InlineKeyboardButton GetButtonNext(int currentPage, bool forDetele)
         {
             InlineKeyboardButton result = null;
+            int nextPage = forDetele ? currentPage : currentPage + 1;
 
             if (currentPage == Cart.Count)
             {
@@ -459,7 +484,7 @@ namespace MenuTgBot.Infrastructure.Conversations.Cart
                     CallbackData = JsonConvert.SerializeObject(new
                     {
                         Cmd = Command.MovePagination,
-                        CartElement = currentPage + 1
+                        CartElement = nextPage
                     })
                 };
             }

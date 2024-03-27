@@ -103,6 +103,21 @@ namespace MenuTgBot.Infrastructure.Conversations.Cart {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &lt;b&gt;{0}&lt;/b&gt;
+        ///
+        ///&lt;i&gt;{1}&lt;/i&gt;
+        ///
+        ///{2}
+        ///
+        ///Общая сумма корзины: {3}.
+        /// </summary>
+        internal static string CartZeroCountProductDetails {
+            get {
+                return ResourceManager.GetString("CartZeroCountProductDetails", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to -.
         /// </summary>
         internal static string DecreaseCount {

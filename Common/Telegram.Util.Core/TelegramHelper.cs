@@ -11,7 +11,7 @@ namespace Telegram.Util.Core
 {
     public static class TelegramHelper
     {
-        public const string PRICE_FORMAT = "#.## ₽";
+        public const string PRICE_FORMAT = "0.## ₽";
         public static string GetPhotoFileId(this Message message)
         {
             if (message.Photo.IsNotNull())

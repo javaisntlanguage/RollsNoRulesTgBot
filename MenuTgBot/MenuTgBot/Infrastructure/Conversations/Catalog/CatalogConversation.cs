@@ -16,22 +16,19 @@ using Newtonsoft.Json.Linq;
 using Command = MenuTgBot.Infrastructure.Models.Command;
 using Helper;
 using Telegram.Bot.Types.Enums;
-using Robox.Telegram.Util.Core;
+using Telegram.Util.Core;
 using MenuTgBot.Infrastructure.Conversations.Cart;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace MenuTgBot.Infrastructure.Conversations.Catalog
 {
-    internal class ShopCatalogConversation : IConversation
+    internal class CatalogConversation : IConversation
     {
         private readonly long _chatId;
-        private readonly ITelegramBotClient _clientBot;
         private readonly ApplicationContext _dataSource;
         private readonly StateManager _stateManager;
 
-        public ShopCatalogConversation(ITelegramBotClient botClient, ApplicationContext dataSource, StateManager statesManager)
+        public CatalogConversation(ApplicationContext dataSource, StateManager statesManager)
         {
-            _clientBot = botClient;
             _dataSource = dataSource;
             _stateManager = statesManager;
             _chatId = _stateManager.ChatId;
@@ -39,11 +36,11 @@ namespace MenuTgBot.Infrastructure.Conversations.Catalog
 
         public async Task<Trigger?> TryNextStepAsync(Message message)
         {
-            switch (_stateManager.GetState())
+            switch (_stateManager.CurrentState)
             {
                 case State.CommandShopCatalog:
                     {
-                        await ShowCategoriesAsync(message.MessageId, editMessage: false);
+                        await ShowCategoriesAsync();
                         return Trigger.Ignore;
                     }
             }
@@ -56,7 +53,7 @@ namespace MenuTgBot.Infrastructure.Conversations.Catalog
             JObject data = JObject.Parse(query.Data);
             Command command = (Command)data["Cmd"].Value<int>();
 
-            switch (_stateManager.GetState())
+            switch (_stateManager.CurrentState)
             {
                 case State.CommandShopCatalog:
                     {
@@ -66,26 +63,18 @@ namespace MenuTgBot.Infrastructure.Conversations.Catalog
                             case Command.ReturnToCategory:
                                 {
                                     int categoryId = data["CategoryId"].Value<int>();
-                                    await ShowCategoryProductsAsync(categoryId, query.Message.MessageId);
-                                    return Trigger.Ignore;
-                                }
-                                /// УДАЛИТЬ?
-                            case Command.ProductDetails:
-                                {
-                                    int productId = data["ProductId"].Value<int>();
-                                    int categoryId = data["CategoryId"].Value<int>();
-                                    await ShowProductDetails2Async(productId, categoryId, query.Message.MessageId);
+                                    await ShowCategoryProductsAsync(categoryId);
                                     return Trigger.Ignore;
                                 }
                             case Command.ReturnToCatalog:
                                 {
-                                    await ShowCategoriesAsync(query.Message.MessageId, editMessage: true);
+                                    await ShowCategoriesAsync();
                                     return Trigger.Ignore;
                                 }
                             case Command.MovePagination:
                                 {
                                     int productId = data["ProductId"].Value<int>();
-                                    await ShowProductDetailsWithProductIdAsync(productId, query.Message.MessageId);
+                                    await ShowProductDetailsWithProductIdAsync(productId);
                                     return Trigger.Ignore;
                                 }
                             case Command.Ignore:
@@ -103,19 +92,19 @@ namespace MenuTgBot.Infrastructure.Conversations.Catalog
                             case Command.AddToCartFromCategory:
                                 {
                                     int productId = data["ProductId"].Value<int>();
-                                    await ShowProductDetailsWithProductIdAsync(productId, query.Message.MessageId);
+                                    await ShowProductDetailsWithProductIdAsync(productId);
                                     return Trigger.ToCatalogState;
                                 }
                             case Command.DecreaseCount:
                                 {
                                     int productId = data["ProductId"].Value<int>();
-                                    await ShowProductDetailsWithProductIdAsync(productId, query.Message.MessageId);
+                                    await ShowProductDetailsWithProductIdAsync(productId);
                                     return Trigger.ToCatalogState;
                                 }
                             case Command.IncreaseCount:
                                 {
                                     int productId = data["ProductId"].Value<int>();
-                                    await ShowProductDetailsWithProductIdAsync(productId, query.Message.MessageId);
+                                    await ShowProductDetailsWithProductIdAsync(productId);
                                     return Trigger.ToCatalogState;
                                 }
                         }
@@ -127,10 +116,9 @@ namespace MenuTgBot.Infrastructure.Conversations.Catalog
             return null;
         }
 
-        private async Task ShowProductDetailsWithProductIdAsync(int productId, int messageId)
+        private async Task ShowProductDetailsWithProductIdAsync(int productId)
         {
             Product product = await _dataSource.Products
-                .AsNoTracking()
                 .FirstOrDefaultAsync(p => p.Id == productId);
 
             if (product.IsNull())
@@ -138,66 +126,10 @@ namespace MenuTgBot.Infrastructure.Conversations.Catalog
                 return;
             }
 
-            await ShowProductDetailsAsync(product, messageId);
+            await ShowProductDetailsAsync(product);
         }
 
-        private async Task ShowProductDetails2Async(int productId, int categoryId, int messageId)
-        {
-            Product product = await _dataSource.Products
-                .AsNoTracking()
-                .FirstOrDefaultAsync(product => product.Id == productId && product.IsVisible);
-
-            if (product.IsNull())
-            {
-                await _clientBot.SendTextMessageAsync(_chatId, CatalogText.ProductNotFound);
-                return;
-            }
-
-            List<CartProduct> cart = _stateManager.GetHandler<CartConversation>()?.Cart ?? new List<CartProduct>();
-
-            InlineKeyboardButton addDeleteProductButton = cart
-                .Select(product => product.Id)
-                .Contains(productId) ?
-                new InlineKeyboardButton(CartText.DeleteFromCart)
-                {
-                    CallbackData = JsonConvert.SerializeObject(new
-                    {
-                        Cmd = Command.DeleteFromCartFromProduct,
-                        ProductId = product.Id,
-                    })
-                }
-                :
-                new InlineKeyboardButton(CartText.AddToCart)
-                {
-                    CallbackData = JsonConvert.SerializeObject(new
-                    {
-                        Cmd = Command.AddToCartFromProduct,
-                        ProductId = product.Id,
-                    })
-                };
-
-            InlineKeyboardMarkup markup = new(new InlineKeyboardButton[]
-            {
-                addDeleteProductButton,
-                new InlineKeyboardButton(CatalogText.ReturnToCategory)
-                {
-                    CallbackData = JsonConvert.SerializeObject(new
-                    {
-                        Cmd = Command.ReturnToCategory,
-                        CategoryId = categoryId
-                    })
-                },
-            });
-
-            string text = string.Format(CatalogText.ProductDetails, 
-                product.Name, 
-                product.Description, 
-                product.Price.ToString("#.## ₽"));
-
-            await _clientBot.EditMessageTextAsync(_chatId, messageId, text, parseMode: ParseMode.Html, replyMarkup: markup);
-        }
-
-        private async Task ShowProductDetailsAsync(Product product, int messageId)
+        private async Task ShowProductDetailsAsync(Product product)
         {
             InlineKeyboardButton[] cartActions = GetCartButtons(product.Id);
             InlineKeyboardButton[] pagination = await GetPagination(product.Id);
@@ -220,17 +152,16 @@ namespace MenuTgBot.Infrastructure.Conversations.Catalog
             string text = string.Format(CatalogText.ProductDetails,
                 product.Name,
                 product.Description,
-                product.Price.ToString("#.## ₽"));
+                product.Price.ToString(TelegramHelper.PRICE_FORMAT));
 
-            await _clientBot.EditMessageTextAsync(_chatId, messageId, text, parseMode: ParseMode.Html, replyMarkup: markup);
+            await _stateManager.SendMessageAsync(text, ParseMode.Html, markup, product.Photo);
         }
 
-        private async Task ShowCategoryProductsAsync(int categoryId, int messageId)
+        private async Task ShowCategoryProductsAsync(int categoryId)
         {
             List<CartProduct> cart = _stateManager.GetHandler<CartConversation>()?.Cart ?? new List<CartProduct>();
 
             Product product = (await _dataSource.ProductCategories
-                .AsNoTracking()
                 .Where(pc => pc.CategoryId == categoryId && pc.Category.IsVisible && pc.Product.IsVisible)
                 .Include(pc => pc.Product)
                 .FirstOrDefaultAsync())?.Product;
@@ -240,21 +171,24 @@ namespace MenuTgBot.Infrastructure.Conversations.Catalog
                 InlineKeyboardButton[] returnToCatalog = GetReturnToCatalogButton();
                 InlineKeyboardMarkup markup = new InlineKeyboardMarkup(returnToCatalog);
 
-                await _clientBot.EditMessageTextAsync(_chatId, messageId, CatalogText.ProductsEmpty, replyMarkup: markup);
+                await _stateManager.SendMessageAsync(CatalogText.ProductsEmpty, replyMarkup: markup);
                 
                 return;
             }
 
-            await ShowProductDetailsAsync(product, messageId);
+            await ShowProductDetailsAsync(product);
         }
 
+        /// <summary>
+        /// получение пагинации
+        /// </summary>
+        /// <param name="productId"></param>
+        /// <returns></returns>
         private async Task<InlineKeyboardButton[]> GetPagination(int productId)
         {
 
             IQueryable<int> categoryProducts = _dataSource.ProductCategories
-                .AsNoTracking()
                 .Where(pc => pc.CategoryId == _dataSource.ProductCategories
-                        .AsNoTracking()
                         .Select(pc2 => new { pc2.ProductId, pc2.CategoryId })
                         .First(pcpid => pcpid.ProductId == productId)
                         .CategoryId)
@@ -277,6 +211,12 @@ namespace MenuTgBot.Infrastructure.Conversations.Catalog
             return result;
         }
 
+        /// <summary>
+        /// получение кнопки для пагинации вперед
+        /// </summary>
+        /// <param name="productId"></param>
+        /// <param name="categoryProducts"></param>
+        /// <returns></returns>
         private InlineKeyboardButton GetButtonNext(int productId, IQueryable<int> categoryProducts)
         {
             InlineKeyboardButton result = null;
@@ -305,6 +245,10 @@ namespace MenuTgBot.Infrastructure.Conversations.Catalog
             return result;
         }
 
+        /// <summary>
+        /// кнопка пустой пагинации
+        /// </summary>
+        /// <returns></returns>
         private InlineKeyboardButton GetNoPaginationButton()
         {
             InlineKeyboardButton result = new InlineKeyboardButton(CartText.NoPagination)
@@ -318,6 +262,12 @@ namespace MenuTgBot.Infrastructure.Conversations.Catalog
             return result;
         }
 
+        /// <summary>
+        /// получение кнопки для пагинации назад
+        /// </summary>
+        /// <param name="productId"></param>
+        /// <param name="categoryProducts"></param>
+        /// <returns></returns>
         private InlineKeyboardButton GetButtonPrevious(int productId, IQueryable<int> categoryProducts)
         {
             InlineKeyboardButton result = null;
@@ -405,6 +355,10 @@ namespace MenuTgBot.Infrastructure.Conversations.Catalog
             return result;
         }
 
+        /// <summary>
+        /// получение кнопки возврата в выбор категории
+        /// </summary>
+        /// <returns></returns>
         private InlineKeyboardButton[] GetReturnToCatalogButton()
         {
             InlineKeyboardButton[] result = new InlineKeyboardButton[]{
@@ -420,10 +374,9 @@ namespace MenuTgBot.Infrastructure.Conversations.Catalog
             return result;
         }
 
-        private async Task ShowCategoriesAsync(int messageId, bool editMessage)
+        private async Task ShowCategoriesAsync()
         {
             InlineKeyboardMarkup markup = new(await _dataSource.Categories
-                .AsNoTracking()
                 .Where(category => category.IsVisible)
                 .Select(category => new InlineKeyboardButton[]
                 {
@@ -440,18 +393,11 @@ namespace MenuTgBot.Infrastructure.Conversations.Catalog
 
             if (markup.InlineKeyboard.Any())
             {
-                if (editMessage)
-                {
-                    await _clientBot.EditMessageTextAsync(_chatId, messageId, CatalogText.ChooseCategory, replyMarkup: markup);
-                }
-                else
-                {
-                    await _clientBot.SendTextMessageAsync(_chatId, CatalogText.ChooseCategory, replyMarkup: markup, disableNotification: true);
-                }
+                await _stateManager.SendMessageAsync(CatalogText.ChooseCategory, replyMarkup: markup);
             }
             else
             {
-                await _clientBot.SendTextMessageAsync(_chatId, CatalogText.ProductsEmpty);
+                await _stateManager.SendMessageAsync(CatalogText.ProductsEmpty);
             }
         }
     }

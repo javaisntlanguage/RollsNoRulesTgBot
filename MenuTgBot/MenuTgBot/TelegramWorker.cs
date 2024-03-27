@@ -11,6 +11,9 @@ using Telegram.Bot.Exceptions;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using Telegram.Util.Core.Exceptions;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using Update = Telegram.Bot.Types.Update;
 
 namespace MenuTgBot
 {
@@ -29,17 +32,15 @@ namespace MenuTgBot
         private readonly CancellationTokenSource _cancellationTokenSource;
         private readonly CommandsManager _commandsManager;
 
-        public TelegramWorker(TelegramBotClient telegramClient, ApplicationContext dataSource, Logger logger, CancellationTokenSource cancellationTokenSource)
+        public TelegramWorker(TelegramBotClient telegramClient, string connectionString, Logger logger, CancellationTokenSource cancellationTokenSource)
         {
             TelegramClient = telegramClient;
-            DataSource = dataSource;
             _logger = logger;
             _cancellationTokenSource = cancellationTokenSource;
-            _commandsManager = new CommandsManager(TelegramClient, dataSource);
+            _commandsManager = new CommandsManager(TelegramClient, connectionString);
         }
 
         public TelegramBotClient TelegramClient { get; }
-        public ApplicationContext DataSource { get; }
         
         public void Start()
         {
@@ -76,13 +77,19 @@ namespace MenuTgBot
 
                 }
             }
+            catch (NotLastMessageException ex)
+            {
+                long chatId = update.Message?.Chat.Id ?? update.CallbackQuery.Message.Chat.Id;
+                await TelegramClient.AnswerCallbackQueryAsync(update.CallbackQuery.Id, MessagesText.GoLastMessage, showAlert: true);
+            }
             catch (Exception ex)
             {
                 long chatId = update.Message?.Chat.Id ?? update.CallbackQuery.Message.Chat.Id;
                 await botClient.SendTextMessageAsync(chatId, MessagesText.SomethingWrong);
                 
-                _logger.Error(ex);
-                Console.WriteLine(ex.ToString());
+                string message = $"UserId: {chatId}\n";
+                _logger.Error(message, ex);
+                Console.WriteLine(message + ex.ToString());
             }
         }
 

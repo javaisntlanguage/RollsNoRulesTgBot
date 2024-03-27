@@ -1,4 +1,4 @@
-﻿namespace Robox.Telegram.Util.Core.StateMachine.Graph
+﻿namespace Telegram.Util.Core.StateMachine.Graph
 {
     /// <summary>
     /// Style definition for StateGraph.

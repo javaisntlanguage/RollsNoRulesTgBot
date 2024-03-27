@@ -16,6 +16,7 @@ namespace Database.Tables
         public long UserId { get; set; }
         public int StateId { get; set; }
         public string Data { get; set; }
-        public virtual User User { get; set; }
+        public User User { get; set; }
+        public int? LastMessageId { get; set; }
     }
 }

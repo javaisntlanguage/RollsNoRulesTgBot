@@ -1,4 +1,4 @@
-﻿namespace Robox.Telegram.Util.Core.StateMachine.Reflection
+﻿namespace Telegram.Util.Core.StateMachine.Reflection
 {
     /// <summary>
     /// Describes a method - either an action (activate, deactivate, etc.) or a transition guard

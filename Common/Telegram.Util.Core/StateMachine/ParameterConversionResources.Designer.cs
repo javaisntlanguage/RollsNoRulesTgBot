@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-using Robox.Telegram.Util.Core.StateMachine;
+using Telegram.Util.Core.StateMachine;
 
 namespace StateMachine {
     

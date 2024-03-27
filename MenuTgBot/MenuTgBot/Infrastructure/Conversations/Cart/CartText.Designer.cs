@@ -88,6 +88,21 @@ namespace MenuTgBot.Infrastructure.Conversations.Cart {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &lt;b&gt;{0}&lt;/b&gt;
+        ///
+        ///&lt;i&gt;{1}&lt;/i&gt;
+        ///
+        ///{2} * {3} = {4}
+        ///
+        ///Общая сумма корзины: {5}.
+        /// </summary>
+        internal static string CartProductDetails {
+            get {
+                return ResourceManager.GetString("CartProductDetails", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to -.
         /// </summary>
         internal static string DecreaseCount {

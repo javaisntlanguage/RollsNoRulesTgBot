@@ -7,27 +7,31 @@ using Telegram.Bot.Types.ReplyMarkups;
 using Telegram.Bot.Types;
 using Telegram.Bot;
 using Helper;
-using Robox.Telegram.Util.Core;
 using Database;
 using Database.Tables;
 using Microsoft.EntityFrameworkCore;
 using MenuTgBot.Infrastructure.Conversations.Start;
 using MenuTgBot.Infrastructure.Conversations.Catalog;
 using MenuTgBot.Infrastructure.Conversations.Cart;
+using MenuTgBot.Infrastructure.Conversations.Orders;
+using Database.Enums;
+using Telegram.Util.Core;
+using Telegram.Util.Core.Enums;
+using MenuTgBot.Infrastructure.Commands;
 
 namespace MenuTgBot.Infrastructure
 {
     internal class CommandsManager
     {
         private readonly ITelegramBotClient _botClient;
-        private readonly ApplicationContext _dataSource;
+        private readonly string _connectionString;
         private readonly Dictionary<long, StateManager> _stateManagers;
-        public BotCommandHandler[] Commands { get; private set; }
+        public MenuBotCommandHandler[] Commands { get; private set; }
 
-        public CommandsManager(ITelegramBotClient client, ApplicationContext dataSource)
+        public CommandsManager(ITelegramBotClient client, string connectionString)
         {
             _botClient = client;
-            _dataSource = dataSource;
+            _connectionString = connectionString;
             _stateManagers = new Dictionary<long, StateManager>();
             Commands = GetComands();
         }
@@ -37,13 +41,13 @@ namespace MenuTgBot.Infrastructure
         /// <summary>
         /// назначить состояние пользователю
         /// </summary>
-        /// <param name="chatId"></param>
+        /// <param name="userId"></param>
         /// <returns></returns>
-        private async Task InitStateManagerIfNotExistsAsync(long userId, long chatId)
+        private async Task InitStateManagerIfNotExistsAsync(long chatId)
         {
-            if (!_stateManagers.ContainsKey(userId))
+            if (!_stateManagers.ContainsKey(chatId))
             {
-                _stateManagers[userId] = await StateManager.Create(_botClient, _dataSource, this, userId, chatId);
+                _stateManagers[chatId] = await StateManager.Create(_botClient, _connectionString, this, chatId);
             }
         }
 
@@ -52,19 +56,14 @@ namespace MenuTgBot.Infrastructure
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        private BotCommandHandler GetCommand(Message message)
+        private MenuBotCommandHandler GetCommand(Message message)
         {
             long userId = message.From.Id;
-            BotCommandHandler command = null;
-            if (message.Entities!.IsNotNullOrEmpty())
-                command = _stateManagers[userId].Commands.Values
-                    .FirstOrDefault(x =>
-                        message.EntityValues.Contains(x.Command));
-            else
-                command = _stateManagers[userId].Commands.Values
-                    .FirstOrDefault(x =>
-                        x.TriggerCommands
-                            .Contains(message.Text));
+            MenuBotCommandHandler command = null;
+
+            command = Commands
+                .FirstOrDefault(x =>
+                    x.Command == message.Text);
             return command;
         }
 
@@ -73,43 +72,22 @@ namespace MenuTgBot.Infrastructure
         /// создание меню
         /// </summary>
         /// <returns></returns>
-        private BotCommandHandler[] GetComands()
+        private MenuBotCommandHandler[] GetComands()
         {
-            return new BotCommandHandler[]
+            return new MenuBotCommandHandler[]
             {
-            new(
-                "start",
-                typeof(StartConversation),
-                MessagesText.CommandStart
-            ),
-            new(
-                "catalog",
-                typeof(ShopCatalogConversation),
-                MessagesText.CommandShopCatalog,
-                CommandDisplay.ButtonMenu,
-                new List<string>
-                {
-                    $"📦{MessagesText.CommandShopCatalog}"
-                }),
-            new(
-                "cart",
-                typeof(CartConversation),
-                MessagesText.CommandCart,
-                CommandDisplay.ButtonMenu,
-                new List<string>
-                {
-                    $"🛒{MessagesText.CommandCart}"
-                }),
-            /*
-            new(
-                "сontacts",
-                typeof(ShopContactsConversation),
-                MessagesText.CommandShopContacts,
-                CommandDisplay.ButtonMenu,
-                new List<string>
-                {
-                    $"☎️{MessagesText.CommandShopContacts}"
-                })*/
+                new StartCommand(
+                        "/start",
+                        CommandDisplay.None),
+                new CatalogCommand(
+                    $"📦{MessagesText.CommandShopCatalog}",
+                    CommandDisplay.ButtonMenu),
+                new CartCommand(
+                    $"🛒{MessagesText.CommandCart}",
+                    CommandDisplay.ButtonMenu),
+                new OrdersCommand(
+                    MessagesText.CommandOrder,
+                    CommandDisplay.ButtonMenu)
             };
         }
 
@@ -123,19 +101,18 @@ namespace MenuTgBot.Infrastructure
         /// <returns></returns>
         public async Task<bool> ProcessMessageAsync(Message message)
         {
-            long userId = message.From.Id;
             long chatId = message.Chat.Id;
-            await InitStateManagerIfNotExistsAsync(userId, chatId);
+            await InitStateManagerIfNotExistsAsync(chatId);
 
-            BotCommandHandler command = GetCommand(message);
+            MenuBotCommandHandler command = GetCommand(message);
 
             if (command.IsNotNull())
             {
-                await command.TriggerAction(message);
+                await command.StartCommandAsync(_stateManagers[chatId], message);
                 return true;
             }
 
-            return await _stateManagers[userId].NextStateAsync(message);
+            return await _stateManagers[chatId].NextStateAsync(message);
         }
 
         /// <summary>
@@ -145,11 +122,10 @@ namespace MenuTgBot.Infrastructure
         /// <returns></returns>
         public async Task<bool> ProcessQueryAsync(CallbackQuery query)
         {
-            long userId = query.From.Id;
             long chatId = query.Message.Chat.Id;
-            await InitStateManagerIfNotExistsAsync(userId, chatId);
+            await InitStateManagerIfNotExistsAsync(chatId);
 
-            return await _stateManagers[userId].NextStateAsync(query);
+            return await _stateManagers[chatId].NextStateAsync(query);
         }
 
         /// <summary>
@@ -158,21 +134,37 @@ namespace MenuTgBot.Infrastructure
         /// <param name="chatId"></param>
         /// <param name="text"></param>
         /// <returns></returns>
-        public async Task ShowButtonMenuAsync(long chatId, long userId, string text)
+        public async Task<Message> ShowButtonMenuAsync(long chatId, string text, IEnumerable<KeyboardButton> additionalButtons = null)
         {
-            ReplyKeyboardMarkup keyboard = new(
-                Commands
-                    .Where(command => command.DisplayMode == CommandDisplay.ButtonMenu &&
-                                      command.TriggerCommands.IsNotEmpty() &&
-                                      (command.Roles.IsNullOrEmpty() || _stateManagers[userId].Roles.In(command.Roles)))
-                    .Select(command =>
-                        new KeyboardButton(command.TriggerCommands
-                            .FirstOrDefault())))
+            IEnumerable<KeyboardButton> defaultButtons = GetDefaultMenuButtons();
+
+            List<IEnumerable<KeyboardButton>> keyboard = new List<IEnumerable<KeyboardButton>>()
+            {
+                defaultButtons
+            };
+
+            if (additionalButtons.IsNotNull())
+            {
+                keyboard.Insert(0,additionalButtons);
+            }
+            ReplyKeyboardMarkup markup = new ReplyKeyboardMarkup(keyboard)
             {
                 ResizeKeyboard = true
             };
 
-            await _botClient.SendTextMessageAsync(chatId, text, replyMarkup: keyboard);
+            Message result = await _botClient.SendTextMessageAsync(chatId, text, replyMarkup: markup);
+            
+            return result;
+        }
+
+        public IEnumerable<KeyboardButton> GetDefaultMenuButtons()
+        {
+            IEnumerable<KeyboardButton> result = Commands
+                    .Where(command => command.DisplayMode == CommandDisplay.ButtonMenu)
+                    .Select(command =>
+                        new KeyboardButton(command.Command));
+            
+            return result;
         }
 
         #endregion

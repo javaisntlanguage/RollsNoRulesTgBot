@@ -1,7 +1,7 @@
-﻿using Robox.Telegram.Util.Core.StateMachine.Reflection;
+﻿using Telegram.Util.Core.StateMachine.Reflection;
 using StateMachine;
 
-namespace Robox.Telegram.Util.Core.StateMachine
+namespace Telegram.Util.Core.StateMachine
 {
     /// <summary>
     /// Enum for the different modes used when Fire-ing a trigger

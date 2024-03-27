@@ -15,13 +15,11 @@ namespace MenuTgBot.Infrastructure.Conversations.Start
     internal class StartConversation : IConversation
     {
         private readonly long _chatId;
-        private readonly ITelegramBotClient _clientBot;
         private readonly ApplicationContext _dataSource;
         private readonly StateManager _stateManager;
 
-        public StartConversation(ITelegramBotClient botClient, ApplicationContext dataSource, StateManager statesManager)
+        public StartConversation(ApplicationContext dataSource, StateManager statesManager)
         {
-            _clientBot = botClient;
             _dataSource = dataSource;
             _stateManager = statesManager;
             _chatId = _stateManager.ChatId;
@@ -30,12 +28,12 @@ namespace MenuTgBot.Infrastructure.Conversations.Start
 
         public async Task<Trigger?> TryNextStepAsync(Message message)
         {
-            switch (_stateManager.GetState())
+            switch (_stateManager.CurrentState)
             {
                 case State.CommandStart:
                     {
-                        await SetRoleAsync();
-                        await SetMenuButtonsAsync(message);
+                        SetRole();
+                        await SetMenuButtonsAsync();
                         return Trigger.Ignore;
                     }
             }
@@ -48,14 +46,16 @@ namespace MenuTgBot.Infrastructure.Conversations.Start
             return null;
         }
 
-        private async Task SetMenuButtonsAsync(Message message)
+        private async Task SetMenuButtonsAsync()
         {
-            await _stateManager.CommandsManager.ShowButtonMenuAsync(_chatId,_stateManager.UserId, StartText.Welcome);
+            await _stateManager.ShowButtonMenuAsync(StartText.Welcome);
         }
 
-        private async Task SetRoleAsync()
+        private void SetRole()
         {
-            _stateManager.Roles = await _dataSource.GetUserRoles(_stateManager.UserId);
+            _stateManager.Roles = _dataSource
+                .GetUserRoles(_stateManager.ChatId)
+                .ToHashSet();
         }
     }
 }

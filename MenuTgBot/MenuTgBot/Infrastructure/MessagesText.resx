@@ -120,11 +120,17 @@
   <data name="CommandCart" xml:space="preserve">
     <value>Корзина</value>
   </data>
+  <data name="CommandOrder" xml:space="preserve">
+    <value>Заказы</value>
+  </data>
   <data name="CommandShopCatalog" xml:space="preserve">
     <value>Каталог</value>
   </data>
   <data name="CommandStart" xml:space="preserve">
     <value>Старт</value>
+  </data>
+  <data name="GoLastMessage" xml:space="preserve">
+    <value>Вернитесь к последнему сообщению</value>
   </data>
   <data name="SomethingWrong" xml:space="preserve">
     <value>Что-то пошло не так</value>

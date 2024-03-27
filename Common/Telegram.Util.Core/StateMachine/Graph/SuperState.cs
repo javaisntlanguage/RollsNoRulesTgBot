@@ -1,4 +1,4 @@
-﻿namespace Robox.Telegram.Util.Core.StateMachine.Graph
+﻿namespace Telegram.Util.Core.StateMachine.Graph
 {
     /// <summary>
     /// Used to keep track of a state that has substates

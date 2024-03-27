@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -12,11 +13,13 @@ namespace Database.Tables
         public int Id { get; set; }
         [MaxLength(64)]
         [Required]
-        public string Name { get; set; }
+        public string? Name { get; set; }
         [MaxLength(255)]
-        public string Description { get; set; }
+        public string? Description { get; set; }
         public decimal Price { get; set; }
+        public string? Photo { get; set; }
         public bool IsVisible { get; set; }
-        public virtual ICollection<ProductCategories> ProductCategories { get; set; }
+        [JsonIgnore()]
+        public ICollection<ProductCategories> ProductCategories { get; set; }
     }
 }

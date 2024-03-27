@@ -1,11 +1,11 @@
 ﻿using Telegram.Bot;
 using Telegram.Bot.Types;
 
-namespace Robox.Telegram.Util.Core
+namespace Telegram.Util.Core
 {
-    public class TelegramBotClientBuilder
+    public class TelegramBotClientBuilder<TStateManager> where TStateManager : class
     {
-        public IEnumerable<BotCommandHandler> BotCommandHandlers { get; set; }
+        public IEnumerable<BotCommandHandler<TStateManager>> BotCommandHandlers { get; set; }
         public IEnumerable<BotCommand> BotCommands { get; set; }
         private ITelegramBotClient _bot { get; set; }
 
@@ -14,7 +14,7 @@ namespace Robox.Telegram.Util.Core
         /// </summary>
         /// <param name="telegramBotClient"></param>
         /// <returns></returns>
-        public TelegramBotClientBuilder InitTelegramBotClient(ITelegramBotClient telegramBotClient)
+        public TelegramBotClientBuilder<TStateManager> InitTelegramBotClient(ITelegramBotClient telegramBotClient)
         {
             _bot = telegramBotClient;
             return this;
@@ -24,7 +24,7 @@ namespace Robox.Telegram.Util.Core
         /// </summary>
         /// <param name="commands"></param>
         /// <returns></returns>
-        public TelegramBotClientBuilder InitMenuCommands(IEnumerable<BotCommandHandler> commands)
+        public TelegramBotClientBuilder<TStateManager> InitMenuCommands(IEnumerable<BotCommandHandler<TStateManager>> commands)
         {
             BotCommandHandlers = commands;
 
@@ -32,7 +32,7 @@ namespace Robox.Telegram.Util.Core
                 .Select(bc => new BotCommand 
                 { 
                     Command = bc.Command, 
-                    Description = bc.Description 
+                    Description = string.Empty
                 });
             return this;
         }
@@ -41,7 +41,7 @@ namespace Robox.Telegram.Util.Core
         /// Активация команд меню
         /// </summary>
         /// <returns></returns>
-        public TelegramBotClientBuilder SetMenuCommands()
+        public TelegramBotClientBuilder<TStateManager> SetMenuCommands()
         {
             _bot.SetMyCommandsAsync(BotCommands).ConfigureAwait(false);
             return this;

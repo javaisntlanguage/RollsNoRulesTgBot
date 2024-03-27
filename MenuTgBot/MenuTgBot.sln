@@ -20,6 +20,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Helper", "..\Common\Helper\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Telegram.Util.Core", "..\Common\Telegram.Util.Core\Telegram.Util.Core.csproj", "{8E26B8BF-9FF3-4328-B281-C75088FE47D1}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RabbitClient", "..\Common\RabbitClient\RabbitClient.csproj", "{8115E0C1-2CC2-48AB-B816-77F277B0C300}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MessageContracts", "..\Common\MessageContracts\MessageContracts.csproj", "{EA1E2073-98F2-4646-B75D-C3D5143B817F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -46,6 +50,14 @@ Global
 		{8E26B8BF-9FF3-4328-B281-C75088FE47D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8E26B8BF-9FF3-4328-B281-C75088FE47D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8E26B8BF-9FF3-4328-B281-C75088FE47D1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8115E0C1-2CC2-48AB-B816-77F277B0C300}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8115E0C1-2CC2-48AB-B816-77F277B0C300}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8115E0C1-2CC2-48AB-B816-77F277B0C300}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8115E0C1-2CC2-48AB-B816-77F277B0C300}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EA1E2073-98F2-4646-B75D-C3D5143B817F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EA1E2073-98F2-4646-B75D-C3D5143B817F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EA1E2073-98F2-4646-B75D-C3D5143B817F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EA1E2073-98F2-4646-B75D-C3D5143B817F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -54,6 +66,8 @@ Global
 		{62715232-2693-4450-9B86-472384BAA924} = {9A0A52DB-4710-4FEE-9B56-761772A79462}
 		{4EE1A9F1-50FC-41FE-BED3-9550C7056197} = {9A0A52DB-4710-4FEE-9B56-761772A79462}
 		{8E26B8BF-9FF3-4328-B281-C75088FE47D1} = {9A0A52DB-4710-4FEE-9B56-761772A79462}
+		{8115E0C1-2CC2-48AB-B816-77F277B0C300} = {9A0A52DB-4710-4FEE-9B56-761772A79462}
+		{EA1E2073-98F2-4646-B75D-C3D5143B817F} = {9A0A52DB-4710-4FEE-9B56-761772A79462}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8FFBB76C-A354-498F-85B3-A5DADCF3D959}

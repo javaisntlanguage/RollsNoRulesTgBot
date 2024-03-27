@@ -10,11 +10,11 @@ using Telegram.Bot;
 
 namespace MenuTgBot
 {
-    public class TelegramMain
+    public class MenuTgBotMain
     {
         private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
-        public TelegramMain(IConfiguration configuration) 
+        public MenuTgBotMain(IConfiguration configuration) 
         {
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             Configuration = configuration;
@@ -26,16 +26,9 @@ namespace MenuTgBot
         {
             TelegramBotClient telegramClient = new TelegramBotClient(Configuration["TelegramBotToken"]!, new HttpClient());
 
-            IHost _host = Host.CreateDefaultBuilder()
-                .ConfigureServices(services =>
-                {
-                    services.AddDbContext<ApplicationContext>((x) => x.UseSqlServer(Configuration["ConnectionString"]));
-                })
-                .Build();
+            string connectionString = Configuration["ConnectionString"];
 
-            ApplicationContext dataSource = _host.Services.GetRequiredService<ApplicationContext>();
-
-            TelegramWorker worker = new TelegramWorker(telegramClient, dataSource, _logger, _cancellationTokenSource);
+            TelegramWorker worker = new TelegramWorker(telegramClient, connectionString, _logger, _cancellationTokenSource);
             worker.Start();
         }
     }

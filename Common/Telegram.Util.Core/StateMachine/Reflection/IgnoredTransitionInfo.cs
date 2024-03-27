@@ -1,4 +1,4 @@
-﻿namespace Robox.Telegram.Util.Core.StateMachine.Reflection
+﻿namespace Telegram.Util.Core.StateMachine.Reflection
 {
     /// <summary>
     /// Describes a trigger that is "ignored" (stays in the same state)

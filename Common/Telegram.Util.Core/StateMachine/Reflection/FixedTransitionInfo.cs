@@ -1,4 +1,4 @@
-﻿namespace Robox.Telegram.Util.Core.StateMachine.Reflection
+﻿namespace Telegram.Util.Core.StateMachine.Reflection
 {
     /// <summary>
     /// Describes a transition that can be initiated from a trigger.

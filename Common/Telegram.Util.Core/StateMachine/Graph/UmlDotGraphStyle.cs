@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace Robox.Telegram.Util.Core.StateMachine.Graph
+namespace Telegram.Util.Core.StateMachine.Graph
 {
     /// <summary>
     /// Generate DOT graphs in basic UML style

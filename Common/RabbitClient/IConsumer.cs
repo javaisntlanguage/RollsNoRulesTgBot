@@ -4,12 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Database
+namespace RabbitClient
 {
-    public enum RolesList
+    public interface IConsumer
     {
-        None,
-        Admin,
-        User
+        public void Consume(string message);
     }
 }

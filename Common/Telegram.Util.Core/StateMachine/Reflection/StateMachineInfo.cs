@@ -1,4 +1,4 @@
-namespace Robox.Telegram.Util.Core.StateMachine.Reflection
+namespace Telegram.Util.Core.StateMachine.Reflection
 {
     /// <summary>
     /// An info object which exposes the states, transitions, and actions of this machine.

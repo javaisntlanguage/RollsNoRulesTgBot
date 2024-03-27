@@ -1,6 +1,6 @@
-﻿using Robox.Telegram.Util.Core.StateMachine.Reflection;
+﻿using Telegram.Util.Core.StateMachine.Reflection;
 
-namespace Robox.Telegram.Util.Core.StateMachine.Graph
+namespace Telegram.Util.Core.StateMachine.Graph
 {
     /// <summary>
     /// This class is used to generate a symbolic representation of the

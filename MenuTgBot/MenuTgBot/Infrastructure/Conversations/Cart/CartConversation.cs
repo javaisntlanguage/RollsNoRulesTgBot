@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
-using Robox.Telegram.Util.Core;
+using Telegram.Util.Core;
 using Telegram.Bot.Types.Enums;
 
 namespace MenuTgBot.Infrastructure.Conversations.Cart
@@ -22,16 +22,14 @@ namespace MenuTgBot.Infrastructure.Conversations.Cart
     internal class CartConversation : IConversation
     {
         private readonly long _chatId;
-        private readonly ITelegramBotClient _clientBot;
         private readonly ApplicationContext _dataSource;
         private readonly StateManager _stateManager;
 
         public List<CartProduct> Cart {  get; set; }
 
         public CartConversation() { }
-        public CartConversation(ITelegramBotClient botClient, ApplicationContext dataSource, StateManager statesManager)
+        public CartConversation(ApplicationContext dataSource, StateManager statesManager)
         {
-            _clientBot = botClient;
             _dataSource = dataSource;
             _stateManager = statesManager;
             _chatId = _stateManager.ChatId;
@@ -41,7 +39,7 @@ namespace MenuTgBot.Infrastructure.Conversations.Cart
 
         public async Task<Trigger?> TryNextStepAsync(Message message)
         {
-            switch (_stateManager.GetState())
+            switch (_stateManager.CurrentState)
             {
                 case State.CommandCart:
                     {
@@ -58,7 +56,7 @@ namespace MenuTgBot.Infrastructure.Conversations.Cart
             JObject data = JObject.Parse(query.Data);
             Command command = (Command)data["Cmd"].Value<int>();
 
-            switch (_stateManager.GetState())
+            switch (_stateManager.CurrentState)
             {
                 case State.CommandShopCatalog:
                     {
@@ -91,7 +89,7 @@ namespace MenuTgBot.Infrastructure.Conversations.Cart
                                 }
                             case Command.ProductNotAvaliable:
                                 {
-                                    await _clientBot.SendTextMessageAsync(_chatId, CartText.ProductNotAvaliable);
+                                    await _stateManager.SendMessageAsync(CartText.ProductNotAvaliable);
                                     return Trigger.Ignore;
                                 }
                             case Command.DecreaseCount:
@@ -136,13 +134,17 @@ namespace MenuTgBot.Infrastructure.Conversations.Cart
                             case Command.MovePagination:
                                 {
                                     int cartElement = data["CartElement"].Value<int>();
-                                    await ShowCartAsync(cartElement, query.Message);
+                                    await ShowCartAsync(cartElement);
                                     return Trigger.Ignore;
                                 }
                             case Command.Ignore:
                             case Command.ProductCount:
                                 {
                                     return Trigger.Ignore;
+                                }
+                            case Command.TakeOrder:
+                                {
+                                    return Trigger.ClientTookOrder;
                                 }
                         }
 
@@ -217,7 +219,6 @@ namespace MenuTgBot.Infrastructure.Conversations.Cart
         {
             CartProduct cartProduct = new CartProduct(productId);
             Product product = await _dataSource.Products
-                .AsNoTracking()
                 .FirstOrDefaultAsync(product => product.Id == productId);
 
             if (product.IsVisible)
@@ -227,7 +228,7 @@ namespace MenuTgBot.Infrastructure.Conversations.Cart
 
             InlineKeyboardMarkup markup = GetCartMarkup(cartProduct, product);
 
-            await _clientBot.EditMessageReplyMarkupAsync(_chatId, message.MessageId, replyMarkup: markup);
+            await _stateManager.EditMessageReplyMarkupAsync(message.MessageId, replyMarkup: markup);
         }
 
         private async Task DecreaseCountAsync(int productId, Message message)
@@ -256,15 +257,13 @@ namespace MenuTgBot.Infrastructure.Conversations.Cart
                 }
 
                 InlineKeyboardMarkup markup = new InlineKeyboardMarkup(keyboard);
-                /*.Union(message.ReplyMarkup.InlineKeyboard
-                    .Skip(1)));*/
 
                 if (Cart.Count == 0)
                 {
                     markup = new(markup.InlineKeyboard.Take(1));
                 }
 
-                await _clientBot.EditMessageReplyMarkupAsync(_chatId, message.MessageId, replyMarkup: markup);
+                await _stateManager.EditMessageReplyMarkupAsync(message.MessageId, replyMarkup: markup);
             }
             else
             {
@@ -306,38 +305,49 @@ namespace MenuTgBot.Infrastructure.Conversations.Cart
 
             buttonCount.Text = cartProduct.Count.ToString();
 
-            await _clientBot.EditMessageReplyMarkupAsync(_chatId, message.MessageId, replyMarkup: message.ReplyMarkup);
+            await _stateManager.EditMessageReplyMarkupAsync(message.MessageId, message.ReplyMarkup);
         }
 
-        private async Task ShowCartAsync(int page, Message message = null)
+        private async Task ShowCartAsync(int page)
         {
             if(Cart.IsEmpty())
             {
-                await _clientBot.SendTextMessageAsync(_chatId, CartText.CartEmpty);
+                await _stateManager.SendMessageAsync(CartText.CartEmpty);
                 return;
             }
 
             CartProduct cartProduct = Cart[page - 1];
             Product product = await _dataSource.Products
-                .AsNoTracking()
                 .FirstOrDefaultAsync(product => product.Id == cartProduct.Id);
 
             InlineKeyboardMarkup markup = GetCartMarkup(cartProduct, product);
 
-            string text = string.Format(CatalogText.ProductDetails,
+            string productSum = (product.Price * cartProduct.Count).ToString(TelegramHelper.PRICE_FORMAT);
+            string totalSum = Cart
+                .Sum(cp =>
+                {
+                    Product? product = _dataSource.Products
+                    .FirstOrDefault();
+
+                    if(product.IsNull())
+                    {
+                        return 0m;
+                    }
+
+                    return product.Price * cp.Count;
+                })
+                .ToString(TelegramHelper.PRICE_FORMAT);
+
+            string text = string.Format(CartText.CartProductDetails,
                 product.Name,
                 product.Description,
-                product.Price.ToString("#.## ₽"));
+                product.Price.ToString(TelegramHelper.PRICE_FORMAT),
+                cartProduct.Count,
+                productSum,
+                totalSum);
 
-            if (message.IsNull())
-            {
-                await _clientBot.SendTextMessageAsync(_chatId, CartText.Welcome);
-                await _clientBot.SendTextMessageAsync(_chatId, text, parseMode: ParseMode.Html, replyMarkup: markup);
-            }
-            else
-            {
-                await _clientBot.EditMessageTextAsync(_chatId, message.MessageId, text, parseMode: ParseMode.Html, replyMarkup: markup);
-            }
+            await _stateManager.SendMessageAsync(CartText.Welcome);
+            await _stateManager.SendMessageAsync(text, ParseMode.Html, markup, product.Photo);
         }
 
         private InlineKeyboardButton[] GetTakeOrderButton()
@@ -491,7 +501,6 @@ namespace MenuTgBot.Infrastructure.Conversations.Cart
             RemoveFromCart(productId);
 
             var product = await _dataSource.Products
-                .AsNoTracking()
                 .Select(product => new { product.Id, product.IsVisible, product.Price })
                 .FirstOrDefaultAsync(product => product.Id == productId && product.IsVisible);
 
@@ -508,8 +517,7 @@ namespace MenuTgBot.Infrastructure.Conversations.Cart
                     Cmd = Command.ProductNotAvaliable
                 });
 
-                await _clientBot.EditMessageReplyMarkupAsync(_chatId, message.MessageId, message.ReplyMarkup);
-                await _clientBot.SendTextMessageAsync(_chatId, CartText.ProductNotAvaliable);
+                await _stateManager.EditMessageReplyMarkupAsync(message.MessageId, message.ReplyMarkup);
                 return;
             }
 
@@ -520,7 +528,7 @@ namespace MenuTgBot.Infrastructure.Conversations.Cart
                 ProductId = productId
             });
 
-            await _clientBot.EditMessageReplyMarkupAsync(_chatId, message.MessageId, message.ReplyMarkup);
+            await _stateManager.EditMessageReplyMarkupAsync(message.MessageId, message.ReplyMarkup);
         }
 
         private async Task DeleteFromCartFromProductAsync(int productId, Message message)
@@ -528,13 +536,12 @@ namespace MenuTgBot.Infrastructure.Conversations.Cart
             RemoveFromCart(productId);
 
             var product = await _dataSource.Products
-                .AsNoTracking()
                 .Select(product => new { product.Id, product.IsVisible })
                 .FirstOrDefaultAsync(product => product.Id == productId && product.IsVisible);
 
             if (product.IsNull())
             {
-                await _clientBot.SendTextMessageAsync(_chatId, CatalogText.ProductNotFound);
+                await _stateManager.SendMessageAsync(CatalogText.ProductNotFound);
                 return;
             }
 
@@ -550,19 +557,18 @@ namespace MenuTgBot.Infrastructure.Conversations.Cart
                 ProductId = productId
             });
 
-            await _clientBot.EditMessageReplyMarkupAsync(_chatId, message.MessageId, message.ReplyMarkup);
+            await _stateManager.EditMessageReplyMarkupAsync(message.MessageId, message.ReplyMarkup);
         }
 
         private async Task AddToCartFromCategoryAsync(int productId, Message message)
         {
             var product = await _dataSource.Products
-                .AsNoTracking()
                 .Select(product => new { product.Id, product.IsVisible })
                 .FirstOrDefaultAsync(product => product.Id == productId && product.IsVisible);
 
             if (product.IsNull())
             {
-                await _clientBot.SendTextMessageAsync(_chatId, CatalogText.ProductNotFound);
+                await _stateManager.SendMessageAsync(CatalogText.ProductNotFound);
                 return;
             }
 
@@ -605,18 +611,17 @@ namespace MenuTgBot.Infrastructure.Conversations.Cart
                     },
                 };
 
-            await _clientBot.EditMessageReplyMarkupAsync(_chatId, message.MessageId, new InlineKeyboardMarkup(keyboard));
+            await _stateManager.EditMessageReplyMarkupAsync(message.MessageId, new InlineKeyboardMarkup(keyboard));
         }
 
         private async Task AddToCartFromProductAsync(int productId, Message message)
         {
             Product product = await _dataSource.Products
-                .AsNoTracking()
                 .FirstOrDefaultAsync(product => product.Id == productId && product.IsVisible);
 
             if (product.IsNull())
             {
-                await _clientBot.SendTextMessageAsync(_chatId, CatalogText.ProductNotFound);
+                await _stateManager.SendMessageAsync(CatalogText.ProductNotFound);
                 return;
             }
 
@@ -633,7 +638,7 @@ namespace MenuTgBot.Infrastructure.Conversations.Cart
                 ProductId = productId
             });
 
-            await _clientBot.EditMessageReplyMarkupAsync(_chatId, message.MessageId, message.ReplyMarkup);
+            await _stateManager.EditMessageReplyMarkupAsync(message.MessageId, message.ReplyMarkup);
         }
 
         private void RemoveFromCart(int productId)

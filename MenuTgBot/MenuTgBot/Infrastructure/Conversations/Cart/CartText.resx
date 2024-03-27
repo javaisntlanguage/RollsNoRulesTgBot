@@ -126,6 +126,15 @@
   <data name="CartEmpty" xml:space="preserve">
     <value>Ваша корзина пуста</value>
   </data>
+  <data name="CartProductDetails" xml:space="preserve">
+    <value>&lt;b&gt;{0}&lt;/b&gt;
+
+&lt;i&gt;{1}&lt;/i&gt;
+
+{2} * {3} = {4}
+
+Общая сумма корзины: {5}</value>
+  </data>
   <data name="DecreaseCount" xml:space="preserve">
     <value>-</value>
   </data>

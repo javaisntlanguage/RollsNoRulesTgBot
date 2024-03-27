@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
 
-namespace Robox.Telegram.Util.Core.StateMachine
+namespace Telegram.Util.Core.StateMachine
 {
     internal static class ReflectionExtensions
     {

@@ -9,6 +9,7 @@ using System.Web;
 using NLog;
 using Helper.Attributes;
 using Helper.Interfaces;
+using Newtonsoft.Json.Linq;
 
 namespace Helper
 {
@@ -828,6 +829,12 @@ namespace Helper
             return string.Join("&", items.ToArray());
         }
         #endregion NameValueCollection extensions
+        #region JObject extensions
+        public static T GetEnumValue<T>(this JObject obj, string key) where T : Enum, new()
+        {
+            return (T)Enum.Parse(typeof(T), obj[key].Value<string>());
+        }
+        #endregion JObject extensions
     }
 }
 

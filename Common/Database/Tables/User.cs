@@ -10,6 +10,6 @@ namespace Database.Tables
     public class User
     {
         public long Id { get; set; }
-        public virtual ICollection<Address> Addresses { get; set; }
+        public ICollection<Address> Addresses { get; set; }
     }
 }

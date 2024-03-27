@@ -70,6 +70,15 @@ namespace MenuTgBot.Infrastructure {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Заказы.
+        /// </summary>
+        internal static string CommandOrder {
+            get {
+                return ResourceManager.GetString("CommandOrder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Каталог.
         /// </summary>
         internal static string CommandShopCatalog {
@@ -84,6 +93,15 @@ namespace MenuTgBot.Infrastructure {
         internal static string CommandStart {
             get {
                 return ResourceManager.GetString("CommandStart", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Вернитесь к последнему сообщению.
+        /// </summary>
+        internal static string GoLastMessage {
+            get {
+                return ResourceManager.GetString("GoLastMessage", resourceCulture);
             }
         }
         

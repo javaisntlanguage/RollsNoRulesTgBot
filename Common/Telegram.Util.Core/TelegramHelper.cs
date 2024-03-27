@@ -1,10 +1,35 @@
-﻿using System.Net;
+﻿using Helper;
+using System.Net;
+using Telegram.Bot;
+using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types.ReplyMarkups;
 using WebDav;
+using static System.Net.Mime.MediaTypeNames;
 
-namespace Robox.Telegram.Util.Core
+namespace Telegram.Util.Core
 {
     public static class TelegramHelper
     {
+        public const string PRICE_FORMAT = "#.## ₽";
+        public static string GetPhotoFileId(this Message message)
+        {
+            if (message.Photo.IsNotNull())
+            {
+                return message.Photo.Last().FileId;
+            }
+
+            if (message.Document.IsNotNull() && Path.GetExtension(message.Document.FileName).ToLower().In(
+                "jpg",
+                "jpeg",
+                "ico",
+                "png",
+                "webp"))
+            {
+                return message.Document.FileId;
+            }
+            return null;
+        }
 
         public static string GetCurrencySymbol(string currency)
         {

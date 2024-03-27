@@ -29,6 +29,16 @@ namespace MenuTgBot.Infrastructure.Models
         IncreaseCount,
         TakeOrder,
         ProductCount,
-        AddToCartFromCart
+        AddToCartFromCart,
+        ChooseDeivetyType,
+        NewAddress,
+        SkipAddressAttribute,
+        AddNewAddress,
+        CancelAddNewAddress,
+        ChangeAddress,
+        ChangePhone,
+        ConfirmOrder,
+        ChooseDeliveryAddress,
+        ResendSms
     }
 }

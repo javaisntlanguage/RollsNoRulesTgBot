@@ -1,4 +1,4 @@
-﻿namespace Robox.Telegram.Util.Core.StateMachine.Reflection
+﻿namespace Telegram.Util.Core.StateMachine.Reflection
 {
     /// <summary>
     /// Represents a trigger in a statemachine.

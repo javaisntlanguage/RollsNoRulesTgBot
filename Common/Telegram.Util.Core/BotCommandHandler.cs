@@ -1,64 +1,38 @@
 ﻿using Telegram.Bot.Types;
-using Database;
+using Database.Enums;
+using Telegram.Util.Core.Enums;
+using Helper;
+using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 
-namespace Robox.Telegram.Util.Core
+namespace Telegram.Util.Core
 {
-    public class BotCommandHandler
+    public abstract class BotCommandHandler<TStateManager> where TStateManager : class
     {
-        public string Name { get; }
+        protected BotCommandHandler(string command, CommandDisplay displayMode)
+        {
+            Command = command;
+            DisplayMode = displayMode;
+        }
+
         public string Command { get; }
-        public IEnumerable<string> TriggerCommands { get; }
-        public string Description { get; }
-        public Type Conversation { get; }
-        public IEnumerable<RolesList> Roles { get; }
-        public Func<Message, Task> TriggerAction { get; set; }
         public CommandDisplay DisplayMode { get; set; }
 
-        public BotCommandHandler() { }
-
-        /// <summary>
-        /// Для создания тг команд
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="conversation">класс-обработчик</param>
-        /// <param name="description"></param>
-        /// <param name="displayMode">режим отображения команды</param>
-        /// <param name="triggerCommand">сообщения, вызывающие команду</param>
-        public BotCommandHandler(
-            string name,
-            Type conversation,
-            string? description = null,
-            CommandDisplay displayMode = CommandDisplay.None,
-            IEnumerable<string> triggerCommand = null,
-            IEnumerable<RolesList> roles = null)
+        public virtual async Task StartCommandAsync(object stateManager, Message message)
         {
-            Name = name;
-            Conversation = conversation;
-            Description = description;
-            Command = SetCommand();
-            TriggerCommands = triggerCommand ?? new List<string>();
-            DisplayMode = displayMode;
-            Roles = roles;
+            CheckStateManager(stateManager);
         }
 
-        public BotCommandHandler(string name, string description, Func<Message, Task> triggerAction)
+        private void CheckStateManager(object stateManager)
         {
-            Name = name;
-            Description = description;
-            TriggerAction = triggerAction;
-            Command = SetCommand();
+            if (stateManager is not TStateManager)
+            {
+                throw new Exception($"объект должен быть {typeof(TStateManager).FullName}");
+            }
         }
 
-        private string SetCommand()
+        protected string SetCommand()
         {
-            return "/" + Name.ToLower();
+            return "/" + Command.ToLower();
         }
-    }
-
-    public enum CommandDisplay
-    {
-        Menu,
-        ButtonMenu,
-        None,
     }
 }

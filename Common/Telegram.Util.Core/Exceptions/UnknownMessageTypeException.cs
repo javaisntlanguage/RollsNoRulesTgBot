@@ -1,6 +1,6 @@
 ﻿using Telegram.Bot.Types.Enums;
 
-namespace Robox.Telegram.Util.Core.Exceptions
+namespace Telegram.Util.Core.Exceptions
 {
     public class UnknownMessageTypeException : Exception
     {

@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
 	<WarningsAsErrors>CS4014</WarningsAsErrors>
 	<NoWarn>8600</NoWarn>
+	<UserSecretsId>8dd934b8-2d9e-4626-a47b-adcb7e1314d8</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,7 +14,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="8.0.0" />
@@ -22,6 +22,7 @@
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="NLog" Version="5.2.7" />
+    <PackageReference Include="RabbitMQ.Client" Version="6.8.1" />
     <PackageReference Include="System.Linq.Async" Version="6.0.1" />
     <PackageReference Include="Telegram.Bot" Version="19.0.0" />
   </ItemGroup>
@@ -29,6 +30,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Common\Database\Database.csproj" />
     <ProjectReference Include="..\..\Common\Helper\Helper.csproj" />
+    <ProjectReference Include="..\..\Common\MessageContracts\MessageContracts.csproj" />
+    <ProjectReference Include="..\..\Common\RabbitClient\RabbitClient.csproj" />
     <ProjectReference Include="..\..\Common\Telegram.Util.Core\Telegram.Util.Core.csproj" />
   </ItemGroup>
 
@@ -42,6 +45,11 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>CatalogText.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Infrastructure\Conversations\Orders\OrdersText.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>OrdersText.resx</DependentUpon>
     </Compile>
     <Compile Update="Infrastructure\Conversations\Start\StartText.Designer.cs">
       <DesignTime>True</DesignTime>
@@ -63,6 +71,10 @@
     <EmbeddedResource Update="Infrastructure\Conversations\Catalog\CatalogText.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>CatalogText.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Infrastructure\Conversations\Orders\OrdersText.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>OrdersText.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Update="Infrastructure\Conversations\Start\StartText.resx">
       <Generator>ResXFileCodeGenerator</Generator>

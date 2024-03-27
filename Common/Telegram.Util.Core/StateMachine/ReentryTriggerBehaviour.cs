@@ -1,4 +1,4 @@
-﻿namespace Robox.Telegram.Util.Core.StateMachine
+﻿namespace Telegram.Util.Core.StateMachine
 {
     public partial class StateMachine<TState, TTrigger>
     {

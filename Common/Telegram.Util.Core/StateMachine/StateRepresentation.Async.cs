@@ -1,4 +1,4 @@
-namespace Robox.Telegram.Util.Core.StateMachine
+namespace Telegram.Util.Core.StateMachine
 {
     public partial class StateMachine<TState, TTrigger>
     {
@@ -77,7 +77,7 @@ namespace Robox.Telegram.Util.Core.StateMachine
                 {
                     await ExecuteEntryActionsAsync(transition, entryArgs).ConfigureAwait(false);
                 }
-                else if (!Includes(transition.Source))
+                else //if (!Includes(transition.Source))
                 {
                     if (_superstate != null && !(transition is InitialTransition))
                         await _superstate.EnterAsync(transition, entryArgs).ConfigureAwait(false);

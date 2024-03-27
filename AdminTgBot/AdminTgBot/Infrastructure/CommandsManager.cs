@@ -45,7 +45,7 @@ namespace AdminTgBot.Infrastructure
         {
             if (!_stateManagers.ContainsKey(userId))
             {
-                _stateManagers[userId] = await StateManager.Create(_botClient, _connectionString, this, userId, chatId);
+                _stateManagers[userId] = await StateManager.CreateAsync(_botClient, _connectionString, this, userId, chatId);
             }
         }
 

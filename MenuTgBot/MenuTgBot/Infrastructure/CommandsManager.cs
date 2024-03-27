@@ -47,7 +47,7 @@ namespace MenuTgBot.Infrastructure
         {
             if (!_stateManagers.ContainsKey(chatId))
             {
-                _stateManagers[chatId] = await StateManager.Create(_botClient, _connectionString, this, chatId);
+                _stateManagers[chatId] = await StateManager.CreateAsync(_botClient, _connectionString, this, chatId);
             }
         }
 

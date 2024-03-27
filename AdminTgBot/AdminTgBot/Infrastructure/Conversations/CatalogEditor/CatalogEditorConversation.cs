@@ -161,7 +161,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
                             case Command.AddProduct:
                                 {
                                     int categoryId = data["CategoryId"].Value<int>();
-                                    await EnterNewProductName(categoryId);
+                                    await EnterNewProductNameAsync(categoryId);
                                     return Trigger.EnterProductName;
                                 }
                         }
@@ -277,7 +277,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
                         else
                         {
                             string fileId = message.GetPhotoFileId();
-                            Product.Photo = await _stateManager.GetFile(fileId);
+                            Product.Photo = await _stateManager.GetFileAsync(fileId);
                             result = Trigger.Ignore;
                         }
                         break;
@@ -326,7 +326,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
             return result;
         }
 
-        private async Task EnterNewProductName(int categoryId)
+        private async Task EnterNewProductNameAsync(int categoryId)
         {
             CategoryId = categoryId;
             string text = string.Format(CatalogEditorText.EnterProductAttribute, CatalogEditorText.ProductName);
@@ -388,34 +388,6 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
             await SuggestEditProductAsync(ProductId.Value, productAttribute);
         }
 
-        // удалить?
-        private async Task<bool> ValidateUrlAsync(string text)
-        {
-            if (Uri.TryCreate(text, UriKind.Absolute, out Uri uri))
-            {
-                WebClient webClient = new WebClient();
-
-                try
-                {
-                    if (uri.IdnHost != uri.Host) text = text.Replace(uri.Host, uri.IdnHost);
-
-                    byte[] bytes = webClient.DownloadData(text);
-                    await using MemoryStream ms = new MemoryStream(bytes);
-
-                    Image bitMap = Image.FromStream(ms);
-
-                    return true;
-                }
-                catch (Exception ex)
-                {
-                    StateManager.Logger.Error(ex);
-                    await _stateManager.SendMessageAsync(CatalogEditorText.PhotoLoadFail);
-                }
-            }
-
-            return false;
-        }
-
         private async Task EditPhotoAsync(Message message)
         {
             string fileId = message.GetPhotoFileId();
@@ -426,7 +398,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
                 return;
             }
 
-            AttributeValue = await _stateManager.GetFile(fileId);
+            AttributeValue = await _stateManager.GetFileAsync(fileId);
 
             InlineKeyboardButton[] yesNo = GetYesNoChangeAttributeButtons(ProductAttribute.Photo);
             InlineKeyboardMarkup markup = new InlineKeyboardMarkup(yesNo);

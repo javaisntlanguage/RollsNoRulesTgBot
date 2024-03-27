@@ -42,10 +42,10 @@ namespace AdminTgBot
         
         public void Start()
         {
-            TelegramClient.StartReceiving(UpdateHandler, ErrorHandler, _receiverOptions, _cancellationTokenSource.Token);
+            TelegramClient.StartReceiving(UpdateHandlerAsync, ErrorHandler, _receiverOptions, _cancellationTokenSource.Token);
         }
 
-        private async Task UpdateHandler(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
+        private async Task UpdateHandlerAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
             long chatId = update.Message?.Chat.Id ?? update.CallbackQuery.Message.Chat.Id;
             try

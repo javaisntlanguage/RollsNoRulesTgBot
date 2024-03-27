@@ -132,7 +132,7 @@ namespace MenuTgBot.Infrastructure.Conversations.Catalog
         private async Task ShowProductDetailsAsync(Product product)
         {
             InlineKeyboardButton[] cartActions = GetCartButtons(product.Id);
-            InlineKeyboardButton[] pagination = await GetPagination(product.Id);
+            InlineKeyboardButton[] pagination = GetPagination(product.Id);
             InlineKeyboardButton[] returnToCatalog = GetReturnToCatalogButton();
 
 
@@ -184,7 +184,7 @@ namespace MenuTgBot.Infrastructure.Conversations.Catalog
         /// </summary>
         /// <param name="productId"></param>
         /// <returns></returns>
-        private async Task<InlineKeyboardButton[]> GetPagination(int productId)
+        private InlineKeyboardButton[] GetPagination(int productId)
         {
 
             IQueryable<int> categoryProducts = _dataSource.ProductCategories

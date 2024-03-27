@@ -289,7 +289,7 @@ namespace AdminTgBot.Infrastructure
             return result;
         }
 
-        public async Task<string> GetFile(string fileId)
+        public async Task<string> GetFileAsync(string fileId)
         {
             await using MemoryStream stream = new MemoryStream();
             await _botClient.GetInfoAndDownloadFileAsync(fileId, stream);
@@ -300,7 +300,7 @@ namespace AdminTgBot.Infrastructure
             return result;
         }
 
-        public static async Task<StateManager> Create(ITelegramBotClient botClient, 
+        public static async Task<StateManager> CreateAsync(ITelegramBotClient botClient, 
             string connectionString, CommandsManager commandsManager,long userId, long chatId)
         {
             ApplicationContext dataSource = new ApplicationContext(connectionString);

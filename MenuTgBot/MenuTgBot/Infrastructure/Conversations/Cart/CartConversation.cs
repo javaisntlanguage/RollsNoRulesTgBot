@@ -63,13 +63,6 @@ namespace MenuTgBot.Infrastructure.Conversations.Cart
                     {
                         switch (command)
                         {
-                            //удалить?
-                            case Command.AddToCartFromProduct:
-                                {
-                                    int productId = data["ProductId"].Value<int>();
-                                    await AddToCartFromProductAsync(productId, query.Message);
-                                    return Trigger.Ignore;
-                                }
                             case Command.AddToCartFromCategory:
                                 {
                                     int productId = data["ProductId"].Value<int>();
@@ -583,60 +576,6 @@ namespace MenuTgBot.Infrastructure.Conversations.Cart
             });
 
             await _stateManager.EditMessageReplyMarkupAsync(message.MessageId, message.ReplyMarkup);
-        }
-
-        private async Task AddToCartFromCategoryAsync(int productId, Message message)
-        {
-            var product = await _dataSource.Products
-                .Select(product => new { product.Id, product.IsVisible })
-                .FirstOrDefaultAsync(product => product.Id == productId && product.IsVisible);
-
-            if (product.IsNull())
-            {
-                await _stateManager.SendMessageAsync(CatalogText.ProductNotFound);
-                return;
-            }
-
-            CartProduct cartProduct = AddToCart(productId);
-
-            List<IEnumerable<InlineKeyboardButton>> keyboard = message.ReplyMarkup.InlineKeyboard
-                .ToList();
-
-            var buttonsLine = keyboard
-                .Select((line, i) => new { line, i })
-                .First(line => line.line
-                    .Any(button => button.CallbackData.Contains($"\"Cmd\":{(int)Command.AddToCartFromCategory}") &&
-                                   button.CallbackData.Contains($"\"ProductId\":{product.Id.ToString()}")));
-
-            keyboard[buttonsLine.i] = new InlineKeyboardButton[]
-                {
-                    keyboard[buttonsLine.i].First(),
-                    new InlineKeyboardButton(CartText.DecreaseCount)
-                    {
-                        CallbackData = JsonConvert.SerializeObject(new
-                        {
-                            Cmd = Command.DeleteFromCartFromCategory,
-                            ProductId = productId
-                        })
-                    },
-                    new InlineKeyboardButton(cartProduct.Count.ToString())
-                    {
-                        CallbackData = JsonConvert.SerializeObject(new
-                        {
-                            Cmd = Command.Ignore,
-                        })
-                    },
-                    new InlineKeyboardButton(CartText.IncreaseCount)
-                    {
-                        CallbackData = JsonConvert.SerializeObject(new
-                        {
-                            Cmd = Command.AddToCartFromCategory,
-                            ProductId = productId
-                        })
-                    },
-                };
-
-            await _stateManager.EditMessageReplyMarkupAsync(message.MessageId, new InlineKeyboardMarkup(keyboard));
         }
 
         private async Task AddToCartFromProductAsync(int productId, Message message)

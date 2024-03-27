@@ -316,7 +316,7 @@ namespace MenuTgBot.Infrastructure
             await _machine.FireAsync(Trigger.CommandOrdersStarted);
         }
 
-        public static async Task<StateManager> Create(ITelegramBotClient botClient,
+        public static async Task<StateManager> CreateAsync(ITelegramBotClient botClient,
             string connectionString, CommandsManager commandsManager, long chatId)
         {
             ApplicationContext dataSource = new ApplicationContext(connectionString);

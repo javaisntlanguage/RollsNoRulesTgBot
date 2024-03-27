@@ -41,17 +41,17 @@ namespace AdminTgBot.Infrastructure.Conversations.Start
             {
                 case State.CommandStart:
                     {
-                        await GetLogin();
+                        await GetLoginAsync();
                         return Trigger.EnterLogin;
                     }
                 case State.StartLogin:
                     {
-                        await GetPassowrd(message.Text);
+                        await GetPassowrdAsync(message.Text);
                         return Trigger.EnterPassword;
                     }
                 case State.StartPassword:
                     {
-                        await Auth(message.Text);
+                        await AuthAsync(message.Text);
                         return Trigger.EndOfConversation;
                     }
             }
@@ -64,7 +64,7 @@ namespace AdminTgBot.Infrastructure.Conversations.Start
             return null;
         }
 
-        private async Task Auth(string password)
+        private async Task AuthAsync(string password)
         {
             string passwordHash = DBHelper.GetPasswordHash(password);
             AdminCredential admin = await _dataSource.AdminCredentials.FirstOrDefaultAsync(ac => ac.Login == Login && ac.PasswordHash == passwordHash);
@@ -81,12 +81,12 @@ namespace AdminTgBot.Infrastructure.Conversations.Start
             }
         }
 
-        private async Task GetPassowrd(string login)
+        private async Task GetPassowrdAsync(string login)
         {
             Login = login;
             await _clientBot.SendTextMessageAsync(_chatId, StartText.EnterPassword);
         }
-        private async Task GetLogin()
+        private async Task GetLoginAsync()
         {
             _stateManager.IsAuth = false;
             await _clientBot.SendTextMessageAsync(_chatId, StartText.EnterLogin);

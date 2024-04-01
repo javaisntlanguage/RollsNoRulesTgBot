@@ -18,20 +18,21 @@ using Database.Enums;
 using Telegram.Util.Core;
 using Telegram.Util.Core.Enums;
 using MenuTgBot.Infrastructure.Commands;
+using Microsoft.EntityFrameworkCore.Internal;
 
 namespace MenuTgBot.Infrastructure
 {
     internal class CommandsManager
     {
         private readonly ITelegramBotClient _botClient;
-        private readonly string _connectionString;
+        private readonly IDbContextFactory<ApplicationContext> _contextFactory;
         private readonly Dictionary<long, StateManager> _stateManagers;
         public MenuBotCommandHandler[] Commands { get; private set; }
 
-        public CommandsManager(ITelegramBotClient client, string connectionString)
+        public CommandsManager(ITelegramBotClient client, IDbContextFactory<ApplicationContext> contextFactory)
         {
             _botClient = client;
-            _connectionString = connectionString;
+            _contextFactory = contextFactory;
             _stateManagers = new Dictionary<long, StateManager>();
             Commands = GetComands();
         }
@@ -47,7 +48,7 @@ namespace MenuTgBot.Infrastructure
         {
             if (!_stateManagers.ContainsKey(chatId))
             {
-                _stateManagers[chatId] = await StateManager.CreateAsync(_botClient, _connectionString, this, chatId);
+                _stateManagers[chatId] = await StateManager.CreateAsync(_botClient, _contextFactory, this, chatId);
             }
         }
 

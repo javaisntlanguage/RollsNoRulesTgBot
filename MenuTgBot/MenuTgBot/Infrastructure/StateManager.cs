@@ -23,14 +23,16 @@ using Database.Enums;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 using Telegram.Util.Core.Exceptions;
+using Microsoft.EntityFrameworkCore.Internal;
 
 namespace MenuTgBot.Infrastructure
 {
     internal class StateManager
     {
+        private int MAX_MESSAGE_LENGTH = 4096;
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
         private readonly ITelegramBotClient _botClient;
-        private readonly ApplicationContext _dataSource;
+        private readonly IDbContextFactory<ApplicationContext> _contextFactory;
         private readonly StateMachine<State, Trigger> _machine;
         private Dictionary<string, IConversation> _handlers;
         private CommandsManager _commandsManager;
@@ -43,7 +45,7 @@ namespace MenuTgBot.Infrastructure
         public HashSet<RolesList> Roles { get; set; }
 
 
-        private StateManager(ITelegramBotClient botClient, ApplicationContext dataSource, CommandsManager commandsManager, long chatId)
+        private StateManager(ITelegramBotClient botClient, IDbContextFactory<ApplicationContext> contextFactory, CommandsManager commandsManager, long chatId)
         {
             ChatId = chatId;
 
@@ -56,7 +58,7 @@ namespace MenuTgBot.Infrastructure
                 });
             _handlers = new Dictionary<string, IConversation>();
             _botClient = botClient;
-            _dataSource = dataSource;
+            _contextFactory = contextFactory;
             ConfigureMachine();
             ConfigureHandlers();
         }
@@ -67,10 +69,10 @@ namespace MenuTgBot.Infrastructure
         /// </summary>
         private void ConfigureHandlers()
         {
-            SetHandler(new StartConversation(_dataSource, this));
-            SetHandler(new CatalogConversation(_dataSource, this));
-            SetHandler(new CartConversation(_dataSource, this));
-            SetHandler(new OrdersConversation(_dataSource, this));
+            SetHandler(new StartConversation(this));
+            SetHandler(new CatalogConversation(this));
+            SetHandler(new CartConversation(this));
+            SetHandler(new OrdersConversation(this));
         }
 
         /// <summary>
@@ -186,7 +188,7 @@ namespace MenuTgBot.Infrastructure
         /// сохранить состояние пользователя
         /// </summary>
         /// <returns></returns>
-        private async Task SaveStateAsync()
+        private async Task SaveStateAsync(ApplicationContext dataSource)
         {
             string data = JsonConvert.SerializeObject(new
             {
@@ -194,7 +196,7 @@ namespace MenuTgBot.Infrastructure
                 Orders = GetHandler<OrdersConversation>()
             });
 
-            await _dataSource.UserStates_Set(ChatId, (int)CurrentState, data, _lastMessageId);
+            await dataSource.UserStates_Set(ChatId, (int)CurrentState, data, _lastMessageId);
         }
 
         /// <summary>
@@ -202,9 +204,9 @@ namespace MenuTgBot.Infrastructure
         /// </summary>
         /// <param name="userState"></param>
         /// <returns></returns>
-        private async Task StateRecoveryAsync()
+        private async Task StateRecoveryAsync(ApplicationContext dataSource)
         {
-            UserState userState = await _dataSource.UserStates
+            UserState userState = await dataSource.UserStates
                     .FirstOrDefaultAsync(us => us.UserId == ChatId);
 
             if (userState.IsNull())
@@ -214,7 +216,7 @@ namespace MenuTgBot.Infrastructure
             }
             else
             {
-                Roles = _dataSource
+                Roles = dataSource
                     .GetUserRoles(ChatId)
                     .ToHashSet();
 
@@ -232,7 +234,7 @@ namespace MenuTgBot.Infrastructure
                 try
                 {
                     UserConversations conversations = JsonConvert.DeserializeObject<UserConversations>(data);
-                    _handlers = conversations.GetHandlers(_dataSource, this);
+                    _handlers = conversations.GetHandlers(this);
                 }
                 catch (Exception ex)
                 {
@@ -319,12 +321,12 @@ namespace MenuTgBot.Infrastructure
         }
 
         public static async Task<StateManager> CreateAsync(ITelegramBotClient botClient,
-            string connectionString, CommandsManager commandsManager, long chatId)
+            IDbContextFactory<ApplicationContext> contextFactory, CommandsManager commandsManager, long chatId)
         {
-            ApplicationContext dataSource = new ApplicationContext(connectionString);
+            await using ApplicationContext dataSource = await contextFactory.CreateDbContextAsync();
+            StateManager stateManager = new StateManager(botClient, contextFactory, commandsManager, chatId);
 
-            StateManager stateManager = new StateManager(botClient, dataSource, commandsManager, chatId);
-            await stateManager.StateRecoveryAsync();
+            await stateManager.StateRecoveryAsync(dataSource);
 
             return stateManager;
         }
@@ -349,11 +351,13 @@ namespace MenuTgBot.Infrastructure
             _message = message;
             _query = null!;
 
+            await using ApplicationContext dataSource = await _contextFactory.CreateDbContextAsync();
+
             bool result = await _handlers.Values
                 .ToAsyncEnumerable()
-                .AnyAwaitAsync(async x => await CallTriggerAsync(await x.TryNextStepAsync(message)));
+                .AnyAwaitAsync(async x => await CallTriggerAsync(await x.TryNextStepAsync(dataSource, message)));
 
-            await SaveStateAsync();
+            await SaveStateAsync(dataSource);
             return result;
         }
 
@@ -372,11 +376,13 @@ namespace MenuTgBot.Infrastructure
                 throw new NotLastMessageException();
             }
 
+            await using ApplicationContext dataSource = await _contextFactory.CreateDbContextAsync();
+
             bool result = await _handlers.Values
                 .ToAsyncEnumerable()
-                .AnyAwaitAsync(async x => await CallTriggerAsync(await x.TryNextStepAsync(query)));
+                .AnyAwaitAsync(async x => await CallTriggerAsync(await x.TryNextStepAsync(dataSource, query)));
 
-            await SaveStateAsync();
+            await SaveStateAsync(dataSource);
             return result;
         }
 
@@ -396,6 +402,14 @@ namespace MenuTgBot.Infrastructure
         public async Task<Message> SendMessageAsync(string text, ParseMode? parseMode = null, IReplyMarkup? replyMarkup = null, string photo = null)
         {
             Message result = null;
+
+            if(text.Length > MAX_MESSAGE_LENGTH)
+            {
+                string textFirstPart = text.Substring(0,MAX_MESSAGE_LENGTH);
+                await _botClient.SendTextMessageAsync(ChatId, textFirstPart, parseMode: parseMode);
+                text = text.Substring(MAX_MESSAGE_LENGTH);
+            }
+
             if (photo.IsNullOrEmpty())
             {
                 result = await _botClient.SendTextMessageAsync(ChatId, text, parseMode: parseMode, replyMarkup: replyMarkup);

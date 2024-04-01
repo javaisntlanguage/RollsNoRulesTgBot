@@ -20,15 +20,15 @@ namespace MenuTgBot.Infrastructure.Models
         public CartConversation Cart { get; set; }
         public OrdersConversation Orders { get; set; }
 
-        public Dictionary<string, IConversation> GetHandlers(ApplicationContext dataSource, StateManager statesManager)
+        public Dictionary<string, IConversation> GetHandlers(StateManager statesManager)
         {
             Dictionary<string, IConversation> result = new Dictionary<string, IConversation>
             {
-                { nameof(StartConversation), new StartConversation(dataSource, statesManager) },
-                { nameof(CatalogConversation), new CatalogConversation(dataSource, statesManager) },
+                { nameof(StartConversation), new StartConversation(statesManager) },
+                { nameof(CatalogConversation), new CatalogConversation(statesManager) },
             };
 
-            CartConversation cartConversation = new CartConversation(dataSource, statesManager);
+            CartConversation cartConversation = new CartConversation(statesManager);
             
             if (Cart.IsNotNull())
             {
@@ -37,7 +37,7 @@ namespace MenuTgBot.Infrastructure.Models
 
             result.Add(nameof(CartConversation), cartConversation);
 
-            OrdersConversation ordersConversation = new OrdersConversation(dataSource, statesManager);
+            OrdersConversation ordersConversation = new OrdersConversation(statesManager);
 
             if(Orders.IsNotNull())
             {

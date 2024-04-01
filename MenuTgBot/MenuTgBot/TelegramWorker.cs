@@ -30,6 +30,7 @@ namespace MenuTgBot
         };
         private readonly Logger _logger;
         private readonly CancellationTokenSource _cancellationTokenSource;
+        private readonly ContextFactory _contextFactory;
         private readonly CommandsManager _commandsManager;
 
         public TelegramWorker(TelegramBotClient telegramClient, string connectionString, Logger logger, CancellationTokenSource cancellationTokenSource)
@@ -37,7 +38,8 @@ namespace MenuTgBot
             TelegramClient = telegramClient;
             _logger = logger;
             _cancellationTokenSource = cancellationTokenSource;
-            _commandsManager = new CommandsManager(TelegramClient, connectionString);
+            _contextFactory = new ContextFactory(connectionString);
+            _commandsManager = new CommandsManager(TelegramClient, _contextFactory);
         }
 
         public TelegramBotClient TelegramClient { get; }

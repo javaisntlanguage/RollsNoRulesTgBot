@@ -21,7 +21,6 @@ namespace Database
 {
     public class ApplicationContext : DbContext
     {
-        private readonly string _connectionString;
         public DbSet<User> Users { get; set; }
         public DbSet<UserState> UserStates { get; set; }
         public DbSet<Address> Addresses { get; set; }
@@ -36,16 +35,14 @@ namespace Database
         public DbSet<AdminState> AdminStates { get; set; }
         public DbSet<SellLocation> SellLocations { get; set; }
 
-        public ApplicationContext(string connectionString)
+        public ApplicationContext(DbContextOptions<ApplicationContext> options) : base(options)
         {
-            _connectionString = connectionString;
-            ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
         }
 
-        public ApplicationContext()
+        public ApplicationContext() : base()
         {
-            _connectionString = "Server=localhost;Database=RollsNoRules;User=sa;Password=Qwerty123456;MultipleActiveResultSets=False;Encrypt=False;TrustServerCertificate=False;Connection Timeout=10;";
-            ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
+            /*_connectionString = "Server=localhost;Database=RollsNoRules;User=sa;Password=Qwerty123456;MultipleActiveResultSets=False;Encrypt=False;TrustServerCertificate=False;Connection Timeout=10;";
+            ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;*/
         }
 
         public void User_Add(long id)
@@ -58,7 +55,6 @@ namespace Database
         public async Task SetAdminState(long userId, int stateId, string data, int? lastMessageId)
         {
             AdminState state = await AdminStates
-                .AsTracking()
                 .FirstOrDefaultAsync(adminState =>  adminState.UserId == userId);
 
             if(state.IsNull())
@@ -84,7 +80,6 @@ namespace Database
         public async Task UserStates_Set(long userId, int stateId, string data, int? lastMessageId)
         {
             UserState state = await UserStates
-                .AsTracking()
                 .FirstOrDefaultAsync(state => state.UserId == userId);
 
             if (state.IsNull())
@@ -156,11 +151,6 @@ namespace Database
         protected override void OnModelCreating(ModelBuilder builder)
         {
             SetDecimal(builder);
-        }
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            optionsBuilder.UseSqlServer(_connectionString);
         }
 
         private void SetDecimal(ModelBuilder builder)

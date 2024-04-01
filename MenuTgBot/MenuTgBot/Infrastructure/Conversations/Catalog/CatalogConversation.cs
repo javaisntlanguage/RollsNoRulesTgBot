@@ -24,18 +24,18 @@ namespace MenuTgBot.Infrastructure.Conversations.Catalog
     internal class CatalogConversation : IConversation
     {
         private readonly long _chatId;
-        private readonly ApplicationContext _dataSource;
         private readonly StateManager _stateManager;
+        private ApplicationContext _dataSource;
 
-        public CatalogConversation(ApplicationContext dataSource, StateManager statesManager)
+        public CatalogConversation(StateManager statesManager)
         {
-            _dataSource = dataSource;
             _stateManager = statesManager;
             _chatId = _stateManager.ChatId;
         }
 
-        public async Task<Trigger?> TryNextStepAsync(Message message)
+        public async Task<Trigger?> TryNextStepAsync(ApplicationContext dataSource, Message message)
         {
+            _dataSource = dataSource;
             switch (_stateManager.CurrentState)
             {
                 case State.CommandShopCatalog:
@@ -48,8 +48,9 @@ namespace MenuTgBot.Infrastructure.Conversations.Catalog
             return null;
         }
 
-        public async Task<Trigger?> TryNextStepAsync(CallbackQuery query)
+        public async Task<Trigger?> TryNextStepAsync(ApplicationContext dataSource, CallbackQuery query)
         {
+            _dataSource = dataSource;
             JObject data = JObject.Parse(query.Data);
             Command command = (Command)data["Cmd"].Value<int>();
 

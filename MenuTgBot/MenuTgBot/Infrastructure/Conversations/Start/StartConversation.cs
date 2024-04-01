@@ -15,19 +15,20 @@ namespace MenuTgBot.Infrastructure.Conversations.Start
     internal class StartConversation : IConversation
     {
         private readonly long _chatId;
-        private readonly ApplicationContext _dataSource;
         private readonly StateManager _stateManager;
+        private ApplicationContext _dataSource;
 
-        public StartConversation(ApplicationContext dataSource, StateManager statesManager)
+        public StartConversation(StateManager statesManager)
         {
-            _dataSource = dataSource;
             _stateManager = statesManager;
             _chatId = _stateManager.ChatId;
         }
 
 
-        public async Task<Trigger?> TryNextStepAsync(Message message)
+        public async Task<Trigger?> TryNextStepAsync(ApplicationContext dataSource, Message message)
         {
+            _dataSource = dataSource;
+
             switch (_stateManager.CurrentState)
             {
                 case State.CommandStart:
@@ -41,7 +42,7 @@ namespace MenuTgBot.Infrastructure.Conversations.Start
             return null;
         }
 
-        public async Task<Trigger?> TryNextStepAsync(CallbackQuery query)
+        public async Task<Trigger?> TryNextStepAsync(ApplicationContext dataSource, CallbackQuery query)
         {
             return null;
         }

@@ -23,23 +23,23 @@ namespace MenuTgBot.Infrastructure.Conversations.Cart
     internal class CartConversation : IConversation
     {
         private readonly long _chatId;
-        private readonly ApplicationContext _dataSource;
         private readonly StateManager _stateManager;
+        private ApplicationContext _dataSource;
 
         public List<CartProduct> Cart {  get; set; }
 
         public CartConversation() { }
-        public CartConversation(ApplicationContext dataSource, StateManager statesManager)
+        public CartConversation(StateManager statesManager)
         {
-            _dataSource = dataSource;
             _stateManager = statesManager;
             _chatId = _stateManager.ChatId;
 
             Cart = new List<CartProduct>();
         }
 
-        public async Task<Trigger?> TryNextStepAsync(Message message)
+        public async Task<Trigger?> TryNextStepAsync(ApplicationContext dataSource, Message message)
         {
+            _dataSource = dataSource;
             switch (_stateManager.CurrentState)
             {
                 case State.CommandCart:
@@ -52,8 +52,9 @@ namespace MenuTgBot.Infrastructure.Conversations.Cart
             return null;
         }
 
-        public async Task<Trigger?> TryNextStepAsync(CallbackQuery query)
+        public async Task<Trigger?> TryNextStepAsync(ApplicationContext dataSource, CallbackQuery query)
         {
+            _dataSource = dataSource;
             JObject data = JObject.Parse(query.Data);
             Command command = (Command)data["Cmd"].Value<int>();
 

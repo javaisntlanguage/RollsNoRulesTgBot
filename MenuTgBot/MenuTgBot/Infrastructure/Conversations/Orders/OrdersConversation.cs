@@ -26,10 +26,10 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
     {
         private const int SMS_RESEND_TIMER = 10;
         private const int SMS_LENGTH = 4;
-        private readonly ApplicationContext _dataSource;
         private readonly StateManager _stateManager;
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
         private static readonly RabbitEventHandler _rabbitEventHandler = new RabbitEventHandler(_logger);
+        private ApplicationContext _dataSource;
 
         public DeliveryType? OrderDeliveryType { get; set; }
         public Address OrderAddress { get; set; }
@@ -40,15 +40,16 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
 
         public OrdersConversation() { }
 
-        public OrdersConversation(ApplicationContext dataSource, StateManager statesManager)
+        public OrdersConversation(StateManager statesManager)
         {
-            _dataSource = dataSource;
             _stateManager = statesManager;
         }
 
-        public async Task<Trigger?> TryNextStepAsync(Message message)
+        public async Task<Trigger?> TryNextStepAsync(ApplicationContext dataSource, Message message)
         {
-            switch(_stateManager.CurrentState)
+            _dataSource = dataSource;
+
+            switch (_stateManager.CurrentState)
             {
                 case State.OrderNewAddressCityEditor:
                     {
@@ -87,8 +88,9 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
             return null;
         }
 
-        public async Task<Trigger?> TryNextStepAsync(CallbackQuery query)
+        public async Task<Trigger?> TryNextStepAsync(ApplicationContext dataSource, CallbackQuery query)
         {
+            _dataSource = dataSource;
             JObject data = JObject.Parse(query.Data);
             Command command = (Command)data["Cmd"].Value<int>();
 
@@ -124,6 +126,13 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
                                 }
                             case Command.AddressBack:
                                 {
+                                    await ShowDeliverySettingsAsync();
+                                    return Trigger.Ignore;
+                                }
+                            case Command.ChooseDeliveryAddress:
+                                {
+                                    long addressId = data["AddressId"].Value<long>();
+                                    OrderAddressId = addressId;
                                     await ShowDeliverySettingsAsync();
                                     return Trigger.Ignore;
                                 }
@@ -394,8 +403,11 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
             string errorReason = string.Empty;
             AddressAttribute? nextAddressAttribute = null;
 
-            OrderAddress = new Address();
-            OrderAddress.UserId = _stateManager.ChatId;
+            if (OrderAddress.IsNull())
+            {
+                OrderAddress = new Address();
+                OrderAddress.UserId = _stateManager.ChatId;
+            }
 
             switch (addressAttribute)
             {

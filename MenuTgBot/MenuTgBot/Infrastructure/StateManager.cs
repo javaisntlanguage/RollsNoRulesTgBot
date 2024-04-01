@@ -138,7 +138,7 @@ namespace MenuTgBot.Infrastructure
             .Permit(Trigger.EnterAddressBuilding, State.OrderNewAddressBuildingEditor)
             .Permit(Trigger.EnterAddressFlat, State.OrderNewAddressFlatEditor)
             .Permit(Trigger.EnterAddressComment, State.OrderNewAddressCommentEditor)
-            .Permit(Trigger.AddressAdded, State.OrderPhone)
+            .Permit(Trigger.AddressAddedNextPhone, State.OrderPhone)
             .Permit(Trigger.EmptyPhone, State.OrderPhone)
             .Permit(Trigger.ChangePhone, State.OrderPhone);
 
@@ -158,11 +158,13 @@ namespace MenuTgBot.Infrastructure
             .SubstateOf(State.CommandOrders);
 
             _machine.Configure(State.OrderNewAddressCommentEditor)
-            .SubstateOf(State.CommandOrders);
+            .SubstateOf(State.CommandOrders)
+            .Permit(Trigger.AddressAddedReturnToDeliverySettings, State.CommandOrders)
+            .Permit(Trigger.CancelAddNewAddress, State.CommandOrders);
 
             _machine.Configure(State.OrderPhone)
             .SubstateOf(State.CommandOrders)
-            .OnEntryFromAsync(Trigger.AddressAdded, NextStateQueryAsync)
+            .OnEntryFromAsync(Trigger.AddressAddedNextPhone, NextStateQueryAsync)
             .OnEntryFromAsync(Trigger.EmptyPhone, NextStateQueryAsync)
             .Permit(Trigger.SendedSms, State.SmsPhone)
             .Permit(Trigger.BackFromPhone, State.CommandOrders);
@@ -448,12 +450,14 @@ namespace MenuTgBot.Infrastructure
         EnterAddressFlat,
         EnterAddressComment,
         EnterAddressBuilding,
-        AddressAdded,
+        AddressAddedNextPhone,
         EmptyPhone,
         BackFromPhone,
         ChangePhone,
         SendedSms,
         EnteredSms,
+        AddressAddedReturnToDeliverySettings,
+        CancelAddNewAddress,
     }
 
     public enum State

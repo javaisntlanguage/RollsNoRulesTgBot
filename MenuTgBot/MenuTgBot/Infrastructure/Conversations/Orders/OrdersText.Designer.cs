@@ -115,7 +115,9 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Выберите адрес доставки.
+        ///   Looks up a localized string similar to Выберите адрес доставки
+        ///
+        ///{0}.
         /// </summary>
         internal static string ChooseAddress {
             get {

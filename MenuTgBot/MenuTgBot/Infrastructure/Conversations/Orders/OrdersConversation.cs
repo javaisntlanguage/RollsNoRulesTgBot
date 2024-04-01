@@ -33,6 +33,7 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
 
         public DeliveryType? OrderDeliveryType { get; set; }
         public Address OrderAddress { get; set; }
+        public long? OrderAddressId { get; set; }
         public string Phone { get; set; }
         public string PreaparedPhone { get; set; }
         public string SmsCode { get; set; }
@@ -121,6 +122,11 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
                                     await RequestPhoneAsync();
                                     return Trigger.ChangePhone;
                                 }
+                            case Command.AddressBack:
+                                {
+                                    await ShowDeliverySettingsAsync();
+                                    return Trigger.Ignore;
+                                }
                         }
                         break;
                     }
@@ -130,6 +136,7 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
                         {
                             case Command.SkipAddressAttribute:
                                 {
+                                    OrderAddress.HouseNumber = null;
                                     await SuggestEditDeliveryAddressAsync(AddressAttribute.Building);
                                     return Trigger.EnterAddressBuilding;
                                 }
@@ -142,6 +149,7 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
                         {
                             case Command.SkipAddressAttribute:
                                 {
+                                    OrderAddress.Building = null;
                                     await SuggestEditDeliveryAddressAsync(AddressAttribute.Flat);
                                     return Trigger.EnterAddressFlat;
                                 }
@@ -154,6 +162,7 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
                         {
                             case Command.SkipAddressAttribute:
                                 {
+                                    OrderAddress.Flat = null;
                                     await SuggestEditDeliveryAddressAsync(AddressAttribute.Comment);
                                     return Trigger.EnterAddressComment;
                                 }
@@ -166,18 +175,19 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
                         {
                             case Command.SkipAddressAttribute:
                                 {
+                                    OrderAddress.Comment = null;
                                     await ShowNewAddressAsync();
                                     return Trigger.Ignore;
                                 }
                             case Command.CancelAddNewAddress:
                                 {
+                                    OrderAddress = null;
                                     await SuggestChooseAddressAsync();
-                                    return Trigger.Ignore;
+                                    return Trigger.CancelAddNewAddress;
                                 }
                             case Command.AddNewAddress:
                                 {
-                                    await AddNewAddressAsync();
-                                    return Trigger.AddressAdded;
+                                    return await AddNewAddressAsync();
                                 }
                         }
                         break; 
@@ -353,7 +363,7 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
             await _stateManager.SendMessageAsync(OrdersText.EnterPhone, replyMarkup: markup);
         }
 
-        private async Task AddNewAddressAsync()
+        private async Task<Trigger> AddNewAddressAsync()
         {
             if(OrderAddress.IsNull())
             {
@@ -362,6 +372,19 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
 
             await _dataSource.Addresses.AddAsync(OrderAddress);
             await _dataSource.SaveChangesAsync();
+
+            OrderAddressId = OrderAddress.Id;
+            OrderAddress = null;
+
+            if(Phone.IsNullOrEmpty())
+            {
+                return Trigger.AddressAddedNextPhone;
+            }
+            else
+            {
+                await ShowDeliverySettingsAsync();
+                return Trigger.AddressAddedReturnToDeliverySettings;
+            }
         }
 
         private async Task<Trigger> EditNewAddressAsync(string value, AddressAttribute addressAttribute)
@@ -371,11 +394,8 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
             string errorReason = string.Empty;
             AddressAttribute? nextAddressAttribute = null;
 
-            if (OrderAddress.IsNull())
-            {
-                OrderAddress = new Address();
-                OrderAddress.UserId = _stateManager.ChatId;
-            }
+            OrderAddress = new Address();
+            OrderAddress.UserId = _stateManager.ChatId;
 
             switch (addressAttribute)
             {
@@ -611,16 +631,17 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
                     }
                 case DeliveryType.Delivery:
                     {
-                        if (OrderAddress.IsNull())
+                        if (!OrderAddressId.HasValue)
                         {
-                            OrderAddress = await _dataSource.Orders
+                            OrderAddressId = (await _dataSource.Orders
                                 .Where(order => order.UserId == _stateManager.ChatId && order.AddressId != null)
                                 .OrderByDescending(order => order.DateFrom)
                                 .Include(order => order.Address)
                                 .Select(order => order.Address)
-                                .FirstOrDefaultAsync();
+                                .FirstOrDefaultAsync())
+                                ?.Id;
 
-                            if(OrderAddress.IsNull())
+                            if(OrderAddressId.IsNull())
                             {
                                 return await SuggestEditDeliveryAddressAsync(AddressAttribute.City);
                             }
@@ -641,9 +662,10 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
 
         private async Task ShowDeliverySettingsAsync()
         {
+            Address address = OrderAddressId.HasValue ? await _dataSource.Addresses.FindAsync(OrderAddressId) : null;
             string phoneText = Phone.IsNullOrEmpty() ? OrdersText.Empty : DBHelper.PhonePrettyPrint(Phone);
-            string text = string.Format(OrdersText.OrderSettings, 
-                OrderAddress.ToString(),
+            string text = string.Format(OrdersText.OrderSettings,
+                address?.ToString(),
                 phoneText);
 
             InlineKeyboardButton[][] deliverySettings = GetDeliverySettingsButtons();
@@ -697,64 +719,75 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
                            .Where(address => address.UserId == _stateManager.ChatId)
                            .ToArray();
 
-            List<List<InlineKeyboardButton>> addressesButtons = GetAddressesButtons(addresses);
+            string text = string.Format(OrdersText.ChooseAddress, string.Join('\n',
+                addresses
+                    .Select((address, index) => $"{index+1}. {address.ToString()}")));
+
+            List<InlineKeyboardButton[]> addressesButtons = GetAddressesButtons(addresses);
             InlineKeyboardMarkup markup = new InlineKeyboardMarkup(addressesButtons);
 
-            await _stateManager.SendMessageAsync(OrdersText.ChooseAddress, replyMarkup: markup);
+            await _stateManager.SendMessageAsync(text, replyMarkup: markup);
         }
 
-        private List<List<InlineKeyboardButton>> GetAddressesButtons(Address[] addresses)
+        private List<InlineKeyboardButton[]> GetAddressesButtons(Address[] addresses)
         {
-            List<List<InlineKeyboardButton>> result = new List<List<InlineKeyboardButton>>();
+            List<InlineKeyboardButton[]> result = new List<InlineKeyboardButton[]>();
             
             if(addresses.IsNotNullOrEmpty())
             {
-                for (int i = 0; i < addresses.Length; i+=2)
+                result.AddRange(addresses.Select((address, index) => new InlineKeyboardButton[]
                 {
-                    List<InlineKeyboardButton> buttonsLine =
-                    [
-                        new InlineKeyboardButton(addresses[i].ToString())
-                        {
-                            CallbackData = JsonConvert.SerializeObject(new
-                            {
-                                Cmd = Command.ChooseDeliveryAddress,
-                                AddressId = addresses[i].Id,
-                            })
-                        }
-                    ];
-
-                    if(i != addresses.Length - 1)
+                    new InlineKeyboardButton((index+1).ToString())
                     {
-                        buttonsLine.Add(new InlineKeyboardButton(addresses[i + 1].ToString())
+                        CallbackData = JsonConvert.SerializeObject(new
                         {
-                            CallbackData = JsonConvert.SerializeObject(new
-                            {
-                                Cmd = Command.ChooseDeliveryAddress,
-                                AddressId = addresses[i].Id,
-                            })
-                        });
+                            Cmd = Command.ChooseDeliveryAddress,
+                            AddressId = address.Id,
+                        })
                     }
-;
-                    result.Add(buttonsLine);
-                }
+                }));
             }
 
-            List<InlineKeyboardButton> newAddress = GetNewAddressButton();
-            result.Add(newAddress);
+            List<InlineKeyboardButton[]> newAddress = GetNewAddressButton();
+            result.AddRange(newAddress);
+            List<InlineKeyboardButton[]> back = GetAddressBackButton();
+            result.AddRange(back);
 
             return result;
         }
 
-        private List<InlineKeyboardButton> GetNewAddressButton()
+        private List<InlineKeyboardButton[]> GetAddressBackButton()
         {
-            List<InlineKeyboardButton> result = new List<InlineKeyboardButton>
+            List<InlineKeyboardButton[]> result = new List<InlineKeyboardButton[]>
             {
-                new InlineKeyboardButton(OrdersText.NewAddress)
+                new InlineKeyboardButton[]
                 {
-                    CallbackData = JsonConvert.SerializeObject(new
+                    new InlineKeyboardButton(OrdersText.Back)
                     {
-                        Cmd = Command.NewAddress,
-                    })
+                        CallbackData = JsonConvert.SerializeObject(new
+                        {
+                            Cmd = Command.AddressBack,
+                        })
+                    }
+                }
+            };
+
+            return result;
+        }
+
+        private List<InlineKeyboardButton[]> GetNewAddressButton()
+        {
+            List<InlineKeyboardButton[]> result = new List<InlineKeyboardButton[]>
+            {
+                new InlineKeyboardButton[]
+                {
+                    new InlineKeyboardButton(OrdersText.NewAddress)
+                    {
+                        CallbackData = JsonConvert.SerializeObject(new
+                        {
+                            Cmd = Command.NewAddress,
+                        })
+                    }
                 }
             };
 

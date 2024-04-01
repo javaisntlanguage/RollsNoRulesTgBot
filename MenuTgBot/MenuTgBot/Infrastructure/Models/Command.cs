@@ -39,6 +39,7 @@ namespace MenuTgBot.Infrastructure.Models
         ChangePhone,
         ConfirmOrder,
         ChooseDeliveryAddress,
-        ResendSms
+        ResendSms,
+        AddressBack
     }
 }

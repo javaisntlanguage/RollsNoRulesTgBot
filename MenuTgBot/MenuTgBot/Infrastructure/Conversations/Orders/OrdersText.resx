@@ -136,7 +136,9 @@
     <value>Изменить номер телефона</value>
   </data>
   <data name="ChooseAddress" xml:space="preserve">
-    <value>Выберите адрес доставки</value>
+    <value>Выберите адрес доставки
+
+{0}</value>
   </data>
   <data name="ChooseDeliveryType" xml:space="preserve">
     <value>Выберите способ получения заказа</value>

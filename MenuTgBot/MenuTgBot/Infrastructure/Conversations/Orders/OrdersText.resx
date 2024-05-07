@@ -135,6 +135,9 @@
   <data name="ChangePhone" xml:space="preserve">
     <value>Изменить номер телефона</value>
   </data>
+  <data name="ChangeSellLocation" xml:space="preserve">
+    <value>Изменить точку самовывоза</value>
+  </data>
   <data name="ChooseAddress" xml:space="preserve">
     <value>Выберите адрес доставки
 
@@ -142,6 +145,9 @@
   </data>
   <data name="ChooseDeliveryType" xml:space="preserve">
     <value>Выберите способ получения заказа</value>
+  </data>
+  <data name="ConfirmOrder" xml:space="preserve">
+    <value>Заказать!</value>
   </data>
   <data name="CurrentAddress" xml:space="preserve">
     <value>Текущий адрес:
@@ -193,11 +199,31 @@
   <data name="NewOrder" xml:space="preserve">
     <value>Ваш заказ № {0} принят в работу. Ожидайте подтверждения</value>
   </data>
+  <data name="NoOdrers" xml:space="preserve">
+    <value>Список ваших заказов пуст</value>
+  </data>
   <data name="OnlyRussianNumber" xml:space="preserve">
     <value>Мы поддерживаем только российские номера телефонов (начинаются с +7)</value>
   </data>
-  <data name="OrderSettings" xml:space="preserve">
+  <data name="OrderCartDetails" xml:space="preserve">
+    <value>{0} - {1} x {2} = {3}</value>
+  </data>
+  <data name="OrderDeliverySettings" xml:space="preserve">
     <value>Адрес доставки:
+{0}
+
+Номер телефона:
+{1}</value>
+  </data>
+  <data name="OrderDetails" xml:space="preserve">
+    <value>Заказ от {0} № {1} ({2})
+
+{3}
+
+Общая сумма заказа: {4}</value>
+  </data>
+  <data name="OrderPickUpSettings" xml:space="preserve">
+    <value>Точка самовывоза:
 {0}
 
 Номер телефона:
@@ -206,11 +232,23 @@
   <data name="PhoneConfirmed" xml:space="preserve">
     <value>Телефон подтвержден!</value>
   </data>
+  <data name="ProductsChanged" xml:space="preserve">
+    <value>Не удалось создать заказ. Некоторые товары больше недоступны. Попробуйте оформить заказ заново</value>
+  </data>
   <data name="ResendSms" xml:space="preserve">
     <value>Отправить СМС</value>
   </data>
   <data name="ResendSmsAvaliable" xml:space="preserve">
     <value>Доступна переотправка СМС</value>
+  </data>
+  <data name="SelectSellLocation" xml:space="preserve">
+    <value>Выберите, откуда удобно забрать заказ</value>
+  </data>
+  <data name="SellLocationNotFound" xml:space="preserve">
+    <value>Данная точка самовывоза больше недоступна. Попробуйте выбрать другую</value>
+  </data>
+  <data name="SellLocationsNotFound" xml:space="preserve">
+    <value>Не найдено точек самовывоза. Сейчас можно оформить только доставку</value>
   </data>
   <data name="SharePhone" xml:space="preserve">
     <value>Поделиться номером телефона</value>
@@ -224,8 +262,8 @@
   <data name="SmsWrong" xml:space="preserve">
     <value>Неверный код. Попробуйте еще раз или дождитесь переотправки</value>
   </data>
-  <data name="TakeOrder" xml:space="preserve">
-    <value>Заказать!</value>
+  <data name="WrongOrderId" xml:space="preserve">
+    <value>Не удалось найти заказ. Попробуйте еще раз</value>
   </data>
   <data name="WrongPhone" xml:space="preserve">
     <value>Не удалось распознать телефон. Попробуйте ввести в другом формате</value>

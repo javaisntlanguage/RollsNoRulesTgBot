@@ -61,7 +61,7 @@ namespace MenuTgBot.Infrastructure {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Корзина.
+        ///   Looks up a localized string similar to 🛒Корзина.
         /// </summary>
         internal static string CommandCart {
             get {
@@ -70,7 +70,7 @@ namespace MenuTgBot.Infrastructure {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Заказы.
+        ///   Looks up a localized string similar to 📦Заказы.
         /// </summary>
         internal static string CommandOrder {
             get {
@@ -79,7 +79,7 @@ namespace MenuTgBot.Infrastructure {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Каталог.
+        ///   Looks up a localized string similar to 🌯Каталог.
         /// </summary>
         internal static string CommandShopCatalog {
             get {

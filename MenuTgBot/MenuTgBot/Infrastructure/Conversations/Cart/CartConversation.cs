@@ -44,8 +44,12 @@ namespace MenuTgBot.Infrastructure.Conversations.Cart
             {
                 case State.CommandCart:
                     {
-                        await ShowCartAsync(1);
-                        return Trigger.Ignore;
+                        if (message.Text == MessagesText.CommandCart)
+                        {
+                            await ShowCartAsync(1);
+                            return Trigger.Ignore;
+                        }
+                        break;
                     }
             }
 

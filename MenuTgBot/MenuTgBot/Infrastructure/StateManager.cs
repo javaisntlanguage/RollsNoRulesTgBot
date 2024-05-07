@@ -88,7 +88,7 @@ namespace MenuTgBot.Infrastructure
             .Permit(Trigger.CommandStartStarted, State.CommandStart)
             .Permit(Trigger.CommandShopCatalogStarted, State.CommandShopCatalog)
             .Permit(Trigger.CommandCartStarted, State.CommandCart)
-            .Permit(Trigger.CommandAdminStarted, State.CommandAdmin)
+            .Permit(Trigger.CommandOrdersStarted, State.CommandOrders)
             .Ignore(Trigger.Ignore);
 
             _machine.Configure(State.CommandStart)
@@ -116,19 +116,6 @@ namespace MenuTgBot.Infrastructure
             .SubstateOf(State.New)
             .Permit(Trigger.ClientTookOrder, State.CommandOrders)
             .OnEntryFromAsync(Trigger.CommandCartStarted, NextStateMessageAsync);
-
-            _machine.Configure(State.CommandAdmin)
-            .SubstateOf(State.New)
-            .Permit(Trigger.EnterLogin, State.AdminLogin)
-            .OnEntryFromAsync(Trigger.CommandAdminStarted, NextStateMessageAsync);
-
-            _machine.Configure(State.AdminLogin)
-            .SubstateOf(State.CommandAdmin)
-            .OnEntryFromAsync(Trigger.EnterLogin, NextStateMessageAsync);
-
-            _machine.Configure(State.AdminPassword)
-            .SubstateOf(State.CommandAdmin)
-            .OnEntryFromAsync(Trigger.EnterPassword, NextStateMessageAsync);
 
             _machine.Configure(State.CommandOrders)
             .SubstateOf(State.New)
@@ -453,7 +440,6 @@ namespace MenuTgBot.Infrastructure
         ToCatalogState,
         DecreasedCountCart,
         IncreasedCountCart,
-        CommandAdminStarted,
         EnterLogin,
         EnterPassword,
         ClientTookOrder,
@@ -483,9 +469,6 @@ namespace MenuTgBot.Infrastructure
         CommandCart,
         CommandShopContacts,
         CatalogCartActions,
-        CommandAdmin,
-        AdminLogin,
-        AdminPassword,
         CommandOrders,
         OrderNewAddressCityEditor,
         OrderNewAddressStreetEditor,

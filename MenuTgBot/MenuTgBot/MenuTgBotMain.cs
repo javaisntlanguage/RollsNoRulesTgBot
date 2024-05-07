@@ -27,8 +27,9 @@ namespace MenuTgBot
             TelegramBotClient telegramClient = new TelegramBotClient(Configuration["TelegramBotToken"]!, new HttpClient());
 
             string connectionString = Configuration["ConnectionString"];
+            int timeout = int.Parse(Configuration["MessageTimeoutSec"]);
 
-            TelegramWorker worker = new TelegramWorker(telegramClient, connectionString, _logger, _cancellationTokenSource);
+            TelegramWorker worker = new TelegramWorker(telegramClient, connectionString, _logger, timeout, _cancellationTokenSource);
             worker.Start();
         }
     }

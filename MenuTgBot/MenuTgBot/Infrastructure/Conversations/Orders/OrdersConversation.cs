@@ -19,12 +19,16 @@ using Helper;
 using Microsoft.EntityFrameworkCore;
 using System.Text.RegularExpressions;
 using Telegram.Bot.Types.Enums;
+using System.Net;
+using System.Collections;
+using Azure;
+using System.Diagnostics;
 
 namespace MenuTgBot.Infrastructure.Conversations.Orders
 {
     internal class OrdersConversation : IConversation
     {
-        private const int SMS_RESEND_TIMER = 10;
+        private const int SMS_RESEND_TIMER = 30;
         private const int SMS_LENGTH = 4;
         private readonly StateManager _stateManager;
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
@@ -34,6 +38,7 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
         public DeliveryType? OrderDeliveryType { get; set; }
         public Address OrderAddress { get; set; }
         public long? OrderAddressId { get; set; }
+        public int? OrderSellLocationId { get; set; }
         public string Phone { get; set; }
         public string PreaparedPhone { get; set; }
         public string SmsCode { get; set; }
@@ -51,6 +56,15 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
 
             switch (_stateManager.CurrentState)
             {
+                case State.CommandOrders:
+                    {
+                        if (message.Text == MessagesText.CommandOrder)
+                        {
+                            await ShowOrdersAsync();
+                            return Trigger.Ignore;
+                        }
+                        break;
+                    }
                 case State.OrderNewAddressCityEditor:
                     {
                         return await EditNewAddressAsync(message.Text, AddressAttribute.City);
@@ -119,6 +133,11 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
                                     await SuggestChooseAddressAsync();
                                     return Trigger.Ignore;
                                 }
+                            case Command.ChangeSellLocation:
+                                {
+                                    await SuggestChooseSellLocationAsync();
+                                    return Trigger.Ignore;
+                                }
                             case Command.ChangePhone:
                                 {
                                     await RequestPhoneAsync();
@@ -134,6 +153,22 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
                                     long addressId = data["AddressId"].Value<long>();
                                     OrderAddressId = addressId;
                                     await ShowDeliverySettingsAsync();
+                                    return Trigger.Ignore;
+                                }
+                            case Command.SelectSellLocation:
+                                {
+                                    int sellLocationId = data["SellLocationId"].Value<int>();
+                                    return await SetSellLocationAsync(sellLocationId);
+                                }
+                            case Command.ConfirmOrder:
+                                {
+                                    await CreateOrderAsync();
+                                    return Trigger.Ignore;
+                                }
+                            case Command.ShowOrder:
+                                {
+                                    int orderId = data["OrderId"].Value<int>();
+                                    await ShowOrdersAsync(orderId);
                                     return Trigger.Ignore;
                                 }
                         }
@@ -216,6 +251,147 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
             return null;
         }
 
+        private async Task<Trigger> SetSellLocationAsync(int sellLocationId)
+        {
+            OrderSellLocationId = sellLocationId;
+
+            if (Phone.IsNullOrEmpty())
+            {
+                return Trigger.EmptyPhone;
+            }
+
+            await ShowDeliverySettingsAsync();
+
+            return Trigger.Ignore;
+        }
+
+        private async Task ShowOrdersAsync(int? orderId = null)
+        {
+            List<Order> orders = _dataSource.Orders
+                .Where(order => order.UserId == _stateManager.ChatId)
+                .OrderByDescending(order => order.DateFrom)
+                .ToList();
+
+            if (orders.IsEmpty())
+            {
+                await _stateManager.SendMessageAsync(OrdersText.NoOdrers);
+                return;
+            }
+
+            Order currentOrder = null;
+
+            if (orderId.IsNull())
+            {
+                currentOrder = orders.First();
+            }
+            else
+            {
+                currentOrder = orders
+                        .FirstOrDefault(order => order.Id == orderId);
+
+                if (currentOrder.IsNull())
+                {
+                    await _stateManager.SendMessageAsync(OrdersText.WrongOrderId);
+                    return;
+                }
+            }
+
+            InlineKeyboardMarkup markup = GetOrdersMarkup(orders, currentOrder);
+
+            string orderCartText = string.Join("\n", _dataSource.OrderCarts
+                .Where(oc => oc.OrderId == currentOrder.Id)
+                .Select(oc => string.Format(OrdersText.OrderCartDetails, 
+                oc.ProductName,
+                oc.Price,
+                oc.Count, 
+                oc.Price * oc.Count)));
+
+            string text = string.Format(OrdersText.OrderDetails,
+                currentOrder.DateFrom.DateTime.ToString("yyyy.MM.dd"),
+                currentOrder.Number,
+                currentOrder.Id,
+                orderCartText,
+                currentOrder.Sum);
+
+            await _stateManager.SendMessageAsync(text, replyMarkup: markup);
+        }
+
+        private InlineKeyboardMarkup GetOrdersMarkup(List<Order> orders, Order currentOrder)
+        {
+            int? previousOrderId = null;
+            int currentOrderIndex = orders.IndexOf(currentOrder);
+            int? nextOrderId = null;
+
+            // если не первый
+            if (currentOrderIndex != 0)
+            {
+                previousOrderId = orders[currentOrderIndex - 1].Id;
+            }
+
+            // если не последний
+            int nextIndex = currentOrderIndex + 1;
+            if (orders.Count != nextIndex)
+            {
+                nextOrderId = orders[nextIndex].Id;
+            }
+
+            List<InlineKeyboardButton> pagination = GetOrdersPagination(previousOrderId, nextOrderId);
+            InlineKeyboardMarkup markup = new InlineKeyboardMarkup(pagination);
+
+            return markup;
+        }
+
+        private List<InlineKeyboardButton> GetOrdersPagination(int? previousOrderId, int? nextOrderId)
+        {
+            List<InlineKeyboardButton> result = new List<InlineKeyboardButton>();
+
+            if(previousOrderId.IsNull())
+            {
+                result.Add(new InlineKeyboardButton(CartText.NoPagination)
+                {
+                    CallbackData = JsonConvert.SerializeObject(new
+                    {
+                        Cmd = Command.Ignore
+                    })
+                });
+            }
+            else
+            {
+                result.Add(new InlineKeyboardButton(CartText.PaginationPrevious)
+                {
+                    CallbackData = JsonConvert.SerializeObject(new
+                    {
+                        Cmd = Command.ShowOrder,
+                        OrderId = previousOrderId,
+                    })
+                });
+            }
+
+            if (nextOrderId.IsNull())
+            {
+                result.Add(new InlineKeyboardButton(CartText.NoPagination)
+                {
+                    CallbackData = JsonConvert.SerializeObject(new
+                    {
+                        Cmd = Command.Ignore
+                    })
+                });
+            }
+            else
+            {
+                result.Add(new InlineKeyboardButton(CartText.PaginationNext)
+                {
+                    CallbackData = JsonConvert.SerializeObject(new
+                    {
+                        Cmd = Command.ShowOrder,
+                        OrderId = nextOrderId,
+                    })
+                });
+            }
+
+            return result;
+        }
+
         private async Task<Trigger?> CheckSmsAsync(string messageText)
         {
             if (messageText.Length != SMS_LENGTH)
@@ -235,7 +411,9 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
             PreaparedPhone = null;
 
             await _stateManager.SendMessageAsync(OrdersText.PhoneConfirmed);
+
             await ShowDeliverySettingsAsync();
+
             return Trigger.EnteredSms;
         }
 
@@ -638,7 +816,16 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
             {
                 case DeliveryType.PickUp:
                     {
-                        await CreateOrderAsync();
+                        if (OrderSellLocationId.IsNull())
+                        {
+                            await SuggestChooseSellLocationAsync();
+                            return Trigger.Ignore;
+                        }
+
+                        if (Phone.IsNullOrEmpty())
+                        {
+                            return Trigger.EmptyPhone;
+                        }
                         break;
                     }
                 case DeliveryType.Delivery:
@@ -663,43 +850,102 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
                         {
                             return Trigger.EmptyPhone;
                         }
-
-                        await ShowDeliverySettingsAsync();
                         break;
                     }
             }
 
+            await ShowDeliverySettingsAsync();
+
             return Trigger.Ignore;
+        }
+
+        private async Task SuggestChooseSellLocationAsync()
+        {
+            SellLocation[] locations = _dataSource.SellLocations
+                .Select(sl => sl)
+                .ToArray();
+
+            if(!locations.Any())
+            {
+                await _stateManager.SendMessageAsync(OrdersText.SellLocationsNotFound);
+                return;
+            }
+
+            InlineKeyboardButton[][] locationButtons = GetSellLocationButtons(locations);
+            InlineKeyboardMarkup markup = new InlineKeyboardMarkup(locationButtons);
+
+            await _stateManager.SendMessageAsync(OrdersText.SelectSellLocation, replyMarkup: markup);
+
+        }
+
+        private InlineKeyboardButton[][] GetSellLocationButtons(IEnumerable<SellLocation> locations)
+        {
+            InlineKeyboardButton[][] result = locations
+                .Select(location => new InlineKeyboardButton[]
+                {
+                    new InlineKeyboardButton(location.Name)
+                    {
+                        CallbackData = JsonConvert.SerializeObject(new
+                        {
+                            Cmd = Command.SelectSellLocation,
+                            SellLocationId = location.Id,
+                        })
+                    }
+                })
+                .ToArray();
+
+            return result;
         }
 
         private async Task ShowDeliverySettingsAsync()
         {
-            Address address = OrderAddressId.HasValue ? await _dataSource.Addresses.FindAsync(OrderAddressId) : null;
+            string text = null;
             string phoneText = Phone.IsNullOrEmpty() ? OrdersText.Empty : DBHelper.PhonePrettyPrint(Phone);
-            string text = string.Format(OrdersText.OrderSettings,
-                address?.ToString(),
-                phoneText);
 
-            InlineKeyboardButton[][] deliverySettings = GetDeliverySettingsButtons();
+            switch (OrderDeliveryType)
+            {
+                case DeliveryType.PickUp:
+                    {
+
+                        SellLocation sellLocation = await _dataSource.SellLocations
+                            .FirstOrDefaultAsync(sl => sl.Id == OrderSellLocationId);
+
+                        if(sellLocation.IsNull())
+                        {
+                            await _stateManager.SendMessageAsync(OrdersText.SellLocationNotFound);
+                            await SuggestChooseSellLocationAsync();
+                            return;
+                        }
+
+                        string sellLocationName = sellLocation.Name;
+
+                        text = string.Format(OrdersText.OrderPickUpSettings,
+                            sellLocationName,
+                            phoneText);
+                        break;
+                    }
+                case DeliveryType.Delivery:
+                    {
+                        Address address = OrderAddressId.HasValue ? await _dataSource.Addresses.FindAsync(OrderAddressId) : null;
+                        text = string.Format(OrdersText.OrderDeliverySettings,
+                            address?.ToString(),
+                            phoneText);
+                        break;
+                    }
+                default:
+                    throw new Exception($"Неизвестный тип получения заказа: {OrderDeliveryType.ToString()}");
+            }
+
+            List<InlineKeyboardButton[]> deliverySettings = GetDeliverySettingsButtons();
             InlineKeyboardMarkup markup = new InlineKeyboardMarkup(deliverySettings);
 
             await _stateManager.SendMessageAsync(text, replyMarkup: markup);
         }
 
-        private InlineKeyboardButton[][] GetDeliverySettingsButtons()
+        private List<InlineKeyboardButton[]> GetDeliverySettingsButtons()
         {
-            InlineKeyboardButton[][] result = new InlineKeyboardButton[][]
+            List<InlineKeyboardButton[]> result = new List<InlineKeyboardButton[]>
             {
-                new InlineKeyboardButton[]
-                {
-                    new InlineKeyboardButton(OrdersText.ChangeAddress)
-                    {
-                        CallbackData = JsonConvert.SerializeObject(new
-                        {
-                            Cmd = Command.ChangeAddress,
-                        })
-                    }
-                },
                 new InlineKeyboardButton[]
                 {
                     new InlineKeyboardButton(OrdersText.ChangePhone)
@@ -712,7 +958,7 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
                 },
                 new InlineKeyboardButton[]
                 {
-                    new InlineKeyboardButton(OrdersText.TakeOrder)
+                    new InlineKeyboardButton(OrdersText.ConfirmOrder)
                     {
                         CallbackData = JsonConvert.SerializeObject(new
                         {
@@ -721,6 +967,33 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
                     }
                 },
             };
+
+            if(OrderDeliveryType == DeliveryType.Delivery)
+            {
+                result.Insert(0, new InlineKeyboardButton[]
+                {
+                    new InlineKeyboardButton(OrdersText.ChangeAddress)
+                    {
+                        CallbackData = JsonConvert.SerializeObject(new
+                        {
+                            Cmd = Command.ChangeAddress,
+                        })
+                    }
+                });
+            }
+            else
+            {
+                result.Insert(0, new InlineKeyboardButton[]
+                {
+                    new InlineKeyboardButton(OrdersText.ChangeSellLocation)
+                    {
+                        CallbackData = JsonConvert.SerializeObject(new
+                        {
+                            Cmd = Command.ChangeSellLocation,
+                        })
+                    }
+                });
+            }
 
             return result;
         }
@@ -808,15 +1081,15 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
 
         private async Task ChooseDeliveryTypeAsync()
         {
-            InlineKeyboardButton[] deliveryTypes = GetDeliveryTypes();
+            IEnumerable<InlineKeyboardButton> deliveryTypes = GetDeliveryTypes();
             InlineKeyboardMarkup markup = new InlineKeyboardMarkup(deliveryTypes);
 
             await _stateManager.SendMessageAsync(OrdersText.ChooseDeliveryType, replyMarkup: markup);
         }
 
-        private InlineKeyboardButton[] GetDeliveryTypes()
+        private IEnumerable<InlineKeyboardButton> GetDeliveryTypes()
         {
-            InlineKeyboardButton[] result = new InlineKeyboardButton[]
+            List<InlineKeyboardButton> result = new List<InlineKeyboardButton>
             {
                 new InlineKeyboardButton(OrdersText.DeliveryTypeDelivery)
                 {
@@ -825,37 +1098,76 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
                         Cmd = Command.ChooseDeivetyType,
                         DeliveryType = DeliveryType.Delivery,
                     })
-                },
-                new InlineKeyboardButton(OrdersText.DeliveryTypePickUp)
+                }
+            };
+
+            if(_dataSource.SellLocations.Any())
+            {
+                result.Add(new InlineKeyboardButton(OrdersText.DeliveryTypePickUp)
                 {
                     CallbackData = JsonConvert.SerializeObject(new
                     {
                         Cmd = Command.ChooseDeivetyType,
                         DeliveryType = DeliveryType.PickUp,
                     })
-                },
-            };
+                });
+            }
 
             return result;
         }
 
-        private async Task CreateOrderAsync(long? arddressId = null)
+        private async Task CreateOrderAsync()
         {
-            IEnumerable<CartProduct> cart = _stateManager.GetHandler<CartConversation>().Cart;
+            List<CartProduct> cart = _stateManager.GetHandler<CartConversation>().Cart;
 
             if(cart.IsNullOrEmpty())
             {
                 throw new Exception($"userid={_stateManager.ChatId}. Пустая корзина при попытке создать заказ");
             }
 
-            IEnumerable<OrderCart> orderCart = cart
-                .Select(product => new OrderCart()
-                {
-                    ProductId = product.Id,
-                    Count = product.Count,
-                });
+            var cartWithProducts = _dataSource.Products
+                .Where(p => p.IsVisible)
+                .AsEnumerable()
+                .Join(cart, product => product.Id, pc => pc.Id, (product, pc) => new { Product = product, ProductCart = pc });
 
-            Order order = await _dataSource.TakeOrderAsync(_stateManager.ChatId, orderCart, arddressId);
+
+            if (cart.Count != cartWithProducts.Count())
+            {
+                await _stateManager.SendMessageAsync(OrdersText.ProductsChanged);
+                return;
+            }
+
+            decimal sum = 0;
+            List<OrderCart> orderCart = new List<OrderCart>();
+
+            foreach(var cwp in cartWithProducts)
+            {
+                OrderCart orderCartItem = new OrderCart()
+                {
+                    ProductName = cwp.Product.Name,
+                    Count = cwp.ProductCart.Count,
+                    Price = cwp.Product.Price
+                };
+
+                sum += orderCartItem.Price * orderCartItem.Count;
+                orderCart.Add(orderCartItem);
+            }
+
+            long? addressId = null;
+            int? sellLocationId = null;
+
+            if(OrderDeliveryType == DeliveryType.Delivery)
+            {
+                addressId = OrderAddressId;
+            }
+            else
+            {
+                sellLocationId = OrderSellLocationId;
+            }
+
+            Order order = await _dataSource.TakeOrderAsync(_stateManager.ChatId, orderCart, sum, Phone, addressId, sellLocationId);
+            
+            cart.Clear();
 
             SendAdmins(order.Id);
 

@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
+// чтобы при обновлении бд не запускалась программа
 if (EF.IsDesignTime)
 {
     return;

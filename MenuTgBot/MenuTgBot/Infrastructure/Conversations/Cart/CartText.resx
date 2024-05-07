@@ -166,7 +166,7 @@
     <value>Товар недоступен</value>
   </data>
   <data name="TakeOrder" xml:space="preserve">
-    <value>Заказать!</value>
+    <value>Начать оформление заказа</value>
   </data>
   <data name="Welcome" xml:space="preserve">
     <value>Ваша корзина:</value>

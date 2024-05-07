@@ -35,14 +35,8 @@ namespace Database
         public DbSet<AdminState> AdminStates { get; set; }
         public DbSet<SellLocation> SellLocations { get; set; }
 
-        public ApplicationContext(DbContextOptions<ApplicationContext> options) : base(options)
+        public ApplicationContext(DbContextOptions options) : base(options)
         {
-        }
-
-        public ApplicationContext() : base()
-        {
-            /*_connectionString = "Server=localhost;Database=RollsNoRules;User=sa;Password=Qwerty123456;MultipleActiveResultSets=False;Encrypt=False;TrustServerCertificate=False;Connection Timeout=10;";
-            ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;*/
         }
 
         public void User_Add(long id)
@@ -103,7 +97,7 @@ namespace Database
 
             await SaveChangesAsync();
         }
-        public async Task<Order> TakeOrderAsync(long userId, IEnumerable<OrderCart> cart, long? arddressId)
+        public async Task<Order> TakeOrderAsync(long userId, IEnumerable<OrderCart> cart, decimal sum, string phone, long? arddressId, int? sellLocationId)
         {
             IQueryable<Order> currentDayOrders = Orders
                 .Where(order => order.DateFrom.Date == DateTimeOffset.Now.Date);
@@ -119,7 +113,10 @@ namespace Database
                 UserId = userId,
                 Number = newOrderNumber,
                 DateFrom = DateTimeOffset.Now,
-                AddressId = arddressId
+                Phone = phone,
+                Sum = sum,
+                AddressId = arddressId,
+                SellLocationId = sellLocationId,
             };
 
 
@@ -150,6 +147,8 @@ namespace Database
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
+            base.OnModelCreating(builder);
+            builder.ApplyConfigurationsFromAssembly(typeof(ApplicationContext).Assembly);
             SetDecimal(builder);
         }
 

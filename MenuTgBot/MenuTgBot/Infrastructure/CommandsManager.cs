@@ -81,10 +81,10 @@ namespace MenuTgBot.Infrastructure
                         "/start",
                         CommandDisplay.None),
                 new CatalogCommand(
-                    $"📦{MessagesText.CommandShopCatalog}",
+                    MessagesText.CommandShopCatalog,
                     CommandDisplay.ButtonMenu),
                 new CartCommand(
-                    $"🛒{MessagesText.CommandCart}",
+                    MessagesText.CommandCart,
                     CommandDisplay.ButtonMenu),
                 new OrdersCommand(
                     MessagesText.CommandOrder,

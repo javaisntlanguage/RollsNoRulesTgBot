@@ -181,7 +181,7 @@ namespace MenuTgBot.Infrastructure.Conversations.Cart {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Заказать!.
+        ///   Looks up a localized string similar to Начать оформление заказа.
         /// </summary>
         internal static string TakeOrder {
             get {

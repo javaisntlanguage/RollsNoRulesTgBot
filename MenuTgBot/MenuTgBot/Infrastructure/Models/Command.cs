@@ -40,6 +40,9 @@ namespace MenuTgBot.Infrastructure.Models
         ConfirmOrder,
         ChooseDeliveryAddress,
         ResendSms,
-        AddressBack
+        AddressBack,
+        SelectSellLocation,
+        ChangeSellLocation,
+        ShowOrder
     }
 }

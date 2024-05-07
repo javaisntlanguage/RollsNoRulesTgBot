@@ -40,8 +40,12 @@ namespace MenuTgBot.Infrastructure.Conversations.Catalog
             {
                 case State.CommandShopCatalog:
                     {
-                        await ShowCategoriesAsync();
-                        return Trigger.Ignore;
+                        if (message.Text == MessagesText.CommandShopCatalog)
+                        {
+                            await ShowCategoriesAsync();
+                            return Trigger.Ignore;
+                        }
+                        break;
                     }
             }
 

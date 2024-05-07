@@ -118,13 +118,13 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="CommandCart" xml:space="preserve">
-    <value>Корзина</value>
+    <value>🛒Корзина</value>
   </data>
   <data name="CommandOrder" xml:space="preserve">
-    <value>Заказы</value>
+    <value>📦Заказы</value>
   </data>
   <data name="CommandShopCatalog" xml:space="preserve">
-    <value>Каталог</value>
+    <value>🌯Каталог</value>
   </data>
   <data name="CommandStart" xml:space="preserve">
     <value>Старт</value>

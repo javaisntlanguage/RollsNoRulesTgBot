@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -8,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace Database.Tables
 {
+    [Index("Photo")]
     public class Product
     {
         public int Id { get; set; }

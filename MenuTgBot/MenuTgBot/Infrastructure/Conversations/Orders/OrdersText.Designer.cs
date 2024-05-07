@@ -115,6 +115,15 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Изменить точку самовывоза.
+        /// </summary>
+        internal static string ChangeSellLocation {
+            get {
+                return ResourceManager.GetString("ChangeSellLocation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Выберите адрес доставки
         ///
         ///{0}.
@@ -131,6 +140,15 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders {
         internal static string ChooseDeliveryType {
             get {
                 return ResourceManager.GetString("ChooseDeliveryType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Заказать!.
+        /// </summary>
+        internal static string ConfirmOrder {
+            get {
+                return ResourceManager.GetString("ConfirmOrder", resourceCulture);
             }
         }
         
@@ -281,11 +299,29 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Список ваших заказов пуст.
+        /// </summary>
+        internal static string NoOdrers {
+            get {
+                return ResourceManager.GetString("NoOdrers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Мы поддерживаем только российские номера телефонов (начинаются с +7).
         /// </summary>
         internal static string OnlyRussianNumber {
             get {
                 return ResourceManager.GetString("OnlyRussianNumber", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} - {1} x {2} = {3}.
+        /// </summary>
+        internal static string OrderCartDetails {
+            get {
+                return ResourceManager.GetString("OrderCartDetails", resourceCulture);
             }
         }
         
@@ -296,9 +332,35 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders {
         ///Номер телефона:
         ///{1}.
         /// </summary>
-        internal static string OrderSettings {
+        internal static string OrderDeliverySettings {
             get {
-                return ResourceManager.GetString("OrderSettings", resourceCulture);
+                return ResourceManager.GetString("OrderDeliverySettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Заказ от {0} № {1} ({2})
+        ///
+        ///{3}
+        ///
+        ///Общая сумма заказа: {4}.
+        /// </summary>
+        internal static string OrderDetails {
+            get {
+                return ResourceManager.GetString("OrderDetails", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Точка самовывоза:
+        ///{0}
+        ///
+        ///Номер телефона:
+        ///{1}.
+        /// </summary>
+        internal static string OrderPickUpSettings {
+            get {
+                return ResourceManager.GetString("OrderPickUpSettings", resourceCulture);
             }
         }
         
@@ -308,6 +370,15 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders {
         internal static string PhoneConfirmed {
             get {
                 return ResourceManager.GetString("PhoneConfirmed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Не удалось создать заказ. Некоторые товары больше недоступны. Попробуйте оформить заказ заново.
+        /// </summary>
+        internal static string ProductsChanged {
+            get {
+                return ResourceManager.GetString("ProductsChanged", resourceCulture);
             }
         }
         
@@ -326,6 +397,33 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders {
         internal static string ResendSmsAvaliable {
             get {
                 return ResourceManager.GetString("ResendSmsAvaliable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Выберите, откуда удобно забрать заказ.
+        /// </summary>
+        internal static string SelectSellLocation {
+            get {
+                return ResourceManager.GetString("SelectSellLocation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Данная точка самовывоза больше недоступна. Попробуйте выбрать другую.
+        /// </summary>
+        internal static string SellLocationNotFound {
+            get {
+                return ResourceManager.GetString("SellLocationNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Не найдено точек самовывоза. Сейчас можно оформить только доставку.
+        /// </summary>
+        internal static string SellLocationsNotFound {
+            get {
+                return ResourceManager.GetString("SellLocationsNotFound", resourceCulture);
             }
         }
         
@@ -366,11 +464,11 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Заказать!.
+        ///   Looks up a localized string similar to Не удалось найти заказ. Попробуйте еще раз.
         /// </summary>
-        internal static string TakeOrder {
+        internal static string WrongOrderId {
             get {
-                return ResourceManager.GetString("TakeOrder", resourceCulture);
+                return ResourceManager.GetString("WrongOrderId", resourceCulture);
             }
         }
         

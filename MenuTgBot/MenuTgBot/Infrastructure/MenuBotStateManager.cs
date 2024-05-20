@@ -24,28 +24,22 @@ using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 using Telegram.Util.Core.Exceptions;
 using Microsoft.EntityFrameworkCore.Internal;
+using Telegram.Util.Core.Interfaces;
 
 namespace MenuTgBot.Infrastructure
 {
-    internal class StateManager
+    internal class MenuBotStateManager : StateManager
     {
-        private int MAX_MESSAGE_LENGTH = 4096;
-        private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
-        private readonly ITelegramBotClient _botClient;
         private readonly IDbContextFactory<ApplicationContext> _contextFactory;
-        private readonly StateMachine<State, Trigger> _machine;
+        private StateMachine<State, Trigger> _machine;
         private Dictionary<string, IConversation> _handlers;
-        private CommandsManager _commandsManager;
-        private Message _message;
-        private CallbackQuery _query;
         private int? _lastMessageId;
 
         public State CurrentState { get; private set; }
-        public long ChatId { get; private set; }
         public HashSet<RolesList> Roles { get; set; }
 
 
-        private StateManager(ITelegramBotClient botClient, IDbContextFactory<ApplicationContext> contextFactory, CommandsManager commandsManager, long chatId)
+        private MenuBotStateManager(ITelegramBotClient botClient, IDbContextFactory<ApplicationContext> contextFactory, MenuBotCommandsManager commandsManager, long chatId)
         {
             ChatId = chatId;
 
@@ -67,7 +61,7 @@ namespace MenuTgBot.Infrastructure
         /// <summary>
         /// назначение классов-обработчиков команд
         /// </summary>
-        private void ConfigureHandlers()
+        protected override void ConfigureHandlers()
         {
             SetHandler(new StartConversation(this));
             SetHandler(new CatalogConversation(this));
@@ -82,7 +76,7 @@ namespace MenuTgBot.Infrastructure
         /// Ignore (для пропуска)
         /// но добавлять одно из этого обязательно
         /// </summary>
-        private void ConfigureMachine()
+        protected override void ConfigureMachine()
         {
             _machine.Configure(State.New)
             .Permit(Trigger.CommandStartStarted, State.CommandStart)
@@ -307,25 +301,15 @@ namespace MenuTgBot.Infrastructure
             await _machine.FireAsync(Trigger.CommandOrdersStarted);
         }
 
-        public static async Task<StateManager> CreateAsync(ITelegramBotClient botClient,
-            IDbContextFactory<ApplicationContext> contextFactory, CommandsManager commandsManager, long chatId)
+        public static async Task<MenuBotStateManager> CreateAsync(ITelegramBotClient botClient,
+            IDbContextFactory<ApplicationContext> contextFactory, MenuBotCommandsManager commandsManager, long chatId)
         {
             await using ApplicationContext dataSource = await contextFactory.CreateDbContextAsync();
-            StateManager stateManager = new StateManager(botClient, contextFactory, commandsManager, chatId);
+            MenuBotStateManager stateManager = new MenuBotStateManager(botClient, contextFactory, commandsManager, chatId);
 
             await stateManager.StateRecoveryAsync(dataSource);
 
             return stateManager;
-        }
-
-        public async Task NextStateMessageAsync()
-        {
-            await NextStateAsync(_message);
-        }
-
-        public async Task NextStateQueryAsync()
-        {
-            await NextStateAsync(_query);
         }
 
         /// <summary>
@@ -333,10 +317,9 @@ namespace MenuTgBot.Infrastructure
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public async Task<bool> NextStateAsync(Message message)
+        public override async Task<bool> NextStateAsync(Message message)
         {
-            _message = message;
-            _query = null!;
+            await base.NextStateAsync(message);
 
             await using ApplicationContext dataSource = await _contextFactory.CreateDbContextAsync();
 
@@ -353,10 +336,9 @@ namespace MenuTgBot.Infrastructure
         /// </summary>
         /// <param name="query"></param>
         /// <returns></returns>
-        public async Task<bool> NextStateAsync(CallbackQuery query)
+        public override async Task<bool> NextStateAsync(CallbackQuery query)
         {
-            _message = null!;
-            _query = query;
+            await base.NextStateAsync(query);
 
             if (_lastMessageId.IsNotNull() && _query.Message.MessageId != _lastMessageId)
             {
@@ -385,44 +367,7 @@ namespace MenuTgBot.Infrastructure
 
             return default;
         }
-
-        public async Task<Message> SendMessageAsync(string text, ParseMode? parseMode = null, IReplyMarkup? replyMarkup = null, string photo = null)
-        {
-            Message result = null;
-
-            if(text.Length > MAX_MESSAGE_LENGTH)
-            {
-                string textFirstPart = text.Substring(0,MAX_MESSAGE_LENGTH);
-                await _botClient.SendTextMessageAsync(ChatId, textFirstPart, parseMode: parseMode);
-                text = text.Substring(MAX_MESSAGE_LENGTH);
-            }
-
-            if (photo.IsNullOrEmpty())
-            {
-                result = await _botClient.SendTextMessageAsync(ChatId, text, parseMode: parseMode, replyMarkup: replyMarkup);
-            }
-            else
-            {
-                await using Stream stream = new MemoryStream(Convert.FromBase64String(photo));
-                InputFileStream inputFile = InputFile.FromStream(stream);
-                result = await _botClient.SendPhotoAsync(ChatId, inputFile, caption: text, parseMode: parseMode, replyMarkup: replyMarkup);
-            }
-
-            _lastMessageId = result.MessageId;
-
-            return result;
-        }
-
-        public async Task<Message> EditMessageReplyMarkupAsync(int messageId, InlineKeyboardMarkup replyMarkup)
-        {
-            return await _botClient.EditMessageReplyMarkupAsync(ChatId, messageId, replyMarkup);
-        }
-
-        public async Task<Message> ShowButtonMenuAsync(string text, IEnumerable<KeyboardButton> additionalButtons = null)
-        {
-            Message result = await _commandsManager.ShowButtonMenuAsync(ChatId, text, additionalButtons);
-            return result;
-        }
+       
         #endregion Public Methods
     }
 

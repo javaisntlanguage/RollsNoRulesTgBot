@@ -5,6 +5,7 @@ using Database.Tables;
 using Helper;
 using MessageContracts;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using Newtonsoft.Json;
 using NLog;
 using RabbitClient;
@@ -22,17 +23,17 @@ namespace AdminTgBot.Infrastructure.Consumers
     {
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
         private readonly TelegramBotClient _botClient;
-        private readonly string _connectionString;
+        private readonly IDbContextFactory<ApplicationContext> _contextFactory;
 
-        public OrderConsumer(TelegramBotClient telegramBotClient, string connectionString) 
+        public OrderConsumer(TelegramBotClient telegramBotClient, IDbContextFactory<ApplicationContext> contextFactory) 
         {
             _botClient = telegramBotClient;
-            _connectionString = connectionString;
+            _contextFactory = contextFactory;
         }
 
-        public void Consume(string message)
+        public async Task ConsumeAsync(string message)
         {
-            using ApplicationContext db = new ApplicationContext(_connectionString);
+            await using ApplicationContext db = _contextFactory.CreateDbContext();
             AdminState[] admins = db.AdminStates
                 .Select(x => x)
                 .ToArray();
@@ -53,9 +54,8 @@ namespace AdminTgBot.Infrastructure.Consumers
             }
 
             string[] orderCart = db.OrderCarts
-                .Include(oc => oc.Product)
                 .Where(oc => oc.OrderId == order.Id)
-                .Select(oc => string.Format(OrderConsumerText.OrderPosition, oc.Product.Name, oc.Count))
+                .Select(oc => string.Format(OrderConsumerText.OrderPosition, oc.ProductName, oc.Count))
                 .ToArray();
 
             string sCart = string.Join('\n', orderCart);
@@ -84,7 +84,8 @@ namespace AdminTgBot.Infrastructure.Consumers
                 {
                     CallbackData = JsonConvert.SerializeObject(new
                     {
-                        Cmd = Command.AcceptOrder,
+						IsOutOfQueue = true,
+						Cmd = Command.AcceptOrder,
                         OrderId = orderId
                     })
                 },
@@ -92,7 +93,8 @@ namespace AdminTgBot.Infrastructure.Consumers
                 {
                     CallbackData = JsonConvert.SerializeObject(new
                     {
-                        Cmd = Command.DeclineOrder,
+						IsOutOfQueue = true,
+						Cmd = Command.DeclineOrder,
                         OrderId = orderId
                     })
                 },

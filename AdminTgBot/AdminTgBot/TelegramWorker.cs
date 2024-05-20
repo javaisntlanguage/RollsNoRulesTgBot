@@ -12,6 +12,7 @@ using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using AdminTgBot.Infrastructure.Exceptions;
+using System.Threading;
 
 namespace AdminTgBot
 {
@@ -28,14 +29,20 @@ namespace AdminTgBot
         };
         private readonly Logger _logger;
         private readonly CancellationTokenSource _cancellationTokenSource;
-        private readonly CommandsManager _commandsManager;
+        private readonly ContextFactory _contextFactory;
+        private readonly AdminBotCommandsManager _commandsManager;
+        private readonly ThreadsManager _threadsManager;
 
-        public TelegramWorker(TelegramBotClient telegramClient, string connectionString, Logger logger, CancellationTokenSource cancellationTokenSource)
+
+        public TelegramWorker(TelegramBotClient telegramClient, string connectionString, Logger logger, int timeout, CancellationTokenSource cancellationTokenSource)
         {
             TelegramClient = telegramClient;
             _logger = logger;
             _cancellationTokenSource = cancellationTokenSource;
-            _commandsManager = new CommandsManager(TelegramClient, connectionString);
+            _contextFactory = new ContextFactory(connectionString);
+            _commandsManager = new AdminBotCommandsManager(TelegramClient, _contextFactory);
+            _threadsManager = new ThreadsManager(TelegramClient, _commandsManager, timeout);
+
         }
 
         public TelegramBotClient TelegramClient { get; }

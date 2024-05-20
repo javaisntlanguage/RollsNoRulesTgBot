@@ -23,34 +23,29 @@ using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 using System.Security.AccessControl;
 using File = Telegram.Bot.Types.File;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using Microsoft.EntityFrameworkCore.Internal;
+using Newtonsoft.Json.Linq;
 
 namespace AdminTgBot.Infrastructure
 {
-    internal class StateManager
+    internal class AdminBotStateManager : StateManager
     {
-        private readonly ApplicationContext _dataSource;
+        private readonly IDbContextFactory<ApplicationContext> _contextFactory;
         private readonly StateMachine<State, Trigger> _machine;
-        private readonly ITelegramBotClient _botClient;
         private Dictionary<string, IConversation> _handlers;
-        private int? _lastMessageId;
-        private Message _message;
-        private CallbackQuery _query;
         private State _state;
 
-        public static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-        public long UserId { get; private set; }
-        public long ChatId { get; private set; }
         public bool IsAuth { get; set; }
         public HashSet<RolesList> Roles { get; set; }
 
-        private StateManager(ITelegramBotClient botClient, ApplicationContext dataSource, CommandsManager commandsManager,
-            long userId, long chatId)
+        private AdminBotStateManager(ITelegramBotClient botClient, IDbContextFactory<ApplicationContext> contextFactory,
+            AdminBotCommandsManager commandsManager, long chatId)
         {
-            UserId = userId;
             ChatId = chatId;
 
             _message = new Message();
-            CommandsManager = commandsManager;
+            _commandsManager = commandsManager;
             _machine = new StateMachine<State, Trigger>(() => _state,
                 s =>
                 {
@@ -58,33 +53,19 @@ namespace AdminTgBot.Infrastructure
                 });
             _handlers = new Dictionary<string, IConversation>();
             _botClient = botClient;
-            _dataSource = dataSource;
+            _contextFactory = contextFactory;
 
             ConfigureMachine();
             ConfigureHandlers();
         }
-
-        public CommandsManager CommandsManager { get; }
-
         #region Private Methods
-
-        /// <summary>
-        /// назначение классов-обработчиков команд
-        /// </summary>
-        private void ConfigureHandlers()
+        protected override void ConfigureHandlers()
         {
-            SetHandler(new StartConversation(_botClient, _dataSource, this));
-            SetHandler(new CatalogEditorConversation(_dataSource, this));
+            SetHandler(new StartConversation(this));
+            SetHandler(new CatalogEditorConversation(this));
         }
 
-        /// <summary>
-        /// конфигурация конечного автомата
-        /// для всех новых триггеров добавлять:
-        /// Permit (для обработки)
-        /// Ignore (для пропуска)
-        /// но добавлять одно из этого обязательно
-        /// </summary>
-        private void ConfigureMachine()
+        protected override void ConfigureMachine()
         {
             _machine.Configure(State.New)
             .Permit(Trigger.CommandStartStarted, State.CommandStart)
@@ -150,7 +131,7 @@ namespace AdminTgBot.Infrastructure
         /// сохранить состояние пользователя
         /// </summary>
         /// <returns></returns>
-        private async Task SaveStateAsync()
+        private async Task SaveStateAsync(ApplicationContext dataSource)
         {
             string data = JsonConvert.SerializeObject(new
             {
@@ -158,7 +139,7 @@ namespace AdminTgBot.Infrastructure
                 CatalogEditor = GetHandler<CatalogEditorConversation>()
             });
 
-            await _dataSource.SetAdminState(UserId, (int)_state, data, _lastMessageId);
+            await dataSource.SetAdminState(ChatId, (int)_state, data, _lastMessageId);
         }
 
         /// <summary>
@@ -166,10 +147,10 @@ namespace AdminTgBot.Infrastructure
         /// </summary>
         /// <param name="userState"></param>
         /// <returns></returns>
-        private async Task StateRecoveryAsync()
+        private async Task StateRecoveryAsync(ApplicationContext dataSource)
         {
-            AdminState adminState = await _dataSource.AdminStates
-                    .FirstOrDefaultAsync(us => us.UserId == UserId);
+            AdminState adminState = await dataSource.AdminStates
+                    .FirstOrDefaultAsync(us => us.UserId == ChatId);
 
             if (adminState.IsNull())
             {
@@ -178,8 +159,8 @@ namespace AdminTgBot.Infrastructure
             }
             else
             {
-                Roles = _dataSource
-                    .GetUserRoles(UserId)
+                Roles = dataSource
+                    .GetUserRoles(ChatId)
                     .ToHashSet();
 
                 _state = (State)adminState.StateId;
@@ -187,22 +168,22 @@ namespace AdminTgBot.Infrastructure
 
                 IsAuth = !_machine.IsInState(State.CommandStart) && _state != State.New;
 
-                RecoverHandlers(adminState.Data);
+                RecoverHandlers(adminState.Data, dataSource);
             }
         }
 
-        private void RecoverHandlers(string data)
+        private void RecoverHandlers(string data, ApplicationContext dataSource)
         {
             if (data.IsNotNullOrEmpty())
             {
                 try
                 {
                     AdminConversations conversations = JsonConvert.DeserializeObject<AdminConversations>(data);
-                    _handlers = conversations.GetHandlers(_botClient, _dataSource, this);
+                    _handlers = conversations.GetHandlers(_botClient, dataSource, this);
                 }
                 catch (Exception ex)
                 {
-                    Logger.Error($"Не удалось восстановить пользователя {UserId}. Data={data}", ex);
+                    _logger.Error($"Не удалось восстановить пользователя {ChatId}. Data={data}", ex);
                 }
             }
         }
@@ -233,26 +214,26 @@ namespace AdminTgBot.Infrastructure
         }
 
         /// <summary>
-        /// удаление обработчика для пользователя
+        /// сообщения вне очереди
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        private void RemoveHandler<T>() where T : IConversation
-        {
-            string key = typeof(T).Name;
-
-            _handlers.RemoveIfExists(key);
-        }
-
-        #endregion Private Methods
-
-        #region Public Methods
-
-        /// <summary>
-        /// обработка команды /start
-        /// </summary>
-        /// <param name="message"></param>
+        /// <param name="query"></param>
         /// <returns></returns>
-        public async Task StartAsync(Message message)
+		private bool IsOutOfQueue(CallbackQuery query)
+		{
+			JObject data = JObject.Parse(query.Data);
+            return data["OutOfQueue"].Value<bool?>() ?? false;
+		}
+
+		#endregion Private Methods
+
+		#region Public Methods
+
+		/// <summary>
+		/// обработка команды /start
+		/// </summary>
+		/// <param name="message"></param>
+		/// <returns></returns>
+		public async Task StartAsync(Message message)
         {
             _message = message;
 
@@ -270,25 +251,6 @@ namespace AdminTgBot.Infrastructure
             await _machine.FireAsync(Trigger.CommandCatalogEditorStarted);
         }
 
-        public async Task<Message> SendMessageAsync(string text, ParseMode? parseMode = null, IReplyMarkup? replyMarkup = null, string photo = null)
-        {
-            Message result = null;
-            if (photo.IsNullOrEmpty())
-            {
-                result = await _botClient.SendTextMessageAsync(ChatId, text, parseMode: parseMode, replyMarkup: replyMarkup);
-            }
-            else
-            {
-                await using Stream stream = new MemoryStream(Convert.FromBase64String(photo));
-                InputFileStream inputFile = InputFile.FromStream(stream);
-                result = await _botClient.SendPhotoAsync(ChatId, inputFile, caption: text, parseMode: parseMode, replyMarkup: replyMarkup);
-            }
-
-            _lastMessageId = result.MessageId;
-
-            return result;
-        }
-
         public async Task<string> GetFileAsync(string fileId)
         {
             await using MemoryStream stream = new MemoryStream();
@@ -300,25 +262,15 @@ namespace AdminTgBot.Infrastructure
             return result;
         }
 
-        public static async Task<StateManager> CreateAsync(ITelegramBotClient botClient, 
-            string connectionString, CommandsManager commandsManager,long userId, long chatId)
+        public static async Task<AdminBotStateManager> CreateAsync(ITelegramBotClient botClient,
+            IDbContextFactory<ApplicationContext> contextFactory, AdminBotCommandsManager commandsManager, long chatId)
         {
-            ApplicationContext dataSource = new ApplicationContext(connectionString);
+            await using ApplicationContext dataSource = await contextFactory.CreateDbContextAsync();
 
-            StateManager stateManager = new StateManager(botClient, dataSource, commandsManager, userId, chatId);
-            await stateManager.StateRecoveryAsync();
+            AdminBotStateManager stateManager = new AdminBotStateManager(botClient, contextFactory, commandsManager, chatId);
+            await stateManager.StateRecoveryAsync(dataSource);
 
             return stateManager;
-        }
-
-        public async Task NextStateMessageAsync()
-        {
-            await NextStateAsync(_message);
-        }
-
-        public async Task NextStateQueryAsync()
-        {
-            await NextStateAsync(_query);
         }
 
         /// <summary>
@@ -326,20 +278,20 @@ namespace AdminTgBot.Infrastructure
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public async Task<bool> NextStateAsync(Message message)
+        public override async Task<bool> NextStateAsync(Message message)
         {
-            _message = message;
-            _query = null!;
+            await base.NextStateAsync(message);
 
 #if !DEBUG
             CheckAuth();
 #endif
+            await using ApplicationContext dataSource = await _contextFactory.CreateDbContextAsync();
 
             bool result = await _handlers.Values
                 .ToAsyncEnumerable()
-                .AnyAwaitAsync(async x => await CallTriggerAsync(await x.TryNextStepAsync(message)));
+                .AnyAwaitAsync(async x => await CallTriggerAsync(await x.TryNextStepAsync(dataSource, message)));
 
-            await SaveStateAsync();
+            await SaveStateAsync(dataSource);
             return result;
         }
 
@@ -348,34 +300,38 @@ namespace AdminTgBot.Infrastructure
         /// </summary>
         /// <param name="query"></param>
         /// <returns></returns>
-        public async Task<bool> NextStateAsync(CallbackQuery query)
+        public override async Task<bool> NextStateAsync(CallbackQuery query)
         {
-            _message = null!;
-            _query = query;
+            await base.NextStateAsync(query);
 
 #if !DEBUG
             CheckAuth();
 #endif
 
-            if(_lastMessageId.IsNotNull() && _query.Message.MessageId != _lastMessageId)
+            await using ApplicationContext dataSource = await _contextFactory.CreateDbContextAsync();
+
+            if (_lastMessageId.IsNotNull() && _query.Message.MessageId != _lastMessageId)
             {
-                return false;
+                if (!IsOutOfQueue(_query))
+                {
+                    return false;
+                }
             }
 
             bool result = await _handlers.Values
                 .ToAsyncEnumerable()
-                .AnyAwaitAsync(async x => await CallTriggerAsync(await x.TryNextStepAsync(query)));
+                .AnyAwaitAsync(async x => await CallTriggerAsync(await x.TryNextStepAsync(dataSource, query)));
 
-            await SaveStateAsync();
+            await SaveStateAsync(dataSource);
             return result;
         }
 
-        /// <summary>
-        /// получение обработчика
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
-        public T GetHandler<T>() where T : IConversation
+		/// <summary>
+		/// получение обработчика
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <returns></returns>
+		public T GetHandler<T>() where T : IConversation
         {
             string key = typeof(T).Name;
             if (_handlers.ContainsKey(key)) return (T)_handlers[key];

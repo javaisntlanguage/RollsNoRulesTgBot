@@ -4,24 +4,23 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Telegram.Bot;
-using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types;
+using Telegram.Bot;
 using Telegram.Util.Core.Exceptions;
 
-namespace MenuTgBot.Infrastructure
+namespace AdminTgBot.Infrastructure
 {
     internal class ThreadsManager
     {
         private static readonly ConcurrentDictionary<long, object> Users = new ConcurrentDictionary<long, object>();
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
         private readonly TelegramBotClient _telegramClient;
-        private readonly MenuBotCommandsManager _commandsManager;
+        private readonly AdminBotCommandsManager _commandsManager;
         private readonly int _messageTimeout;
 
-        public ThreadsManager(TelegramBotClient telegramClient, MenuBotCommandsManager commandsManager, int timeout) 
+        public ThreadsManager(TelegramBotClient telegramClient, AdminBotCommandsManager commandsManager, int timeout)
         {
             _telegramClient = telegramClient;
             _commandsManager = commandsManager;

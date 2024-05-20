@@ -57,14 +57,14 @@ namespace RabbitClient
                 arguments: null);
 
             EventingBasicConsumer consumer = new EventingBasicConsumer(channel);
-            consumer.Received += (model, ea) =>
+            consumer.Received += async (model, ea) =>
             {
                 byte[] body = ea.Body.ToArray();
                 string message = Encoding.UTF8.GetString(body);
 
                 _logger.Info($"Сообщение получено. Очередь: '{queue}'. Сообщение: '{message}'");
 
-                consumerObj.Consume(message);
+                await consumerObj.ConsumeAsync(message);
             };
 
             channel.BasicConsume(queue: queue,

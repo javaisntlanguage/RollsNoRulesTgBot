@@ -18,26 +18,24 @@ namespace AdminTgBot.Infrastructure.Conversations.Start
     internal class StartConversation : IConversation
     {
         private readonly long _chatId;
-        private readonly ITelegramBotClient _clientBot;
-        private readonly ApplicationContext _dataSource;
-        private readonly StateManager _stateManager;
+        private ApplicationContext _dataSource;
+        private readonly AdminBotStateManager _stateManager;
 
         public string Login { get; set; }
 
         public StartConversation() { }
 
-        public StartConversation(ITelegramBotClient botClient, ApplicationContext dataSource, StateManager statesManager)
+        public StartConversation(AdminBotStateManager statesManager)
         {
-            _clientBot = botClient;
-            _dataSource = dataSource;
             _stateManager = statesManager;
             _chatId = _stateManager.ChatId;
         }
 
 
-        public async Task<Trigger?> TryNextStepAsync(Message message)
+        public async Task<Trigger?> TryNextStepAsync(ApplicationContext dataSource, Message message)
         {
-            switch (_stateManager.GetState())
+			_dataSource = dataSource;
+			switch (_stateManager.GetState())
             {
                 case State.CommandStart:
                     {
@@ -59,7 +57,7 @@ namespace AdminTgBot.Infrastructure.Conversations.Start
             return null;
         }
 
-        public async Task<Trigger?> TryNextStepAsync(CallbackQuery query)
+        public async Task<Trigger?> TryNextStepAsync(ApplicationContext dataSource, CallbackQuery query)
         {
             return null;
         }
@@ -71,7 +69,7 @@ namespace AdminTgBot.Infrastructure.Conversations.Start
             if (admin.IsNull())
             {
                 Login = null;
-                await _clientBot.SendTextMessageAsync(_chatId, StartText.AuthFail);
+                await _stateManager.SendMessageAsync(StartText.AuthFail);
             }
             else
             {
@@ -84,25 +82,25 @@ namespace AdminTgBot.Infrastructure.Conversations.Start
         private async Task GetPassowrdAsync(string login)
         {
             Login = login;
-            await _clientBot.SendTextMessageAsync(_chatId, StartText.EnterPassword);
+            await _stateManager.SendMessageAsync(StartText.EnterPassword);
         }
         private async Task GetLoginAsync()
         {
             _stateManager.IsAuth = false;
-            await _clientBot.SendTextMessageAsync(_chatId, StartText.EnterLogin);
+            await _stateManager.SendMessageAsync(StartText.EnterLogin);
         }
 
         private async Task SetMenuButtonsAsync(string name)
         {
             string text = string.Format(StartText.AuthSuccess, name);
 
-            await _stateManager.CommandsManager.ShowButtonMenuAsync(_chatId,_stateManager.UserId, text);
+            await _stateManager.ShowButtonMenuAsync(text);
         }
 
         private void SetRole()
         {
             _stateManager.Roles = _dataSource
-                .GetUserRoles(_stateManager.UserId)
+                .GetUserRoles(_stateManager.ChatId)
                 .ToHashSet();
             
             if(!_stateManager.Roles.Contains(RolesList.Admin))

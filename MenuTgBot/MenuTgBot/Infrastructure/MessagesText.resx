@@ -127,7 +127,7 @@
     <value>🌯Каталог</value>
   </data>
   <data name="CommandStart" xml:space="preserve">
-    <value>Старт</value>
+    <value>/start</value>
   </data>
   <data name="GoLastMessage" xml:space="preserve">
     <value>Вернитесь к последнему сообщению</value>

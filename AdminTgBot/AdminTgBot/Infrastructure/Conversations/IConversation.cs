@@ -1,4 +1,5 @@
-﻿using Helper;
+﻿using Database;
+using Helper;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,12 +18,12 @@ namespace AdminTgBot.Infrastructure.Conversations
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        public Task<Trigger?> TryNextStepAsync(Message message);
+        public Task<Trigger?> TryNextStepAsync(ApplicationContext dataSource, Message message);
         /// <summary>
         /// попытка связать запрос с текущим обработчиком
         /// </summary>
         /// <param name="query"></param>
         /// <returns></returns>
-        public Task<Trigger?> TryNextStepAsync(CallbackQuery query);
+        public Task<Trigger?> TryNextStepAsync(ApplicationContext dataSource, CallbackQuery query);
     }
 }

@@ -18,7 +18,7 @@ namespace MenuTgBot.Infrastructure.Commands
         {
             await base.StartCommandAsync(stateManager, message);
 
-            await (stateManager as StateManager).ShowCatalogAsync(message);
+            await (stateManager as MenuBotStateManager).ShowCatalogAsync(message);
         }
     }
 }

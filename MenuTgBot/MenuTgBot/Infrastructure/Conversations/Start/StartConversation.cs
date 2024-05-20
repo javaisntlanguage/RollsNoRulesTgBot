@@ -9,16 +9,17 @@ using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
+using Telegram.Util.Core.Interfaces;
 
 namespace MenuTgBot.Infrastructure.Conversations.Start
 {
     internal class StartConversation : IConversation
     {
         private readonly long _chatId;
-        private readonly StateManager _stateManager;
+        private readonly MenuBotStateManager _stateManager;
         private ApplicationContext _dataSource;
 
-        public StartConversation(StateManager statesManager)
+        public StartConversation(MenuBotStateManager statesManager)
         {
             _stateManager = statesManager;
             _chatId = _stateManager.ChatId;

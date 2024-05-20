@@ -30,7 +30,7 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
     {
         private const int SMS_RESEND_TIMER = 30;
         private const int SMS_LENGTH = 4;
-        private readonly StateManager _stateManager;
+        private readonly MenuBotStateManager _stateManager;
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
         private static readonly RabbitEventHandler _rabbitEventHandler = new RabbitEventHandler(_logger);
         private ApplicationContext _dataSource;
@@ -45,7 +45,7 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
 
         public OrdersConversation() { }
 
-        public OrdersConversation(StateManager statesManager)
+        public OrdersConversation(MenuBotStateManager statesManager)
         {
             _stateManager = statesManager;
         }

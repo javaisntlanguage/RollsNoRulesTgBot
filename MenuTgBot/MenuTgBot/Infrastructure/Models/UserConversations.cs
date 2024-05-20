@@ -20,7 +20,7 @@ namespace MenuTgBot.Infrastructure.Models
         public CartConversation Cart { get; set; }
         public OrdersConversation Orders { get; set; }
 
-        public Dictionary<string, IConversation> GetHandlers(StateManager statesManager)
+        public Dictionary<string, IConversation> GetHandlers(MenuBotStateManager statesManager)
         {
             Dictionary<string, IConversation> result = new Dictionary<string, IConversation>
             {

@@ -88,7 +88,7 @@ namespace MenuTgBot.Infrastructure {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Старт.
+        ///   Looks up a localized string similar to /start.
         /// </summary>
         internal static string CommandStart {
             get {

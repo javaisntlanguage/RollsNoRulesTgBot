@@ -9,7 +9,7 @@ using Telegram.Util.Core.Enums;
 
 namespace AdminTgBot.Infrastructure
 {
-    internal class AdminBotCommandHandler : BotCommandHandler<StateManager>
+    internal class AdminBotCommandHandler : BotCommandHandler<AdminBotStateManager>
     {
         public AdminBotCommandHandler(string command, CommandDisplay displayMode) : base(command, displayMode)
         {

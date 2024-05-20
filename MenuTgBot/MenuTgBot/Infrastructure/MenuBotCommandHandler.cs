@@ -9,11 +9,10 @@ using Telegram.Util.Core.Enums;
 
 namespace MenuTgBot.Infrastructure
 {
-    internal class MenuBotCommandHandler : BotCommandHandler<StateManager>
+    internal class MenuBotCommandHandler : BotCommandHandler<MenuBotStateManager>
     {
         public MenuBotCommandHandler(string command, CommandDisplay displayMode) : base(command, displayMode)
         {
-
         }
     }
 }

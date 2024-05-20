@@ -88,6 +88,15 @@ namespace AdminTgBot.Infrastructure {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Вернитесь к последнему сообщению.
+        /// </summary>
+        internal static string GoLastMessage {
+            get {
+                return ResourceManager.GetString("GoLastMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Что-то пошло не так.
         /// </summary>
         internal static string SomethingWrong {

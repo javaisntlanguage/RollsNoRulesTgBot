@@ -3,10 +3,11 @@ using Database.Enums;
 using Telegram.Util.Core.Enums;
 using Helper;
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
+using Telegram.Util.Core.Interfaces;
 
 namespace Telegram.Util.Core
 {
-    public abstract class BotCommandHandler<TStateManager> where TStateManager : class
+    public abstract class BotCommandHandler<TStateManager> : IBotCommandHandler where TStateManager : class
     {
         protected BotCommandHandler(string command, CommandDisplay displayMode)
         {
@@ -28,11 +29,6 @@ namespace Telegram.Util.Core
             {
                 throw new Exception($"объект должен быть {typeof(TStateManager).FullName}");
             }
-        }
-
-        protected string SetCommand()
-        {
-            return "/" + Command.ToLower();
         }
     }
 }

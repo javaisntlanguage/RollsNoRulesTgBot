@@ -8,6 +8,6 @@ namespace RabbitClient
 {
     public interface IConsumer
     {
-        public void Consume(string message);
+        public Task ConsumeAsync(string message);
     }
 }

@@ -17,19 +17,20 @@ using Telegram.Bot.Types.ReplyMarkups;
 using Telegram.Util.Core;
 using Telegram.Bot.Types.Enums;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Telegram.Util.Core.Interfaces;
 
 namespace MenuTgBot.Infrastructure.Conversations.Cart
 {
     internal class CartConversation : IConversation
     {
         private readonly long _chatId;
-        private readonly StateManager _stateManager;
+        private readonly MenuBotStateManager _stateManager;
         private ApplicationContext _dataSource;
 
         public List<CartProduct> Cart {  get; set; }
 
         public CartConversation() { }
-        public CartConversation(StateManager statesManager)
+        public CartConversation(MenuBotStateManager statesManager)
         {
             _stateManager = statesManager;
             _chatId = _stateManager.ChatId;

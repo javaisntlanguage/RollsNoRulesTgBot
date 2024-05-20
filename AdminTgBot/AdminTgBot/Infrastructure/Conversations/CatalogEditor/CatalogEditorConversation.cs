@@ -26,8 +26,8 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
 {
     internal class CatalogEditorConversation : IConversation
     {
-        private readonly ApplicationContext _dataSource;
-        private readonly StateManager _stateManager;
+        private ApplicationContext _dataSource;
+        private readonly AdminBotStateManager _stateManager;
 
         public int? ProductId { get; set; }
         public string AttributeValue { get; set; }
@@ -36,14 +36,14 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
 
         public CatalogEditorConversation() { }
 
-        public CatalogEditorConversation(ApplicationContext dataSource, StateManager statesManager)
+        public CatalogEditorConversation(AdminBotStateManager statesManager)
         {
-            _dataSource = dataSource;
             _stateManager = statesManager;
         }
-        public async Task<Trigger?> TryNextStepAsync(Message message)
+        public async Task<Trigger?> TryNextStepAsync(ApplicationContext dataSource, Message message)
         {
-            switch (_stateManager.GetState())
+			_dataSource = dataSource;
+			switch (_stateManager.GetState())
             {
                 case State.CommandCatalogEditor:
                     {
@@ -94,9 +94,10 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
             return null;
         }
 
-        public async Task<Trigger?> TryNextStepAsync(CallbackQuery query)
+        public async Task<Trigger?> TryNextStepAsync(ApplicationContext dataSource, CallbackQuery query)
         {
-            JObject data = JObject.Parse(query.Data);
+			_dataSource = dataSource;
+			JObject data = JObject.Parse(query.Data);
             Command command = data.GetEnumValue<Command>("Cmd");
 
             switch (_stateManager.GetState())
@@ -336,7 +337,6 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
         private async Task ChangeProductAttributeValueAsync(bool isVisible)
         {
             Product product = await _dataSource.Products
-                .AsTracking()
                 .FirstOrDefaultAsync(p => p.Id == ProductId);
 
             product.IsVisible = isVisible;
@@ -348,7 +348,6 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
         private async Task ChangeProductAttributeValueAsync(ProductAttribute productAttribute)
         {
             Product product = await _dataSource.Products
-                .AsTracking()
                 .FirstOrDefaultAsync(p => p.Id == ProductId);
 
             switch(productAttribute)
@@ -556,7 +555,8 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
                 CatalogEditorText.No;
 
             InlineKeyboardButton[] editAttribute = GetEditProductVisibilityButton(productId, isVisible);
-            InlineKeyboardButton[] returnToProduct = GetReturnToProductButton(productId);
+			InlineKeyboardButton[] nextAttribute = GetEditProductButton(ProductAttribute.Name, CatalogEditorText.Next, productId);
+			InlineKeyboardButton[] returnToProduct = GetReturnToProductButton(productId);
 
             string text = string.Format(CatalogEditorText.EditProductAttributeTemplate,
                 CatalogEditorText.ProductVisibility,
@@ -565,7 +565,8 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
             InlineKeyboardMarkup markup = new InlineKeyboardMarkup(new InlineKeyboardButton[][]
             {
                 editAttribute,
-                returnToProduct
+				nextAttribute,
+				returnToProduct
             });
 
 
@@ -576,7 +577,6 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
             string attributeValue = _dataSource.Products.FirstOrDefault(product => product.Id == productId)?.Photo;
 
             InlineKeyboardButton[] editAttribute = GetEditAttributeButton(productId, ProductAttribute.Photo);
-            InlineKeyboardButton[] nextAttribute = GetEditProductButton(ProductAttribute.Visibility, CatalogEditorText.Next, productId);
             InlineKeyboardButton[] returnToProduct = GetReturnToProductButton(productId);
 
             string photoText = attributeValue.IsNullOrEmpty() ?
@@ -590,7 +590,6 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
             InlineKeyboardMarkup markup = new InlineKeyboardMarkup(new InlineKeyboardButton[][]
             {
                 editAttribute,
-                nextAttribute,
                 returnToProduct
             });
 
@@ -959,7 +958,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
 
             if (productId.HasValue)
             {
-                InlineKeyboardButton[] editProduct = GetEditProductButton(ProductAttribute.Name, CatalogEditorText.EditProduct, productId);
+                InlineKeyboardButton[] editProduct = GetEditProductButton(ProductAttribute.Visibility, CatalogEditorText.EditProduct, productId);
                 result.Add(editProduct);
             }
 

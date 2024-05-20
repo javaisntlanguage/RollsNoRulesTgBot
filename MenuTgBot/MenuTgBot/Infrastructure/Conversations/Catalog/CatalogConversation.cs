@@ -24,10 +24,10 @@ namespace MenuTgBot.Infrastructure.Conversations.Catalog
     internal class CatalogConversation : IConversation
     {
         private readonly long _chatId;
-        private readonly StateManager _stateManager;
+        private readonly MenuBotStateManager _stateManager;
         private ApplicationContext _dataSource;
 
-        public CatalogConversation(StateManager statesManager)
+        public CatalogConversation(MenuBotStateManager statesManager)
         {
             _stateManager = statesManager;
             _chatId = _stateManager.ChatId;
@@ -40,7 +40,7 @@ namespace MenuTgBot.Infrastructure.Conversations.Catalog
             {
                 case State.CommandShopCatalog:
                     {
-                        if (message.Text == MessagesText.CommandShopCatalog)
+                        if (message.Text == MessagesText.CommandShopCatalog || message.Text == MessagesText.CommandStart)
                         {
                             await ShowCategoriesAsync();
                             return Trigger.Ignore;

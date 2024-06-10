@@ -26,6 +26,7 @@ using File = Telegram.Bot.Types.File;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using Microsoft.EntityFrameworkCore.Internal;
 using Newtonsoft.Json.Linq;
+using AdminTgBot.Infrastructure.Conversations.Orders;
 
 namespace AdminTgBot.Infrastructure
 {
@@ -34,9 +35,9 @@ namespace AdminTgBot.Infrastructure
         private readonly IDbContextFactory<ApplicationContext> _contextFactory;
         private readonly StateMachine<State, Trigger> _machine;
         private Dictionary<string, IConversation> _handlers;
-        private State _state;
+		public State CurrentState { get; private set; }
 
-        public bool IsAuth { get; set; }
+		public bool IsAuth { get; set; }
         public HashSet<RolesList> Roles { get; set; }
 
         private AdminBotStateManager(ITelegramBotClient botClient, IDbContextFactory<ApplicationContext> contextFactory,
@@ -46,10 +47,10 @@ namespace AdminTgBot.Infrastructure
 
             _message = new Message();
             _commandsManager = commandsManager;
-            _machine = new StateMachine<State, Trigger>(() => _state,
+            _machine = new StateMachine<State, Trigger>(() => CurrentState,
                 s =>
                 {
-                    _state = s;
+					CurrentState = s;
                 });
             _handlers = new Dictionary<string, IConversation>();
             _botClient = botClient;
@@ -63,6 +64,7 @@ namespace AdminTgBot.Infrastructure
         {
             SetHandler(new StartConversation(this));
             SetHandler(new CatalogEditorConversation(this));
+            SetHandler(new OrdersConversation(this));
         }
 
         protected override void ConfigureMachine()
@@ -70,6 +72,7 @@ namespace AdminTgBot.Infrastructure
             _machine.Configure(State.New)
             .Permit(Trigger.CommandStartStarted, State.CommandStart)
             .Permit(Trigger.CommandCatalogEditorStarted, State.CommandCatalogEditor)
+            .Permit(Trigger.CommandOrdersStarted, State.CommandOrders)
             .Ignore(Trigger.Ignore);
 
             _machine.Configure(State.CommandStart)
@@ -125,7 +128,12 @@ namespace AdminTgBot.Infrastructure
             _machine.Configure(State.NewProductPhotoEditor)
             .SubstateOf(State.CommandCatalogEditor)
             .Permit(Trigger.ReturnToCalatog, State.CommandCatalogEditor);
-        }
+
+			_machine.Configure(State.CommandOrders)
+			.SubstateOf(State.New)
+			.OnEntryFromAsync(Trigger.CommandOrdersStarted, NextStateMessageAsync);
+
+		}
 
         /// <summary>
         /// сохранить состояние пользователя
@@ -139,7 +147,7 @@ namespace AdminTgBot.Infrastructure
                 CatalogEditor = GetHandler<CatalogEditorConversation>()
             });
 
-            await dataSource.SetAdminState(ChatId, (int)_state, data, _lastMessageId);
+            await dataSource.SetAdminState(ChatId, (int)CurrentState, data, _lastMessageId);
         }
 
         /// <summary>
@@ -154,7 +162,7 @@ namespace AdminTgBot.Infrastructure
 
             if (adminState.IsNull())
             {
-                _state = State.New;
+                CurrentState = State.New;
                 Roles = new() { RolesList.User };
             }
             else
@@ -163,10 +171,10 @@ namespace AdminTgBot.Infrastructure
                     .GetUserRoles(ChatId)
                     .ToHashSet();
 
-                _state = (State)adminState.StateId;
+                CurrentState = (State)adminState.StateId;
                 _lastMessageId = adminState.LastMessageId;
 
-                IsAuth = !_machine.IsInState(State.CommandStart) && _state != State.New;
+                IsAuth = !_machine.IsInState(State.CommandStart) && CurrentState != State.New;
 
                 RecoverHandlers(adminState.Data, dataSource);
             }
@@ -249,6 +257,17 @@ namespace AdminTgBot.Infrastructure
             _message = message;
 
             await _machine.FireAsync(Trigger.CommandCatalogEditorStarted);
+        }
+        /// <summary>
+        /// обработка команды Заказы
+        /// </summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public async Task OrdersAsync(Message message)
+        {
+            _message = message;
+
+            await _machine.FireAsync(Trigger.CommandOrdersStarted);
         }
 
         public async Task<string> GetFileAsync(string fileId)
@@ -339,11 +358,6 @@ namespace AdminTgBot.Infrastructure
             return default;
         }
 
-        public State GetState()
-        {
-            return _state;
-        }
-
         public void CheckAuth()
         {
             if(!IsAuth && !_machine.IsInState(State.CommandStart))
@@ -372,7 +386,8 @@ namespace AdminTgBot.Infrastructure
         EnterProductPrice,
         EnterProductPhoto,
         ReturnToCalatog,
-    }
+		CommandOrdersStarted,
+	}
 
     public enum State
     {
@@ -389,5 +404,6 @@ namespace AdminTgBot.Infrastructure
         NewProductDescriptionEditor,
         NewProductPriceEditor,
         NewProductPhotoEditor,
-    }
+		CommandOrders,
+	}
 }

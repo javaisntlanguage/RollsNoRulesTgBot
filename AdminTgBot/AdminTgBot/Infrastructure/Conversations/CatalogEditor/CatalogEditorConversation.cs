@@ -19,8 +19,6 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 using Telegram.Util.Core;
-using static System.Net.Mime.MediaTypeNames;
-using Image = System.Drawing.Image;
 
 namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
 {
@@ -43,7 +41,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
         public async Task<Trigger?> TryNextStepAsync(ApplicationContext dataSource, Message message)
         {
 			_dataSource = dataSource;
-			switch (_stateManager.GetState())
+			switch (_stateManager.CurrentState)
             {
                 case State.CommandCatalogEditor:
                     {
@@ -100,7 +98,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
 			JObject data = JObject.Parse(query.Data);
             Command command = data.GetEnumValue<Command>("Cmd");
 
-            switch (_stateManager.GetState())
+            switch (_stateManager.CurrentState)
             {
                 case State.CommandCatalogEditor:
                     {
@@ -817,7 +815,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
 
             InlineKeyboardMarkup markup = new InlineKeyboardMarkup(keyboard);
 
-            await _stateManager.SendMessageAsync(text, ParseMode.Html, markup, photo: product.Photo);
+            await _stateManager.SendMessageAsync(text, ParseMode.Html, markup, photo: product?.Photo);
         }
 
         /// <summary>
@@ -1059,7 +1057,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
                 int previousId = previousCategoryIds
                     .Max();
 
-                result = new InlineKeyboardButton(CatalogEditorText.PaginationPrevious)
+                result = new InlineKeyboardButton(MessagesText.PaginationPrevious)
                 {
                     CallbackData = JsonConvert.SerializeObject(new
                     {
@@ -1093,7 +1091,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
                 int previousId = previousProductIds
                     .Max();
 
-                result = new InlineKeyboardButton(CatalogEditorText.PaginationPrevious)
+                result = new InlineKeyboardButton(MessagesText.PaginationPrevious)
                 {
                     CallbackData = JsonConvert.SerializeObject(new
                     {
@@ -1128,7 +1126,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
                 int nextId = nextIds
                     .Min();
 
-                result = new InlineKeyboardButton(CatalogEditorText.PaginationNext)
+                result = new InlineKeyboardButton(MessagesText.PaginationNext)
                 {
                     CallbackData = JsonConvert.SerializeObject(new
                     {
@@ -1162,7 +1160,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
                 int nextId = nextProductIds
                     .Min();
 
-                result = new InlineKeyboardButton(CatalogEditorText.PaginationNext)
+                result = new InlineKeyboardButton(MessagesText.PaginationNext)
                 {
                     CallbackData = JsonConvert.SerializeObject(new
                     {
@@ -1186,7 +1184,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
         /// <returns></returns>
         private InlineKeyboardButton GetNoPaginationButton()
         {
-            InlineKeyboardButton result = new InlineKeyboardButton(CatalogEditorText.NoPagination)
+            InlineKeyboardButton result = new InlineKeyboardButton(MessagesText.NoPagination)
             {
                 CallbackData = JsonConvert.SerializeObject(new
                 {

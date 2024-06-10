@@ -8,8 +8,11 @@ namespace Database.Enums
 {
     public enum OrderState
     {
+        None = 0,
         New = 1,
-        Complete = 2,
-        Declined = 3
-    }
+        Completed = 1 << 1,
+        Declined = 1 << 2,
+        Approved = 1 << 3,
+        Error = 1 << 4
+	}
 }

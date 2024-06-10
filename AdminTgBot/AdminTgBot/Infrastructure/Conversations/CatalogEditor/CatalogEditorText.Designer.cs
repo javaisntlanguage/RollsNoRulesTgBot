@@ -171,33 +171,6 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to X.
-        /// </summary>
-        internal static string NoPagination {
-            get {
-                return ResourceManager.GetString("NoPagination", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to =&gt;.
-        /// </summary>
-        internal static string PaginationNext {
-            get {
-                return ResourceManager.GetString("PaginationNext", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &lt;=.
-        /// </summary>
-        internal static string PaginationPrevious {
-            get {
-                return ResourceManager.GetString("PaginationPrevious", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Ошибка при загрузке фотографии. Попробуйте другую ссылку.
         /// </summary>
         internal static string PhotoLoadFail {

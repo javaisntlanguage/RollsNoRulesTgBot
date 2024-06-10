@@ -35,7 +35,7 @@ namespace AdminTgBot.Infrastructure.Conversations.Start
         public async Task<Trigger?> TryNextStepAsync(ApplicationContext dataSource, Message message)
         {
 			_dataSource = dataSource;
-			switch (_stateManager.GetState())
+			switch (_stateManager.CurrentState)
             {
                 case State.CommandStart:
                     {

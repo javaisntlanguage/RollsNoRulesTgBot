@@ -20,6 +20,14 @@ namespace AdminTgBot.Infrastructure.Models
         EditProductAttributeYes,
         EditProductVisibility,
         AcceptOrder,
-        DeclineOrder
-    }
+        DeclineOrder,
+		OrderDetails,
+		MovePaginationOrders,
+		ChangeFilter,
+		ChangeFilterState,
+		ChangeFilterDateFrom,
+		ChangeFilterDateTo,
+		ChangeFilterId,
+		BackToOrders
+	}
 }

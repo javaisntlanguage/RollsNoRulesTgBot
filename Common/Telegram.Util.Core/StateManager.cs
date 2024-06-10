@@ -48,7 +48,7 @@ namespace Telegram.Util.Core
         /// <param name="chatId"></param>
         /// <param name="text"></param>
         /// <returns></returns>
-        private async Task<Message> ShowButtonMenuAsync(long chatId, string text, IEnumerable<KeyboardButton> additionalButtons = null)
+        private async Task<Message> ShowButtonMenuAsync(long chatId, string text, IEnumerable<KeyboardButton>? additionalButtons = null)
         {
             IEnumerable<KeyboardButton> defaultButtons = _commandsManager.GetDefaultMenuButtons();
 
@@ -97,9 +97,9 @@ namespace Telegram.Util.Core
             return default;
         }
 
-        public async Task<Message> SendMessageAsync(string text, ParseMode? parseMode = null, IReplyMarkup? replyMarkup = null, string photo = null)
+        public async Task<Message> SendMessageAsync(string text, ParseMode? parseMode = null, IReplyMarkup? replyMarkup = null, string? photo = null, bool isOutOfQueue = false)
         {
-            Message result = null;
+            Message result = null!;
 
             if (text.Length > MAX_MESSAGE_LENGTH)
             {
@@ -114,12 +114,15 @@ namespace Telegram.Util.Core
             }
             else
             {
-                await using Stream stream = new MemoryStream(Convert.FromBase64String(photo));
+                await using Stream stream = new MemoryStream(Convert.FromBase64String(photo!));
                 InputFileStream inputFile = InputFile.FromStream(stream);
                 result = await _botClient.SendPhotoAsync(ChatId, inputFile, caption: text, parseMode: parseMode, replyMarkup: replyMarkup);
             }
 
-            _lastMessageId = result.MessageId;
+            if (!isOutOfQueue)
+            {
+                _lastMessageId = result.MessageId;
+            }
 
             return result;
         }

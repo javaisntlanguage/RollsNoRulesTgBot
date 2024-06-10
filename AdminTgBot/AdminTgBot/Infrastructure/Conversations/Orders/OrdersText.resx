@@ -117,97 +117,109 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Add" xml:space="preserve">
-    <value>Добавить</value>
+  <data name="BackToOrders" xml:space="preserve">
+    <value>Вернуться к заказам</value>
   </data>
-  <data name="AddProduct" xml:space="preserve">
-    <value>Добавить новый товар</value>
+  <data name="BadOrderIdForFilter" xml:space="preserve">
+    <value>Заказ больше не подходит под фильтр</value>
   </data>
-  <data name="Approve" xml:space="preserve">
-    <value>Подтвердить?</value>
+  <data name="CartItem" xml:space="preserve">
+    <value>{0} {1} ₽ x {2} - {3} ₽</value>
   </data>
-  <data name="Change" xml:space="preserve">
-    <value>Изменить</value>
+  <data name="ChangeFilter" xml:space="preserve">
+    <value>Изменить фильтр</value>
   </data>
-  <data name="ChoosingCategory" xml:space="preserve">
-    <value>Выберите категорию</value>
+  <data name="ChooseFilter" xml:space="preserve">
+    <value>Настройка фильтра заказов</value>
   </data>
-  <data name="EditProduct" xml:space="preserve">
-    <value>Изменить товар</value>
+  <data name="DateFromFilterEmpty" xml:space="preserve">
+    <value>Дата с</value>
   </data>
-  <data name="EditProductAttributeTemplate" xml:space="preserve">
-    <value>&lt;b&gt;Атрибут:&lt;/b&gt; {0}
+  <data name="DateFromFilterHasValue" xml:space="preserve">
+    <value>Дата с: {0}</value>
+  </data>
+  <data name="DateToFilterEmpty" xml:space="preserve">
+    <value>Дата по</value>
+  </data>
+  <data name="DateToFilterHasValue" xml:space="preserve">
+    <value>Дата по: {0}</value>
+  </data>
+  <data name="FilterEmpty" xml:space="preserve">
+    <value>Нет фильтра</value>
+  </data>
+  <data name="FilterTitle" xml:space="preserve">
+    <value>Фильтр 
 
-&lt;b&gt;Текущее значение:&lt;/b&gt;  {1}</value>
+{0}</value>
   </data>
-  <data name="EnterProductAttribute" xml:space="preserve">
-    <value>Введите {0}</value>
+  <data name="IdFilterEmpty" xml:space="preserve">
+    <value>ID</value>
   </data>
-  <data name="EnterValue" xml:space="preserve">
-    <value>Введите значение</value>
+  <data name="IdFilterHasValue" xml:space="preserve">
+    <value>ID: {0}</value>
   </data>
-  <data name="LookPhoto" xml:space="preserve">
-    <value>* Смотри фото *</value>
+  <data name="OrderApproved" xml:space="preserve">
+    <value>Заказ № {0} ({1}) взят в работу</value>
   </data>
-  <data name="Next" xml:space="preserve">
-    <value>Далее</value>
+  <data name="OrderDeclined" xml:space="preserve">
+    <value>Заказ № {0} ({1}) отменен</value>
   </data>
-  <data name="No" xml:space="preserve">
-    <value>Нет</value>
-  </data>
-  <data name="PhotoLoadFail" xml:space="preserve">
-    <value>Ошибка при загрузке фотографии. Попробуйте другую ссылку</value>
-  </data>
-  <data name="ProductAttributeNoValue" xml:space="preserve">
-    <value>* Значение отсутствует *</value>
-  </data>
-  <data name="ProductDesciption" xml:space="preserve">
-    <value>Описание товара</value>
-  </data>
-  <data name="ProductDetails" xml:space="preserve">
-    <value>&lt;b&gt;{0}&lt;/b&gt;
+  <data name="OrderDetails" xml:space="preserve">
+    <value>Заказ № {0} ({1}) от {2}
 
-&lt;i&gt;{1}&lt;/i&gt;
+Статус: {3}
 
-{2}</value>
+{4}
+
+Итого: {5}
+</value>
   </data>
-  <data name="ProductName" xml:space="preserve">
-    <value>Наименование товара</value>
+  <data name="OrderNotFound" xml:space="preserve">
+    <value>Заказ с  id = {0} не найден</value>
   </data>
-  <data name="ProductPhoto" xml:space="preserve">
-    <value>Фотография товара (ссылка)</value>
+  <data name="OrderPreview" xml:space="preserve">
+    <value>{0} ({1}) - {2} ₽</value>
   </data>
-  <data name="ProductPrice" xml:space="preserve">
-    <value>Цена товара</value>
+  <data name="OrdersFilterDate" xml:space="preserve">
+    <value>Дата</value>
   </data>
-  <data name="ProductsNotFound" xml:space="preserve">
-    <value>Товары отсутствуют</value>
+  <data name="OrdersFilterDateFrom" xml:space="preserve">
+    <value>с {0}</value>
   </data>
-  <data name="ProductVisibility" xml:space="preserve">
-    <value>Видимость товара</value>
+  <data name="OrdersFilterDateTo" xml:space="preserve">
+    <value>по {0}</value>
   </data>
-  <data name="ProductVisibilityOff" xml:space="preserve">
-    <value>Скрыть</value>
+  <data name="OrdersFilterEmpty" xml:space="preserve">
+    <value>Пусто</value>
   </data>
-  <data name="ProductVisibilityOn" xml:space="preserve">
-    <value>Показать</value>
+  <data name="OrdersFilterId" xml:space="preserve">
+    <value>Id - {0}</value>
   </data>
-  <data name="ReturnToCatalog" xml:space="preserve">
-    <value>Вернуться в меню</value>
+  <data name="OrdersStates" xml:space="preserve">
+    <value>Состояния заказа</value>
   </data>
-  <data name="ReturnToProduct" xml:space="preserve">
-    <value>Вернуться к товару</value>
+  <data name="OrderStateApproved" xml:space="preserve">
+    <value>Взять в работу</value>
   </data>
-  <data name="ReturnToProductEditor" xml:space="preserve">
-    <value>Вернуться к выбору атрибута</value>
+  <data name="OrderStateCompleted" xml:space="preserve">
+    <value>Выполнен</value>
   </data>
-  <data name="ShowProducts" xml:space="preserve">
-    <value>Показать товары</value>
+  <data name="OrderStateDeclined" xml:space="preserve">
+    <value>Отменен</value>
   </data>
-  <data name="WrongValue" xml:space="preserve">
-    <value>Введите корректное значение</value>
+  <data name="OrderStateError" xml:space="preserve">
+    <value>Ошибка обработки заказа</value>
   </data>
-  <data name="Yes" xml:space="preserve">
-    <value>Да</value>
+  <data name="OrderStateNew" xml:space="preserve">
+    <value>Новый</value>
+  </data>
+  <data name="OrderStateNone" xml:space="preserve">
+    <value>Неизвестно</value>
+  </data>
+  <data name="StateFilterEmpty" xml:space="preserve">
+    <value>Статус</value>
+  </data>
+  <data name="StateFilterHasValue" xml:space="preserve">
+    <value>Статус: {0}</value>
   </data>
 </root>

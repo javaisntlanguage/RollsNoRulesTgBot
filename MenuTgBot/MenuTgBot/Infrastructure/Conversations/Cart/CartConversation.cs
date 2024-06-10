@@ -337,7 +337,7 @@ namespace MenuTgBot.Infrastructure.Conversations.Cart
                 .Sum(cp =>
                 {
                     Product? product = _dataSource.Products
-                    .FirstOrDefault();
+                    .FirstOrDefault(p => p.Id == cp.Id);
 
                     if(product.IsNull())
                     {

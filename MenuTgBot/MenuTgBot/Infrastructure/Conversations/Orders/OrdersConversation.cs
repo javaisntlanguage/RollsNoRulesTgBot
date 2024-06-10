@@ -23,6 +23,8 @@ using System.Net;
 using System.Collections;
 using Azure;
 using System.Diagnostics;
+using System.Reflection;
+using System.Resources;
 
 namespace MenuTgBot.Infrastructure.Conversations.Orders
 {
@@ -306,12 +308,15 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
                 oc.Count, 
                 oc.Price * oc.Count)));
 
-            string text = string.Format(OrdersText.OrderDetails,
+			string status = OrdersText.ResourceManager.GetString($"OrderState{currentOrder.State.ToString()}");
+            
+			string text = string.Format(OrdersText.OrderDetails,
                 currentOrder.DateFrom.DateTime.ToString("yyyy.MM.dd"),
                 currentOrder.Number,
                 currentOrder.Id,
                 orderCartText,
-                currentOrder.Sum);
+                currentOrder.Sum,
+				status);
 
             await _stateManager.SendMessageAsync(text, replyMarkup: markup);
         }

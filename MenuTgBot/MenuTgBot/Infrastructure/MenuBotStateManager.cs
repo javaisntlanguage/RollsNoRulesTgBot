@@ -33,7 +33,6 @@ namespace MenuTgBot.Infrastructure
         private readonly IDbContextFactory<ApplicationContext> _contextFactory;
         private StateMachine<State, Trigger> _machine;
         private Dictionary<string, IConversation> _handlers;
-        private int? _lastMessageId;
 
         public State CurrentState { get; private set; }
         public HashSet<RolesList> Roles { get; set; }

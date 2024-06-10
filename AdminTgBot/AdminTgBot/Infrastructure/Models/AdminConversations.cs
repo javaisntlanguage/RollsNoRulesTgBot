@@ -1,5 +1,6 @@
 ﻿using AdminTgBot.Infrastructure.Conversations;
 using AdminTgBot.Infrastructure.Conversations.CatalogEditor;
+using AdminTgBot.Infrastructure.Conversations.Orders;
 using AdminTgBot.Infrastructure.Conversations.Start;
 using Database;
 using Helper;
@@ -17,6 +18,7 @@ namespace AdminTgBot.Infrastructure.Models
     {
         public StartConversation Start { get; set; }
         public CatalogEditorConversation CatalogEditor { get; set; }
+        public OrdersConversation Orders { get; set; }
 
         internal Dictionary<string, IConversation> GetHandlers(ITelegramBotClient botClient, ApplicationContext dataSource, AdminBotStateManager statesManager)
         {
@@ -39,6 +41,15 @@ namespace AdminTgBot.Infrastructure.Models
 			}
 
             result.Add(nameof(CatalogEditorConversation), catalogEditorConversation);
+
+            OrdersConversation ordersConversation = new OrdersConversation(statesManager);
+
+            if (Orders.IsNotNull())
+            {
+				SetPublicProperties(Orders, ordersConversation);
+			}
+
+            result.Add(nameof(OrdersConversation), ordersConversation);
 
             return result;
         }

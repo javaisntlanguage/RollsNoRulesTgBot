@@ -343,7 +343,8 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders {
         ///
         ///{3}
         ///
-        ///Общая сумма заказа: {4}.
+        ///Общая сумма: {4}
+        ///Статус: {5}.
         /// </summary>
         internal static string OrderDetails {
             get {
@@ -361,6 +362,51 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders {
         internal static string OrderPickUpSettings {
             get {
                 return ResourceManager.GetString("OrderPickUpSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Выполняется.
+        /// </summary>
+        internal static string OrderStateApproved {
+            get {
+                return ResourceManager.GetString("OrderStateApproved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Выполнен.
+        /// </summary>
+        internal static string OrderStateComplete {
+            get {
+                return ResourceManager.GetString("OrderStateComplete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Отменен.
+        /// </summary>
+        internal static string OrderStateDeclined {
+            get {
+                return ResourceManager.GetString("OrderStateDeclined", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ошибка при обработке заказа.
+        /// </summary>
+        internal static string OrderStateError {
+            get {
+                return ResourceManager.GetString("OrderStateError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Новый.
+        /// </summary>
+        internal static string OrderStateNew {
+            get {
+                return ResourceManager.GetString("OrderStateNew", resourceCulture);
             }
         }
         

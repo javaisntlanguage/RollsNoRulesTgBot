@@ -123,11 +123,23 @@
   <data name="CommandCatalogEditor" xml:space="preserve">
     <value>Редактор товаров</value>
   </data>
+  <data name="CommandOrders" xml:space="preserve">
+    <value>Заказы</value>
+  </data>
   <data name="CommandStart" xml:space="preserve">
     <value>Старт</value>
   </data>
   <data name="GoLastMessage" xml:space="preserve">
     <value>Вернитесь к последнему сообщению</value>
+  </data>
+  <data name="NoPagination" xml:space="preserve">
+    <value>X</value>
+  </data>
+  <data name="PaginationNext" xml:space="preserve">
+    <value>=&gt;</value>
+  </data>
+  <data name="PaginationPrevious" xml:space="preserve">
+    <value>&lt;=</value>
   </data>
   <data name="SomethingWrong" xml:space="preserve">
     <value>Что-то пошло не так</value>

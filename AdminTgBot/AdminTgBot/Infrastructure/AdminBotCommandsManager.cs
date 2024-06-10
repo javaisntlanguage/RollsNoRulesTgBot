@@ -62,6 +62,9 @@ namespace AdminTgBot.Infrastructure
                     CommandDisplay.None),
                 new CatalogEditorCommand(
                     $"{MessagesText.CommandCatalogEditor}",
+                    CommandDisplay.ButtonMenu),
+                new OrdersCommand(
+                    $"{MessagesText.CommandOrders}",
                     CommandDisplay.ButtonMenu)
             };
         }

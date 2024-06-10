@@ -36,5 +36,7 @@ namespace Database.Tables
         public long UserId { get; set; }
         [JsonIgnore()]
         public User User { get; set; }
-    }
+
+        public IEnumerable<OrderCart> OrderCartList { get; set; }
+	}
 }

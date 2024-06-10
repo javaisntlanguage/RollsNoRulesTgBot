@@ -220,7 +220,8 @@
 
 {3}
 
-Общая сумма заказа: {4}</value>
+Общая сумма: {4}
+Статус: {5}</value>
   </data>
   <data name="OrderPickUpSettings" xml:space="preserve">
     <value>Точка самовывоза:
@@ -228,6 +229,21 @@
 
 Номер телефона:
 {1}</value>
+  </data>
+  <data name="OrderStateApproved" xml:space="preserve">
+    <value>Выполняется</value>
+  </data>
+  <data name="OrderStateComplete" xml:space="preserve">
+    <value>Выполнен</value>
+  </data>
+  <data name="OrderStateDeclined" xml:space="preserve">
+    <value>Отменен</value>
+  </data>
+  <data name="OrderStateError" xml:space="preserve">
+    <value>Ошибка при обработке заказа</value>
+  </data>
+  <data name="OrderStateNew" xml:space="preserve">
+    <value>Новый</value>
   </data>
   <data name="PhoneConfirmed" xml:space="preserve">
     <value>Телефон подтвержден!</value>

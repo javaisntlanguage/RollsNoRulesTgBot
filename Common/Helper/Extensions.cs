@@ -32,19 +32,19 @@ namespace Helper
         #region Public Methods
 
         [System.Diagnostics.DebuggerNonUserCode()]
-        public static bool IsNull(this object o)
+        public static bool IsNull(this object? o)
         {
             return object.ReferenceEquals(o, null);
         }
 
         [System.Diagnostics.DebuggerNonUserCode()]
-        public static bool IsNotNull(this object o)
+        public static bool IsNotNull(this object? o)
         {
             return !o.IsNull();
         }
 
         [System.Diagnostics.DebuggerNonUserCode()]
-        public static bool IsNullOrEmpty(this string s)
+        public static bool IsNullOrEmpty(this string? s)
         {
             return string.IsNullOrWhiteSpace(s);
         }

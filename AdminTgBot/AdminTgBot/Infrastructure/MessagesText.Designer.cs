@@ -70,6 +70,24 @@ namespace AdminTgBot.Infrastructure {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to /buttons.
+        /// </summary>
+        internal static string CommandButtons {
+            get {
+                return ResourceManager.GetString("CommandButtons", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Показать кнопки меню.
+        /// </summary>
+        internal static string CommandButtonsDescriptions {
+            get {
+                return ResourceManager.GetString("CommandButtonsDescriptions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Редактор товаров.
         /// </summary>
         internal static string CommandCatalogEditor {

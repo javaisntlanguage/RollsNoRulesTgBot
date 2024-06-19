@@ -13,6 +13,7 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using AdminTgBot.Infrastructure.Exceptions;
 using System.Threading;
+using AdminTgBot.Infrastructure.Commands;
 
 namespace AdminTgBot
 {
@@ -33,9 +34,11 @@ namespace AdminTgBot
         private readonly AdminBotCommandsManager _commandsManager;
         private readonly ThreadsManager _threadsManager;
 
+        public static string BotToken {  get; private set; }
 
-        public TelegramWorker(TelegramBotClient telegramClient, string connectionString, Logger logger, int timeout, CancellationTokenSource cancellationTokenSource)
+        public TelegramWorker(TelegramBotClient telegramClient, string connectionString, string botToken, Logger logger, int timeout, CancellationTokenSource cancellationTokenSource)
         {
+            BotToken = botToken;
             TelegramClient = telegramClient;
             _logger = logger;
             _cancellationTokenSource = cancellationTokenSource;
@@ -49,55 +52,36 @@ namespace AdminTgBot
         
         public void Start()
         {
-            TelegramClient.StartReceiving(UpdateHandlerAsync, ErrorHandler, _receiverOptions, _cancellationTokenSource.Token);
+			DefaultCommands defaultCommands = new DefaultCommands();
+
+			//TelegramClient.SetMyCommandsAsync(defaultCommands.Commands);
+            TelegramClient.StartReceiving(UpdateHandler, ErrorHandler, _receiverOptions, _cancellationTokenSource.Token);
         }
 
-        private async Task UpdateHandlerAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
+        private void UpdateHandler(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
-            long chatId = update.Message?.Chat.Id ?? update.CallbackQuery.Message.Chat.Id;
-            try
-            {
-                switch (update.Type)
-                {
-                    case UpdateType.Message:
-                        {
-                            Message message = update.Message;
-
-                            if (!await _commandsManager.ProcessMessageAsync(message))
-                            {
-                                await ProcessUnknownCommandAsync(message);
-                            }
-                            break;
-                        }
-                    case UpdateType.CallbackQuery:
-                        {
-                            CallbackQuery query = update.CallbackQuery;
-
-                            if (!await _commandsManager.ProcessQueryAsync(query))
-                            {
-                                await ProcessUnknownQueryAsync(query);
-                            }
-                            break;
-                        }
-
-                }
-            }
-            catch (AuthException)
-            {
-                await botClient.SendTextMessageAsync(chatId, MessagesText.AuthFail);
-            }
-            catch (Exception ex)
-            {
-                await botClient.SendTextMessageAsync(chatId, MessagesText.SomethingWrong);
-                
-                _logger.Error(ex);
-                Console.WriteLine(ex.ToString());
-            }
+			Task.Run(() => ProcessUpdateAsync(update));
         }
 
-        private Task ErrorHandler(ITelegramBotClient botClient, Exception error, CancellationToken cancellationToken)
+		private async Task ProcessUpdateAsync(Update update)
+		{
+			try
+			{
+				while (!await _threadsManager.ProcessUpdate(update))
+				{
+					continue;
+				}
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine(ex);
+				_logger.Error(ex);
+			}
+		}
+
+		private void ErrorHandler(ITelegramBotClient botClient, Exception error, CancellationToken cancellationToken)
         {
-            var ErrorMessage = error switch
+			string ErrorMessage = error switch
             {
                 ApiRequestException apiRequestException
                     => $"Telegram API Error:\n[{apiRequestException.ErrorCode}]\n{apiRequestException.Message}",
@@ -105,26 +89,7 @@ namespace AdminTgBot
             };
 
             Console.WriteLine(ErrorMessage);
-            return Task.CompletedTask;
-        }
-
-        /// <summary>
-        ///     Обработка команды не известной для бота
-        /// </summary>
-        /// <param name="message">Сообщение с командой </param>
-        private async Task ProcessUnknownCommandAsync(Message message)
-        {
-            long chatId = message.Chat.Id;
-            await TelegramClient.SendTextMessageAsync(chatId, MessagesText.UnknownCommand);
-        }
-        /// <summary>
-        ///     Обработка команды не известной для бота
-        /// </summary>
-        /// <param name="message">Сообщение с командой </param>
-        private async Task ProcessUnknownQueryAsync(CallbackQuery query)
-        {
-            string queryId = query.Id.ToString();
-            await TelegramClient.AnswerCallbackQueryAsync(queryId, MessagesText.UnknownCommand, showAlert: true);
+			_logger.Error(ErrorMessage);
         }
     }
 }

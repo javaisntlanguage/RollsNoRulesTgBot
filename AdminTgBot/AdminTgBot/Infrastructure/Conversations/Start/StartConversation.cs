@@ -74,7 +74,7 @@ namespace AdminTgBot.Infrastructure.Conversations.Start
             else
             {
                 _stateManager.IsAuth = true;
-                SetRole();
+                SetAdminRole();
                 await SetMenuButtonsAsync(admin.Name);
             }
         }
@@ -97,16 +97,9 @@ namespace AdminTgBot.Infrastructure.Conversations.Start
             await _stateManager.ShowButtonMenuAsync(text);
         }
 
-        private void SetRole()
-        {
-            _stateManager.Roles = _dataSource
-                .GetUserRoles(_stateManager.ChatId)
-                .ToHashSet();
-            
-            if(!_stateManager.Roles.Contains(RolesList.Admin))
-            {
-                _stateManager.Roles.Add(RolesList.Admin);
-            }
+        private void SetAdminRole()
+        {            
+            _stateManager.Roles.TryAdd(RolesList.Admin);
         }
     }
 }

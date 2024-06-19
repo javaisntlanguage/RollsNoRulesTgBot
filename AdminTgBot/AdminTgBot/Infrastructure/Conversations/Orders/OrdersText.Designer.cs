@@ -61,6 +61,15 @@ namespace AdminTgBot.Infrastructure.Conversations.Orders {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Вернуться к выбору фильтра.
+        /// </summary>
+        internal static string BackToFilter {
+            get {
+                return ResourceManager.GetString("BackToFilter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Вернуться к заказам.
         /// </summary>
         internal static string BackToOrders {
@@ -106,6 +115,37 @@ namespace AdminTgBot.Infrastructure.Conversations.Orders {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Введите дату или выберете из предложенных вариантов
+        ///
+        ///Текущее значение: {0}.
+        /// </summary>
+        internal static string ChooseFilterDate {
+            get {
+                return ResourceManager.GetString("ChooseFilterDate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Введите ID заказа
+        ///
+        ///Текущее значение: {0}.
+        /// </summary>
+        internal static string ChooseFilterId {
+            get {
+                return ResourceManager.GetString("ChooseFilterId", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Выберите статус.
+        /// </summary>
+        internal static string ChooseOrderState {
+            get {
+                return ResourceManager.GetString("ChooseOrderState", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Дата с.
         /// </summary>
         internal static string DateFromFilterEmpty {
@@ -115,11 +155,29 @@ namespace AdminTgBot.Infrastructure.Conversations.Orders {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Значение должно быть не позднее текущего дня.
+        /// </summary>
+        internal static string DateFromFilterFuture {
+            get {
+                return ResourceManager.GetString("DateFromFilterFuture", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Дата с: {0}.
         /// </summary>
         internal static string DateFromFilterHasValue {
             get {
                 return ResourceManager.GetString("DateFromFilterHasValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ошибка распознавания даты. Попробуйте ввести в формате &quot;ГГГГ.ММ.ДД&quot;.
+        /// </summary>
+        internal static string DateParseError {
+            get {
+                return ResourceManager.GetString("DateParseError", resourceCulture);
             }
         }
         
@@ -142,11 +200,56 @@ namespace AdminTgBot.Infrastructure.Conversations.Orders {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Введите целое число.
+        /// </summary>
+        internal static string EnterInt {
+            get {
+                return ResourceManager.GetString("EnterInt", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Введите текст.
+        /// </summary>
+        internal static string EnterText {
+            get {
+                return ResourceManager.GetString("EnterText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Дата должна быть не позднее &quot;Даты по&quot;.
+        /// </summary>
+        internal static string FilterDateFromAfterDateTo {
+            get {
+                return ResourceManager.GetString("FilterDateFromAfterDateTo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Дата должна быть не раньше &quot;Даты с&quot;.
+        /// </summary>
+        internal static string FilterDateToBeforeDateFrom {
+            get {
+                return ResourceManager.GetString("FilterDateToBeforeDateFrom", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Нет фильтра.
         /// </summary>
         internal static string FilterEmpty {
             get {
                 return ResourceManager.GetString("FilterEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Сбросить.
+        /// </summary>
+        internal static string FilterReset {
+            get {
+                return ResourceManager.GetString("FilterReset", resourceCulture);
             }
         }
         
@@ -176,6 +279,24 @@ namespace AdminTgBot.Infrastructure.Conversations.Orders {
         internal static string IdFilterHasValue {
             get {
                 return ResourceManager.GetString("IdFilterHasValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Месяц назад.
+        /// </summary>
+        internal static string MonthAgo {
+            get {
+                return ResourceManager.GetString("MonthAgo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Нет значения.
+        /// </summary>
+        internal static string NoValue {
+            get {
+                return ResourceManager.GetString("NoValue", resourceCulture);
             }
         }
         
@@ -340,6 +461,24 @@ namespace AdminTgBot.Infrastructure.Conversations.Orders {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string OrderStateOff {
+            get {
+                return ResourceManager.GetString("OrderStateOff", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ✅.
+        /// </summary>
+        internal static string OrderStateOn {
+            get {
+                return ResourceManager.GetString("OrderStateOn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Статус.
         /// </summary>
         internal static string StateFilterEmpty {
@@ -354,6 +493,33 @@ namespace AdminTgBot.Infrastructure.Conversations.Orders {
         internal static string StateFilterHasValue {
             get {
                 return ResourceManager.GetString("StateFilterHasValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Сегодня.
+        /// </summary>
+        internal static string Today {
+            get {
+                return ResourceManager.GetString("Today", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Неделю назад.
+        /// </summary>
+        internal static string WeekAgo {
+            get {
+                return ResourceManager.GetString("WeekAgo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Вчера.
+        /// </summary>
+        internal static string Yesterday {
+            get {
+                return ResourceManager.GetString("Yesterday", resourceCulture);
             }
         }
     }

@@ -623,7 +623,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
 
         private async Task SuggestEditProductDescriptionAsync(int productId)
         {
-            string attributeValue = _dataSource.Products.FirstOrDefault(product => product.Id == productId)?.Description;
+            string? attributeValue = _dataSource.Products.FirstOrDefault(product => product.Id == productId)?.Description;
 
             if (attributeValue.IsNullOrEmpty())
             {
@@ -650,7 +650,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
 
         private async Task SuggestEditProductNameAsync(int productId)
         {
-            string attributeValue = _dataSource.Products.FirstOrDefault(p => p.Id == productId)?.Name;
+            string? attributeValue = _dataSource.Products.FirstOrDefault(p => p.Id == productId)?.Name;
 
             if (attributeValue.IsNullOrEmpty())
             {
@@ -693,8 +693,8 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
 
         private InlineKeyboardButton[] GetEditProductVisibilityButton(int productId, bool? isVisible)
         {
-            InlineKeyboardButton[] result = null;
-            if (isVisible.HasValue && isVisible.Value)
+			InlineKeyboardButton[] result;
+			if (isVisible.HasValue && isVisible.Value)
             {
                 result = new InlineKeyboardButton[]{
                         new InlineKeyboardButton(CatalogEditorText.ProductVisibilityOff)
@@ -756,9 +756,9 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
         /// <exception cref="NotImplementedException"></exception>
         private async Task ShowProductAsync(int? productId = null, int? categoryId = null)
         {
-            Product product = null;
-            List<InlineKeyboardButton[]> keyboard = null;
-            string text = null;
+            Product? product = null;
+            List<InlineKeyboardButton[]> keyboard;
+            string text = null!;
 
             if(productId.IsNull() && categoryId.IsNull())
             {
@@ -769,7 +769,12 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
             {
                 categoryId = (await _dataSource.ProductCategories
                     .FirstOrDefaultAsync(pc => pc.ProductId == productId))
-                    .CategoryId;
+                    ?.CategoryId;
+
+                if(categoryId.IsNull())
+                {
+                    throw new Exception($"Не удалось найти категорию для productId={productId}");
+                }
             }
 
             if (productId.IsNull())
@@ -785,7 +790,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
                     .FirstOrDefaultAsync(p => p.Id == productId);
             }
 
-            List<InlineKeyboardButton[]> actions = GetProductActions(categoryId.Value, product?.Id);
+            List<InlineKeyboardButton[]> actions = GetProductActions(categoryId!.Value, product?.Id);
             InlineKeyboardButton[] returnToCatalog = GetReturnToCatalogButton();
 
             keyboard = actions;
@@ -796,7 +801,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
             }
             else
             {
-                ProductId = product.Id;
+                ProductId = product!.Id;
 
                 text = string.Format(CatalogEditorText.ProductDetails,
                 product.Name,

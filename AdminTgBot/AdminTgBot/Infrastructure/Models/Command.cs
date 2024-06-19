@@ -28,6 +28,10 @@ namespace AdminTgBot.Infrastructure.Models
 		ChangeFilterDateFrom,
 		ChangeFilterDateTo,
 		ChangeFilterId,
-		BackToOrders
+		BackToOrders,
+		ChangeFilterStateValue,
+		ChangeFilterDateReset,
+		ChangeFilterIdReset,
+		ChangeFilterDateSuggestion
 	}
 }

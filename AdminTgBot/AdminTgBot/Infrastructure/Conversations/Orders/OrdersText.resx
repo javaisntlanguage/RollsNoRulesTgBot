@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="BackToFilter" xml:space="preserve">
+    <value>Вернуться к выбору фильтра</value>
+  </data>
   <data name="BackToOrders" xml:space="preserve">
     <value>Вернуться к заказам</value>
   </data>
@@ -132,11 +135,30 @@
   <data name="ChooseFilter" xml:space="preserve">
     <value>Настройка фильтра заказов</value>
   </data>
+  <data name="ChooseFilterDate" xml:space="preserve">
+    <value>Введите дату или выберете из предложенных вариантов
+
+Текущее значение: {0}</value>
+  </data>
+  <data name="ChooseFilterId" xml:space="preserve">
+    <value>Введите ID заказа
+
+Текущее значение: {0}</value>
+  </data>
+  <data name="ChooseOrderState" xml:space="preserve">
+    <value>Выберите статус</value>
+  </data>
   <data name="DateFromFilterEmpty" xml:space="preserve">
     <value>Дата с</value>
   </data>
+  <data name="DateFromFilterFuture" xml:space="preserve">
+    <value>Значение должно быть не позднее текущего дня</value>
+  </data>
   <data name="DateFromFilterHasValue" xml:space="preserve">
     <value>Дата с: {0}</value>
+  </data>
+  <data name="DateParseError" xml:space="preserve">
+    <value>Ошибка распознавания даты. Попробуйте ввести в формате "ГГГГ.ММ.ДД"</value>
   </data>
   <data name="DateToFilterEmpty" xml:space="preserve">
     <value>Дата по</value>
@@ -144,8 +166,23 @@
   <data name="DateToFilterHasValue" xml:space="preserve">
     <value>Дата по: {0}</value>
   </data>
+  <data name="EnterInt" xml:space="preserve">
+    <value>Введите целое число</value>
+  </data>
+  <data name="EnterText" xml:space="preserve">
+    <value>Введите текст</value>
+  </data>
+  <data name="FilterDateFromAfterDateTo" xml:space="preserve">
+    <value>Дата должна быть не позднее "Даты по"</value>
+  </data>
+  <data name="FilterDateToBeforeDateFrom" xml:space="preserve">
+    <value>Дата должна быть не раньше "Даты с"</value>
+  </data>
   <data name="FilterEmpty" xml:space="preserve">
     <value>Нет фильтра</value>
+  </data>
+  <data name="FilterReset" xml:space="preserve">
+    <value>Сбросить</value>
   </data>
   <data name="FilterTitle" xml:space="preserve">
     <value>Фильтр 
@@ -157,6 +194,12 @@
   </data>
   <data name="IdFilterHasValue" xml:space="preserve">
     <value>ID: {0}</value>
+  </data>
+  <data name="MonthAgo" xml:space="preserve">
+    <value>Месяц назад</value>
+  </data>
+  <data name="NoValue" xml:space="preserve">
+    <value>Нет значения</value>
   </data>
   <data name="OrderApproved" xml:space="preserve">
     <value>Заказ № {0} ({1}) взят в работу</value>
@@ -216,10 +259,25 @@
   <data name="OrderStateNone" xml:space="preserve">
     <value>Неизвестно</value>
   </data>
+  <data name="OrderStateOff" xml:space="preserve">
+    <value />
+  </data>
+  <data name="OrderStateOn" xml:space="preserve">
+    <value>✅</value>
+  </data>
   <data name="StateFilterEmpty" xml:space="preserve">
     <value>Статус</value>
   </data>
   <data name="StateFilterHasValue" xml:space="preserve">
     <value>Статус: {0}</value>
+  </data>
+  <data name="Today" xml:space="preserve">
+    <value>Сегодня</value>
+  </data>
+  <data name="WeekAgo" xml:space="preserve">
+    <value>Неделю назад</value>
+  </data>
+  <data name="Yesterday" xml:space="preserve">
+    <value>Вчера</value>
   </data>
 </root>

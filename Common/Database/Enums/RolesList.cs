@@ -9,7 +9,8 @@ namespace Database.Enums
     public enum RolesList
     {
         None,
-        Admin,
-        User
+        Admin = 1,
+        User = 2,
+        SuperAdmin = 3,
     }
 }

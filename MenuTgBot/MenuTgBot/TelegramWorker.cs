@@ -74,7 +74,7 @@ namespace MenuTgBot
 
         private void ErrorHandler(ITelegramBotClient botClient, Exception error, CancellationToken cancellationToken)
         {
-            var ErrorMessage = error switch
+			string ErrorMessage = error switch
             {
                 ApiRequestException apiRequestException
                     => $"Telegram API Error:\n[{apiRequestException.ErrorCode}]\n{apiRequestException.Message}",

@@ -5,26 +5,13 @@
 namespace Database.Migrations
 {
     /// <inheritdoc />
-    public partial class _8 : Migration
+    public partial class _42 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Roles",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Roles", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "UserInRoles",
+                name: "AdminInRoles",
                 columns: table => new
                 {
                     UserId = table.Column<long>(type: "bigint", nullable: false),
@@ -32,15 +19,15 @@ namespace Database.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_UserInRoles", x => new { x.UserId, x.RoleId });
+                    table.PrimaryKey("PK_AdminInRoles", x => new { x.UserId, x.RoleId });
                     table.ForeignKey(
-                        name: "FK_UserInRoles_Roles_RoleId",
+                        name: "FK_AdminInRoles_Roles_RoleId",
                         column: x => x.RoleId,
                         principalTable: "Roles",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_UserInRoles_Users_UserId",
+                        name: "FK_AdminInRoles_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id",
@@ -48,21 +35,20 @@ namespace Database.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_UserInRoles_RoleId",
-                table: "UserInRoles",
+                name: "IX_AdminInRoles_RoleId",
+                table: "AdminInRoles",
                 column: "RoleId");
 
-            migrationBuilder.Sql("INSERT INTO Roles(Name) VALUES('Admin')");
-        }
+			migrationBuilder.Sql("INSERT INTO Roles(Name) VALUES('SuperAdmin')");
+		}
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "UserInRoles");
+			migrationBuilder.Sql("DELETE FROM Roles WHERE Name = 'SuperAdmin'");
 
-            migrationBuilder.DropTable(
-                name: "Roles");
+			migrationBuilder.DropTable(
+                name: "AdminInRoles");
         }
     }
 }

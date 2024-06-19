@@ -26,12 +26,14 @@ namespace AdminTgBot
 
         public void Start()
         {
-            TelegramBotClient telegramClient = new TelegramBotClient(Configuration["TelegramBotToken"]!, new HttpClient());
+            string botToken = Configuration["TelegramBotToken"]!;
 
-            string connectionString = Configuration["ConnectionString"];
-            int timeout = int.Parse(Configuration["MessageTimeoutSec"]);
+			TelegramBotClient telegramClient = new TelegramBotClient(botToken, new HttpClient());
 
-            TelegramWorker worker = new TelegramWorker(telegramClient, connectionString, _logger, timeout, _cancellationTokenSource);
+            string connectionString = Configuration["ConnectionString"]!;
+            int timeout = int.Parse(Configuration["MessageTimeoutSec"]!);
+
+            TelegramWorker worker = new TelegramWorker(telegramClient, connectionString, botToken, _logger, timeout, _cancellationTokenSource);
             worker.Start();
         }
     }

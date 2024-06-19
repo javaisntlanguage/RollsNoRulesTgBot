@@ -65,7 +65,10 @@ namespace AdminTgBot.Infrastructure
                     CommandDisplay.ButtonMenu),
                 new OrdersCommand(
                     $"{MessagesText.CommandOrders}",
-                    CommandDisplay.ButtonMenu)
+                    CommandDisplay.ButtonMenu),
+                new ButtonsCommand(
+                    $"{MessagesText.CommandButtons}",
+                    CommandDisplay.None)
             };
         }
 

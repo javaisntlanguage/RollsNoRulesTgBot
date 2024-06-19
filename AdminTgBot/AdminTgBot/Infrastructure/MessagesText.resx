@@ -120,6 +120,12 @@
   <data name="AuthFail" xml:space="preserve">
     <value>Вы не авторизованы</value>
   </data>
+  <data name="CommandButtons" xml:space="preserve">
+    <value>/buttons</value>
+  </data>
+  <data name="CommandButtonsDescriptions" xml:space="preserve">
+    <value>Показать кнопки меню</value>
+  </data>
   <data name="CommandCatalogEditor" xml:space="preserve">
     <value>Редактор товаров</value>
   </data>

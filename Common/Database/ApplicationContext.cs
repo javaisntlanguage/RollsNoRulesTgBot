@@ -34,6 +34,7 @@ namespace Database
         public DbSet<OrderCart> OrderCarts { get; set; }
         public DbSet<AdminState> AdminStates { get; set; }
         public DbSet<SellLocation> SellLocations { get; set; }
+        public DbSet<AdminInRole> AdminInRoles { get; set; }
 
         public ApplicationContext(DbContextOptions options) : base(options)
         {
@@ -141,6 +142,12 @@ namespace Database
         public IQueryable<RolesList> GetUserRoles(long userId)
         {
             return UserInRoles
+                .Where(ur => ur.UserId == userId)
+                .Select(ur => (RolesList)ur.Role.Id);
+        }
+        public IQueryable<RolesList> GetAdminRoles(long userId)
+        {
+            return AdminInRoles
                 .Where(ur => ur.UserId == userId)
                 .Select(ur => (RolesList)ur.Role.Id);
         }

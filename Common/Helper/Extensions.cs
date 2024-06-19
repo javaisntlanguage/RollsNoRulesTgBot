@@ -399,6 +399,11 @@ namespace Helper
             return result;
         }
 
+        public static DateTime AddWeeks(this DateTime dt, int count)
+        {
+            return dt.AddDays(count * 7);
+        }
+
         [System.Diagnostics.DebuggerNonUserCode]
 
         public static bool IsINN(this string inn)
@@ -812,14 +817,27 @@ namespace Helper
             return source
                 .Select((item, index) => (item, index));
         }
-        #endregion IEnumerable extensions
-        #region NameValueCollection extensions
-        /// <summary>
-        /// получение строки запроса
-        /// </summary>
-        /// <param name="parameters"></param>
-        /// <returns></returns>
-        public static string GetQueryString(this NameValueCollection parameters)
+		#endregion IEnumerable extensions
+		#region HashSet extensions
+		public static bool TryAdd<T>(this HashSet<T> obj, T value)
+		{
+            if (obj.Contains(value))
+            {
+                return false;
+            }
+
+            obj.Add(value);
+
+            return true;
+		}
+		#endregion HashSet extensions
+		#region NameValueCollection extensions
+		/// <summary>
+		/// получение строки запроса
+		/// </summary>
+		/// <param name="parameters"></param>
+		/// <returns></returns>
+		public static string GetQueryString(this NameValueCollection parameters)
         {
             List<string> items = new List<string>();
 

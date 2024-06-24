@@ -16,9 +16,9 @@ namespace AdminTgBot.Infrastructure.Models
 {
     internal class AdminConversations
     {
-        public StartConversation Start { get; set; }
-        public CatalogEditorConversation CatalogEditor { get; set; }
-        public OrdersConversation Orders { get; set; }
+        public required StartConversation Start { get; set; }
+        public required CatalogEditorConversation CatalogEditor { get; set; }
+        public required OrdersConversation Orders { get; set; }
 
         internal Dictionary<string, IConversation> GetHandlers(ITelegramBotClient botClient, ApplicationContext dataSource, AdminBotStateManager statesManager)
         {

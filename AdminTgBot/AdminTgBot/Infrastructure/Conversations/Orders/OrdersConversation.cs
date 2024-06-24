@@ -762,16 +762,20 @@ namespace AdminTgBot.Infrastructure.Conversations.Orders
 
 		private async Task ShowNewOrdersAsync()
 		{
-			OrdersFilter ordersFilter = new OrdersFilter()
+			if (Filter.IsNull())
 			{
-				IsNew = true,
-			};
-			Filter = ordersFilter;
+				OrdersFilter ordersFilter = new OrdersFilter()
+				{
+					IsNew = true,
+				};
 
-			await ShowOrdersByFilterAsync(1);
+				Filter = ordersFilter;
+			}
+
+			await ShowOrdersByFilterAsync();
 		}
 
-		private async Task ShowOrdersByFilterAsync(int page, int? orderId = null)
+		private async Task ShowOrdersByFilterAsync(int page = 1, int? orderId = null)
 		{
 			IQueryable<Order> orders = _dataSource.Orders
 				.Include(o => o.OrderCartList)

@@ -8,11 +8,10 @@ namespace AdminTgBot.Infrastructure.Models
 {
     internal enum Command
     {
-        MovePaginationCategory,
         Ignore,
         ShowCategoryProducts,
         AddProduct,
-        ReturnToCatalog,
+		BackToCategory,
         EditProduct,
         MovePaginationProduct,
         EditProductAttribute,
@@ -32,6 +31,14 @@ namespace AdminTgBot.Infrastructure.Models
 		ChangeFilterStateValue,
 		ChangeFilterDateReset,
 		ChangeFilterIdReset,
-		ChangeFilterDateSuggestion
+		ChangeFilterDateSuggestion,
+		ShowCategoryActions,
+		EditCategory,
+		AddCategory,
+		MovePaginationCategories,
+		BackToCategories,
+		EditCategoryAttribute,
+		EditCategoryVisibility,
+		EditCategoryAttributeYes
 	}
 }

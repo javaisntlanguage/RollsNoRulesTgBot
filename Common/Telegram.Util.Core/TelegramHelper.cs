@@ -14,12 +14,12 @@ namespace Telegram.Util.Core
         public const string PRICE_FORMAT = "0.## ₽";
         public static string GetPhotoFileId(this Message message)
         {
-            if (message.Photo.IsNotNull())
+            if (message.Photo != null)
             {
                 return message.Photo.Last().FileId;
             }
 
-            if (message.Document.IsNotNull() && Path.GetExtension(message.Document.FileName).ToLower().In(
+            if (message.Document != null && Path.GetExtension(message.Document.FileName)!.ToLower().In(
                 "jpg",
                 "jpeg",
                 "ico",
@@ -28,7 +28,7 @@ namespace Telegram.Util.Core
             {
                 return message.Document.FileId;
             }
-            return null;
+            return null!;
         }
 
         public static string GetCurrencySymbol(string currency)

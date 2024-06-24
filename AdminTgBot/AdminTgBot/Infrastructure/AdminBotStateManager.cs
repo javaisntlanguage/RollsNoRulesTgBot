@@ -105,6 +105,8 @@ namespace AdminTgBot.Infrastructure
             .Permit(Trigger.EnterProductDescription, State.NewProductDescriptionEditor)
             .Permit(Trigger.EnterProductPrice, State.NewProductPriceEditor)
             .Permit(Trigger.EnterProductPhoto, State.NewProductPhotoEditor)
+            .Permit(Trigger.EditCategoryName, State.CategoryNameEditor)
+            .Permit(Trigger.EnterCategoryName, State.NewCategoryNameEditor)
             .OnEntryFromAsync(Trigger.CommandCatalogEditorStarted, NextStateMessageAsync);
 
             _machine.Configure(State.ProductNameEditor)
@@ -136,6 +138,14 @@ namespace AdminTgBot.Infrastructure
             .SubstateOf(State.CommandCatalogEditor)
             .Permit(Trigger.ReturnToCalatog, State.CommandCatalogEditor);
 
+			_machine.Configure(State.CategoryNameEditor)
+            .SubstateOf(State.CommandCatalogEditor)
+            .Permit(Trigger.ReturnToCatalogEditor, State.CommandCatalogEditor);
+
+			_machine.Configure(State.NewCategoryNameEditor)
+		    .SubstateOf(State.CommandCatalogEditor)
+			.Permit(Trigger.ReturnToCatalogEditor, State.CommandCatalogEditor);
+
 			_machine.Configure(State.CommandOrders)
 			.SubstateOf(State.New)
 			.OnEntryFromAsync(Trigger.CommandOrdersStarted, NextStateMessageAsync)
@@ -164,9 +174,9 @@ namespace AdminTgBot.Infrastructure
         {
             string data = JsonConvert.SerializeObject(new AdminConversations
             {
-                Start = GetHandler<StartConversation>(),
-                CatalogEditor = GetHandler<CatalogEditorConversation>(),
-                Orders = GetHandler<OrdersConversation>(),
+                Start = GetHandler<StartConversation>()!,
+                CatalogEditor = GetHandler<CatalogEditorConversation>()!,
+                Orders = GetHandler<OrdersConversation>()!,
             });
 
             await dataSource.SetAdminState(ChatId, (int)CurrentState, data, _lastMessageId);
@@ -228,7 +238,7 @@ namespace AdminTgBot.Infrastructure
         {
             if (trigger.IsNotNull())
             {
-                await _machine.FireAsync(trigger.Value);
+                await _machine.FireAsync(trigger!.Value);
                 return true;
             }
 
@@ -251,7 +261,7 @@ namespace AdminTgBot.Infrastructure
         /// <returns></returns>
 		private bool IsOutOfQueue(CallbackQuery query)
 		{
-			JObject data = JObject.Parse(query.Data);
+			JObject data = JObject.Parse(query.Data!);
             return data["OutOfQueue"]?.Value<bool?>() ?? false;
 		}
 
@@ -363,7 +373,7 @@ namespace AdminTgBot.Infrastructure
 
             await using ApplicationContext dataSource = await _contextFactory.CreateDbContextAsync();
 
-            if (_lastMessageId.IsNotNull() && _query.Message.MessageId != _lastMessageId)
+            if (_lastMessageId.IsNotNull() && _query.Message!.MessageId != _lastMessageId)
             {
                 if (!IsOutOfQueue(_query))
                 {
@@ -426,6 +436,9 @@ namespace AdminTgBot.Infrastructure
 		WaitForDateTo,
 		WaitForOrderFilterId,
 		CommandButtonsStarted,
+		EditCategoryName,
+		ReturnToCatalogEditor,
+		EnterCategoryName,
 	}
 
     public enum State
@@ -448,5 +461,7 @@ namespace AdminTgBot.Infrastructure
 		FilterDateTo,
 		FilterId,
 		CommandButtons,
+		CategoryNameEditor,
+		NewCategoryNameEditor,
 	}
 }

@@ -70,6 +70,15 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Добавить категорию.
+        /// </summary>
+        internal static string AddCategory {
+            get {
+                return ResourceManager.GetString("AddCategory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Добавить новый товар.
         /// </summary>
         internal static string AddProduct {
@@ -84,6 +93,80 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor {
         internal static string Approve {
             get {
                 return ResourceManager.GetString("Approve", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to * Значение отсутствует *.
+        /// </summary>
+        internal static string AttributeNoValue {
+            get {
+                return ResourceManager.GetString("AttributeNoValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Вернуться к категориям.
+        /// </summary>
+        internal static string BackToCategories {
+            get {
+                return ResourceManager.GetString("BackToCategories", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Вернуться к категории.
+        /// </summary>
+        internal static string BackToCategory {
+            get {
+                return ResourceManager.GetString("BackToCategory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Отмена.
+        /// </summary>
+        internal static string Cancel {
+            get {
+                return ResourceManager.GetString("Cancel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Категория: {0}.
+        /// </summary>
+        internal static string CategoryActions {
+            get {
+                return ResourceManager.GetString("CategoryActions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Наименование.
+        /// </summary>
+        internal static string CategoryName {
+            get {
+                return ResourceManager.GetString("CategoryName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Новая категория
+        ///
+        ///Наименование: {0}.
+        /// </summary>
+        internal static string CategoryPreview {
+            get {
+                return ResourceManager.GetString("CategoryPreview", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Видимость категории.
+        /// </summary>
+        internal static string CategoryVisibility {
+            get {
+                return ResourceManager.GetString("CategoryVisibility", resourceCulture);
             }
         }
         
@@ -106,6 +189,15 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Изменить.
+        /// </summary>
+        internal static string EditCategory {
+            get {
+                return ResourceManager.GetString("EditCategory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Изменить товар.
         /// </summary>
         internal static string EditProduct {
@@ -122,6 +214,15 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor {
         internal static string EditProductAttributeTemplate {
             get {
                 return ResourceManager.GetString("EditProductAttributeTemplate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Пусто.
+        /// </summary>
+        internal static string Empty {
+            get {
+                return ResourceManager.GetString("Empty", resourceCulture);
             }
         }
         
@@ -153,6 +254,15 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Не забудьте изменить видимость категории. По умолчанию она отключена.
+        /// </summary>
+        internal static string NewCategoryRemind {
+            get {
+                return ResourceManager.GetString("NewCategoryRemind", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Далее.
         /// </summary>
         internal static string Next {
@@ -176,15 +286,6 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor {
         internal static string PhotoLoadFail {
             get {
                 return ResourceManager.GetString("PhotoLoadFail", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to * Значение отсутствует *.
-        /// </summary>
-        internal static string ProductAttributeNoValue {
-            get {
-                return ResourceManager.GetString("ProductAttributeNoValue", resourceCulture);
             }
         }
         
@@ -256,29 +357,11 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Скрыть.
+        ///   Looks up a localized string similar to Вернуться к выбору атрибута.
         /// </summary>
-        internal static string ProductVisibilityOff {
+        internal static string ReturnToAttributeEditor {
             get {
-                return ResourceManager.GetString("ProductVisibilityOff", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Показать.
-        /// </summary>
-        internal static string ProductVisibilityOn {
-            get {
-                return ResourceManager.GetString("ProductVisibilityOn", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Вернуться в меню.
-        /// </summary>
-        internal static string ReturnToCatalog {
-            get {
-                return ResourceManager.GetString("ReturnToCatalog", resourceCulture);
+                return ResourceManager.GetString("ReturnToAttributeEditor", resourceCulture);
             }
         }
         
@@ -292,20 +375,47 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Вернуться к выбору атрибута.
-        /// </summary>
-        internal static string ReturnToProductEditor {
-            get {
-                return ResourceManager.GetString("ReturnToProductEditor", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Показать товары.
         /// </summary>
         internal static string ShowProducts {
             get {
                 return ResourceManager.GetString("ShowProducts", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Необходимо ввести текст.
+        /// </summary>
+        internal static string TextRequired {
+            get {
+                return ResourceManager.GetString("TextRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Текст слишком длинный. Введите короче.
+        /// </summary>
+        internal static string TextTooLong {
+            get {
+                return ResourceManager.GetString("TextTooLong", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Скрыть.
+        /// </summary>
+        internal static string VisibilityOff {
+            get {
+                return ResourceManager.GetString("VisibilityOff", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Показать.
+        /// </summary>
+        internal static string VisibilityOn {
+            get {
+                return ResourceManager.GetString("VisibilityOn", resourceCulture);
             }
         }
         

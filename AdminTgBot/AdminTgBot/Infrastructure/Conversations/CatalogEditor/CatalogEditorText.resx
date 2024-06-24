@@ -120,17 +120,49 @@
   <data name="Add" xml:space="preserve">
     <value>Добавить</value>
   </data>
+  <data name="AddCategory" xml:space="preserve">
+    <value>Добавить категорию</value>
+  </data>
   <data name="AddProduct" xml:space="preserve">
     <value>Добавить новый товар</value>
   </data>
   <data name="Approve" xml:space="preserve">
     <value>Подтвердить?</value>
   </data>
+  <data name="AttributeNoValue" xml:space="preserve">
+    <value>* Значение отсутствует *</value>
+  </data>
+  <data name="BackToCategories" xml:space="preserve">
+    <value>Вернуться к категориям</value>
+  </data>
+  <data name="BackToCategory" xml:space="preserve">
+    <value>Вернуться к категории</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Отмена</value>
+  </data>
+  <data name="CategoryActions" xml:space="preserve">
+    <value>Категория: {0}</value>
+  </data>
+  <data name="CategoryName" xml:space="preserve">
+    <value>Наименование</value>
+  </data>
+  <data name="CategoryPreview" xml:space="preserve">
+    <value>Новая категория
+
+Наименование: {0}</value>
+  </data>
+  <data name="CategoryVisibility" xml:space="preserve">
+    <value>Видимость категории</value>
+  </data>
   <data name="Change" xml:space="preserve">
     <value>Изменить</value>
   </data>
   <data name="ChoosingCategory" xml:space="preserve">
     <value>Выберите категорию</value>
+  </data>
+  <data name="EditCategory" xml:space="preserve">
+    <value>Изменить</value>
   </data>
   <data name="EditProduct" xml:space="preserve">
     <value>Изменить товар</value>
@@ -139,6 +171,9 @@
     <value>&lt;b&gt;Атрибут:&lt;/b&gt; {0}
 
 &lt;b&gt;Текущее значение:&lt;/b&gt;  {1}</value>
+  </data>
+  <data name="Empty" xml:space="preserve">
+    <value>Пусто</value>
   </data>
   <data name="EnterProductAttribute" xml:space="preserve">
     <value>Введите {0}</value>
@@ -149,6 +184,9 @@
   <data name="LookPhoto" xml:space="preserve">
     <value>* Смотри фото *</value>
   </data>
+  <data name="NewCategoryRemind" xml:space="preserve">
+    <value>Не забудьте изменить видимость категории. По умолчанию она отключена</value>
+  </data>
   <data name="Next" xml:space="preserve">
     <value>Далее</value>
   </data>
@@ -157,9 +195,6 @@
   </data>
   <data name="PhotoLoadFail" xml:space="preserve">
     <value>Ошибка при загрузке фотографии. Попробуйте другую ссылку</value>
-  </data>
-  <data name="ProductAttributeNoValue" xml:space="preserve">
-    <value>* Значение отсутствует *</value>
   </data>
   <data name="ProductDesciption" xml:space="preserve">
     <value>Описание товара</value>
@@ -186,23 +221,26 @@
   <data name="ProductVisibility" xml:space="preserve">
     <value>Видимость товара</value>
   </data>
-  <data name="ProductVisibilityOff" xml:space="preserve">
-    <value>Скрыть</value>
-  </data>
-  <data name="ProductVisibilityOn" xml:space="preserve">
-    <value>Показать</value>
-  </data>
-  <data name="ReturnToCatalog" xml:space="preserve">
-    <value>Вернуться в меню</value>
+  <data name="ReturnToAttributeEditor" xml:space="preserve">
+    <value>Вернуться к выбору атрибута</value>
   </data>
   <data name="ReturnToProduct" xml:space="preserve">
     <value>Вернуться к товару</value>
   </data>
-  <data name="ReturnToProductEditor" xml:space="preserve">
-    <value>Вернуться к выбору атрибута</value>
-  </data>
   <data name="ShowProducts" xml:space="preserve">
     <value>Показать товары</value>
+  </data>
+  <data name="TextRequired" xml:space="preserve">
+    <value>Необходимо ввести текст</value>
+  </data>
+  <data name="TextTooLong" xml:space="preserve">
+    <value>Текст слишком длинный. Введите короче</value>
+  </data>
+  <data name="VisibilityOff" xml:space="preserve">
+    <value>Скрыть</value>
+  </data>
+  <data name="VisibilityOn" xml:space="preserve">
+    <value>Показать</value>
   </data>
   <data name="WrongValue" xml:space="preserve">
     <value>Введите корректное значение</value>

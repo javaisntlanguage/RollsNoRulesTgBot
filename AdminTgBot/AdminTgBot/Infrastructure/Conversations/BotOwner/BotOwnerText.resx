@@ -117,58 +117,59 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="AuthFail" xml:space="preserve">
-    <value>Вы не авторизованы</value>
+  <data name="AddSuperAdmin" xml:space="preserve">
+    <value>Добавить супер админа</value>
   </data>
-  <data name="CommandButtons" xml:space="preserve">
-    <value>/buttons</value>
+  <data name="AddSuperAdminError" xml:space="preserve">
+    <value>Ошибка при добавлении супер админа. Попробуйте снова</value>
   </data>
-  <data name="CommandButtonsDescriptions" xml:space="preserve">
-    <value>Показать кнопки меню</value>
+  <data name="AddSuperAdminSuccess" xml:space="preserve">
+    <value>Супер админ успешно добавлен</value>
   </data>
-  <data name="CommandCatalogEditor" xml:space="preserve">
-    <value>Редактор товаров</value>
+  <data name="BackToMenuActions" xml:space="preserve">
+    <value>Вернуться к выбору действий</value>
   </data>
-  <data name="CommandOrders" xml:space="preserve">
-    <value>Заказы</value>
+  <data name="ChooseSuperAdminForResetPassowrd" xml:space="preserve">
+    <value>Выберите супер админа для сброса пароля</value>
   </data>
-  <data name="CommandStart" xml:space="preserve">
-    <value>Старт</value>
+  <data name="ConfirmAddSuperAdmin" xml:space="preserve">
+    <value>Подтвердить создание супер админа?
+
+Логин: {0}
+Имя: {1}</value>
   </data>
-  <data name="GoLastMessage" xml:space="preserve">
-    <value>Вернитесь к последнему сообщению</value>
+  <data name="EnterLogin" xml:space="preserve">
+    <value>Создание нового супер админа
+Введите логин</value>
   </data>
-  <data name="MessageTextExcepted" xml:space="preserve">
-    <value>Пожалуйста, введите текст</value>
+  <data name="EnterName" xml:space="preserve">
+    <value>Введите имя админа</value>
   </data>
-  <data name="No" xml:space="preserve">
-    <value>Нет</value>
+  <data name="EnterPassword" xml:space="preserve">
+    <value>Введите пароль</value>
   </data>
-  <data name="NoPagination" xml:space="preserve">
-    <value>X</value>
+  <data name="LoginAlreadyExists" xml:space="preserve">
+    <value>Админ с таким логином уже существует</value>
   </data>
-  <data name="NotEnoughRights" xml:space="preserve">
-    <value>У вас недостаточно прав для совершения данного действия</value>
+  <data name="NewPasswordReset" xml:space="preserve">
+    <value>Ваш новый пароль: '{0}'
+Пожалуйста, измените его в личном кабинете</value>
   </data>
-  <data name="PaginationNext" xml:space="preserve">
-    <value>=&gt;</value>
+  <data name="ResetPassword" xml:space="preserve">
+    <value>Сбросить пароль супер админу</value>
   </data>
-  <data name="PaginationPrevious" xml:space="preserve">
-    <value>&lt;=</value>
+  <data name="SelectMenu" xml:space="preserve">
+    <value>Выберите действие</value>
   </data>
-  <data name="SomethingWrong" xml:space="preserve">
-    <value>Что-то пошло не так</value>
+  <data name="SuperAdminNotFound" xml:space="preserve">
+    <value>Супер админ с id='{0}' не найден</value>
   </data>
-  <data name="UnknownCommand" xml:space="preserve">
-    <value>Неизвестная команда</value>
+  <data name="SuperAdminsNotFound" xml:space="preserve">
+    <value>Не найдено ни одного супер админа</value>
   </data>
-  <data name="ValueTooLong" xml:space="preserve">
-    <value>Значение слишком длинное. Разрешенная длина: {0}</value>
-  </data>
-  <data name="ValueTooShort" xml:space="preserve">
-    <value>Значение слишком короткое. Минимальная длина: {0}</value>
-  </data>
-  <data name="Yes" xml:space="preserve">
-    <value>Да</value>
+  <data name="Welcome" xml:space="preserve">
+    <value>Добро пожаловать в административную панель!
+
+Вы попали в раздел владельца телеграм бота. Этот раздел предназначен для создания Супер админов со всеми правами</value>
   </data>
 </root>

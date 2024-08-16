@@ -1,4 +1,5 @@
 ﻿using AdminTgBot.Infrastructure.Conversations;
+using AdminTgBot.Infrastructure.Conversations.BotOwner;
 using AdminTgBot.Infrastructure.Conversations.CatalogEditor;
 using AdminTgBot.Infrastructure.Conversations.Orders;
 using AdminTgBot.Infrastructure.Conversations.Start;
@@ -19,40 +20,32 @@ namespace AdminTgBot.Infrastructure.Models
         public required StartConversation Start { get; set; }
         public required CatalogEditorConversation CatalogEditor { get; set; }
         public required OrdersConversation Orders { get; set; }
+        public required BotOwnerConversation BotOwner { get; set; }
 
-        internal Dictionary<string, IConversation> GetHandlers(ITelegramBotClient botClient, ApplicationContext dataSource, AdminBotStateManager statesManager)
+		internal Dictionary<string, IConversation> GetHandlers(ITelegramBotClient botClient, ApplicationContext dataSource, AdminBotStateManager statesManager)
         {
             Dictionary<string, IConversation> result = new Dictionary<string, IConversation>();
 
-            StartConversation startConversation = new StartConversation(statesManager);
-
-            if (Start.IsNotNull())
-            {
-				SetPublicProperties(Start, startConversation);
-			}
-            
-            result.Add(nameof(StartConversation), startConversation);
-
-            CatalogEditorConversation catalogEditorConversation = new CatalogEditorConversation(statesManager);
-
-            if (CatalogEditor.IsNotNull())
-            {
-				SetPublicProperties(CatalogEditor, catalogEditorConversation);
-			}
-
-            result.Add(nameof(CatalogEditorConversation), catalogEditorConversation);
-
-            OrdersConversation ordersConversation = new OrdersConversation(statesManager);
-
-            if (Orders.IsNotNull())
-            {
-				SetPublicProperties(Orders, ordersConversation);
-			}
-
-            result.Add(nameof(OrdersConversation), ordersConversation);
+			AddToHandlers(statesManager, result, Start);
+			AddToHandlers(statesManager, result, CatalogEditor);
+			AddToHandlers(statesManager, result, Orders);
+			AddToHandlers(statesManager, result, BotOwner);
 
             return result;
         }
+
+        private void AddToHandlers<T>(AdminBotStateManager statesManager, Dictionary<string, IConversation> result, T source) where T : class, IConversation, new()
+		{
+			Type type = typeof(T);
+			T conversation = (T)Activator.CreateInstance(type, statesManager)!;
+
+			if (source.IsNotNull())
+			{
+				SetPublicProperties(source, conversation);
+			}
+
+			result.Add(type.Name!, conversation);
+		}
 
 		private void SetPublicProperties<T>(T source, T target) where T : class, new()
 		{

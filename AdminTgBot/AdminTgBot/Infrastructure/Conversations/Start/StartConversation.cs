@@ -1,4 +1,5 @@
 ﻿using Database;
+using Database.Classes;
 using Database.Enums;
 using Database.Tables;
 using Helper;
@@ -21,7 +22,8 @@ namespace AdminTgBot.Infrastructure.Conversations.Start
         private ApplicationContext _dataSource;
         private readonly AdminBotStateManager _stateManager;
 
-        public string Login { get; set; }
+        public string? Login { get; set; }
+        public int? AdminId { get; set; }
 
         public StartConversation() { }
 
@@ -44,12 +46,12 @@ namespace AdminTgBot.Infrastructure.Conversations.Start
                     }
                 case State.StartLogin:
                     {
-                        await GetPassowrdAsync(message.Text);
+                        await GetPassowrdAsync(message.Text!);
                         return Trigger.EnterPassword;
                     }
                 case State.StartPassword:
                     {
-                        await AuthAsync(message.Text);
+                        await AuthAsync(message.Text!);
                         return Trigger.EndOfConversation;
                     }
             }
@@ -65,16 +67,17 @@ namespace AdminTgBot.Infrastructure.Conversations.Start
         private async Task AuthAsync(string password)
         {
             string passwordHash = DBHelper.GetPasswordHash(password);
-            AdminCredential admin = await _dataSource.AdminCredentials.FirstOrDefaultAsync(ac => ac.Login == Login && ac.PasswordHash == passwordHash);
-            if (admin.IsNull())
+            AdminCredential? admin = await _dataSource.AdminCredentials.FirstOrDefaultAsync(ac => ac.Login == Login && ac.PasswordHash == passwordHash);
+            if (admin == null)
             {
                 Login = null;
                 await _stateManager.SendMessageAsync(StartText.AuthFail);
             }
             else
             {
+                AdminId = admin.Id;
                 _stateManager.IsAuth = true;
-                SetAdminRole();
+                _stateManager.AdminId = AdminId;
                 await SetMenuButtonsAsync(admin.Name);
             }
         }
@@ -95,11 +98,6 @@ namespace AdminTgBot.Infrastructure.Conversations.Start
             string text = string.Format(StartText.AuthSuccess, name);
 
             await _stateManager.ShowButtonMenuAsync(text);
-        }
-
-        private void SetAdminRole()
-        {            
-            _stateManager.Roles.TryAdd(RolesList.Admin);
         }
     }
 }

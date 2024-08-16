@@ -44,7 +44,7 @@ namespace Telegram.Util.Core.StateMachine
         /// </summary>
         /// <param name="del">Delegate whose method name is desired</param>
         /// <returns>Null if <paramref name="del" /> is null, otherwise <see cref="MemberInfo.Name" />.</returns>
-        public static string TryGetMethodName(this Delegate del)
+        public static string? TryGetMethodName(this Delegate del)
         {
             return TryGetMethodInfo(del)?.Name;
         }

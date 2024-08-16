@@ -5,7 +5,7 @@
     /// </summary>
     public class InvocationInfo
     {
-        readonly string _description;                     // _description can be null if user didn't specify a description
+        readonly string? _description;                     // _description can be null if user didn't specify a description
 
         /// <summary>
         /// Is the method synchronous or asynchronous?
@@ -20,7 +20,7 @@
         }
         readonly Timing _timing;
 
-        internal static InvocationInfo Create(Delegate method, string description, Timing timing = Timing.Synchronous)
+        internal static InvocationInfo Create(Delegate method, string? description, Timing timing = Timing.Synchronous)
         {
             return new InvocationInfo(method?.TryGetMethodName(), description, timing);
         }
@@ -31,7 +31,7 @@
         /// <param name="methodName">The name of the invoked method.</param>
         /// <param name="description">A description of the invoked method.</param>
         /// <param name="timing">Sets a value indicating whether the method is invoked asynchronously.</param>
-        public InvocationInfo(string methodName, string description, Timing timing)      // description can be null if user didn't specify a description
+        public InvocationInfo(string methodName, string? description, Timing timing)      // description can be null if user didn't specify a description
         {
             MethodName = methodName;
             _description = description;

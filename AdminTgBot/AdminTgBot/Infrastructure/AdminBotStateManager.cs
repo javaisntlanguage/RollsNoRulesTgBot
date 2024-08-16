@@ -28,6 +28,9 @@ using Microsoft.EntityFrameworkCore.Internal;
 using Newtonsoft.Json.Linq;
 using AdminTgBot.Infrastructure.Conversations.Orders;
 using System.Data;
+using AdminTgBot.Infrastructure.Conversations.BotOwner;
+using Database.Classes;
+using Telegram.Util.Core.StateMachine.Exceptions;
 
 namespace AdminTgBot.Infrastructure
 {
@@ -36,16 +39,25 @@ namespace AdminTgBot.Infrastructure
         private readonly IDbContextFactory<ApplicationContext> _contextFactory;
         private readonly StateMachine<State, Trigger> _machine;
         private Dictionary<string, IConversation> _handlers;
+        private static readonly Dictionary<State, Guid> Rights;
 
 		public State CurrentState { get; private set; }
 		public bool IsAuth { get; set; }
-        public HashSet<RolesList> Roles { get; set; }
+        public int? AdminId { get; set; }
+
+        static AdminBotStateManager()
+        {
+            Rights = new Dictionary<State, Guid>()
+            {
+                { State.CommandOrders, RightHelper.Orders },
+            };
+
+		}
 
         private AdminBotStateManager(ITelegramBotClient botClient, IDbContextFactory<ApplicationContext> contextFactory,
             AdminBotCommandsManager commandsManager, long chatId)
         {
             ChatId = chatId;
-            Roles = new HashSet<RolesList>();
 			_message = new Message();
             _commandsManager = commandsManager;
             _machine = new StateMachine<State, Trigger>(() => CurrentState,
@@ -66,6 +78,7 @@ namespace AdminTgBot.Infrastructure
             SetHandler(new StartConversation(this));
             SetHandler(new CatalogEditorConversation(this));
             SetHandler(new OrdersConversation(this));
+            SetHandler(new BotOwnerConversation(this));
         }
 
         protected override void ConfigureMachine()
@@ -75,6 +88,7 @@ namespace AdminTgBot.Infrastructure
             .Permit(Trigger.CommandStartStarted, State.CommandStart)
             .Permit(Trigger.CommandCatalogEditorStarted, State.CommandCatalogEditor)
             .Permit(Trigger.CommandOrdersStarted, State.CommandOrders)
+			.Permit(Trigger.CommandBotOwnerStarted, State.CommandBotOwner)
             .Ignore(Trigger.Ignore);
 
             _machine.Configure(State.CommandButtons)
@@ -164,19 +178,45 @@ namespace AdminTgBot.Infrastructure
 			_machine.Configure(State.FilterId)
 			.SubstateOf(State.CommandOrders)
             .Permit(Trigger.BackToOrderFilter, State.CommandOrders);
+
+			_machine.Configure(State.CommandBotOwner)
+			.SubstateOf(State.New)
+			.OnEntryFromAsync(Trigger.CommandBotOwnerStarted, NextStateMessageAsync)
+            .Permit(Trigger.SelectMenu, State.BotOwnerSelectMenu);
+
+			_machine.Configure(State.BotOwnerSelectMenu)
+			.SubstateOf(State.CommandBotOwner)
+			.OnEntryFromAsync(Trigger.SelectMenu, NextStateMessageAsync)
+            .Permit(Trigger.EnterLogin, State.BotOwnerEnterLogin)
+            .PermitReentry(Trigger.SelectMenu);
+
+			_machine.Configure(State.BotOwnerEnterLogin)
+			.SubstateOf(State.CommandBotOwner)
+            .Permit(Trigger.EnterPassword, State.BotOwnerEnterPassword)
+            .Permit(Trigger.SelectMenu, State.BotOwnerSelectMenu);
+
+			_machine.Configure(State.BotOwnerEnterPassword)
+			.SubstateOf(State.CommandBotOwner)
+            .Permit(Trigger.EnterAdminName, State.BotOwnerEnterAdminName)
+			.Permit(Trigger.SelectMenu, State.BotOwnerSelectMenu);
+
+            _machine.Configure(State.BotOwnerEnterAdminName)
+            .SubstateOf(State.CommandBotOwner)
+            .Permit(Trigger.SelectMenu, State.BotOwnerSelectMenu);
 		}
 
-        /// <summary>
-        /// сохранить состояние пользователя
-        /// </summary>
-        /// <returns></returns>
-        private async Task SaveStateAsync(ApplicationContext dataSource)
+		/// <summary>
+		/// сохранить состояние пользователя
+		/// </summary>
+		/// <returns></returns>
+		private async Task SaveStateAsync(ApplicationContext dataSource)
         {
             string data = JsonConvert.SerializeObject(new AdminConversations
             {
                 Start = GetHandler<StartConversation>()!,
                 CatalogEditor = GetHandler<CatalogEditorConversation>()!,
                 Orders = GetHandler<OrdersConversation>()!,
+				BotOwner = GetHandler<BotOwnerConversation>()!,
             });
 
             await dataSource.SetAdminState(ChatId, (int)CurrentState, data, _lastMessageId);
@@ -192,23 +232,21 @@ namespace AdminTgBot.Infrastructure
             AdminState? adminState = await dataSource.AdminStates
                     .FirstOrDefaultAsync(us => us.UserId == ChatId);
 
-            if (adminState.IsNull())
+            if (adminState == null)
             {
                 CurrentState = State.New;
-                Roles = new() { RolesList.User };
             }
             else
             {
-                Roles = dataSource
-                    .GetAdminRoles(ChatId)
-                    .ToHashSet();
-
-                CurrentState = (State)adminState!.StateId;
+                CurrentState = (State)adminState.StateId;
                 _lastMessageId = adminState.LastMessageId;
 
                 IsAuth = !_machine.IsInState(State.CommandStart) && CurrentState != State.New;
 
                 RecoverHandlers(adminState.Data, dataSource);
+
+				StartConversation start = GetHandler<StartConversation>()!;
+                AdminId = start.AdminId;
             }
         }
 
@@ -265,6 +303,28 @@ namespace AdminTgBot.Infrastructure
             return data["OutOfQueue"]?.Value<bool?>() ?? false;
 		}
 
+		private bool HasRight(Guid right)
+		{
+			if(!AdminId.HasValue)
+            {
+                return false;
+            }
+
+			using ApplicationContext dataSource = _contextFactory.CreateDbContext();
+            return dataSource.HasRight(AdminId.Value, right);
+		}
+
+		private void CheckRights()
+		{
+            if(Rights.TryGetValue(CurrentState, out Guid right))
+            {
+                if(!HasRight(right))
+                {
+                    throw new GuardException($"Нет прав. AdminId={AdminId} State={CurrentState}, Right={right}");
+                }
+            }
+		}
+
 		#endregion Private Methods
 
 		#region Public Methods
@@ -303,7 +363,7 @@ namespace AdminTgBot.Infrastructure
             await _machine.FireAsync(Trigger.CommandOrdersStarted);
         }
         /// <summary>
-        /// обработка команды Заказы
+        /// обработка команды отображения кнопок
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
@@ -314,7 +374,19 @@ namespace AdminTgBot.Infrastructure
             await _machine.FireAsync(Trigger.CommandButtonsStarted);
         }
 
-        public async Task<string> GetFileAsync(string fileId)
+		/// <summary>
+		/// обработка команды владельца бота
+		/// </summary>
+		/// <param name="message"></param>
+		/// <returns></returns>
+		public async Task BotOwnerAsync(Message message)
+		{
+			_message = message;
+
+			await _machine.FireAsync(Trigger.CommandBotOwnerStarted);
+		}
+
+		public async Task<string> GetFileAsync(string fileId)
         {
             await using MemoryStream stream = new MemoryStream();
             await _botClient.GetInfoAndDownloadFileAsync(fileId, stream);
@@ -350,6 +422,8 @@ namespace AdminTgBot.Infrastructure
 #endif
             await using ApplicationContext dataSource = await _contextFactory.CreateDbContextAsync();
 
+            CheckRights();
+
             bool result = await _handlers.Values
                 .ToAsyncEnumerable()
                 .AnyAwaitAsync(async x => await CallTriggerAsync(await x.TryNextStepAsync(dataSource, message)));
@@ -358,12 +432,12 @@ namespace AdminTgBot.Infrastructure
             return result;
         }
 
-        /// <summary>
-        /// обработка запроса
-        /// </summary>
-        /// <param name="query"></param>
-        /// <returns></returns>
-        public override async Task<bool> NextStateAsync(CallbackQuery query)
+		/// <summary>
+		/// обработка запроса
+		/// </summary>
+		/// <param name="query"></param>
+		/// <returns></returns>
+		public override async Task<bool> NextStateAsync(CallbackQuery query)
         {
             await base.NextStateAsync(query);
 
@@ -373,7 +447,9 @@ namespace AdminTgBot.Infrastructure
 
             await using ApplicationContext dataSource = await _contextFactory.CreateDbContextAsync();
 
-            if (_lastMessageId.IsNotNull() && _query.Message!.MessageId != _lastMessageId)
+			CheckRights();
+
+			if (_lastMessageId.IsNotNull() && _query.Message!.MessageId != _lastMessageId)
             {
                 if (!IsOutOfQueue(_query))
                 {
@@ -409,8 +485,8 @@ namespace AdminTgBot.Infrastructure
                 throw new AuthException();
             }
         }
-        #endregion Public Methods
-    }
+		#endregion Public Methods
+	}
 
     public enum Trigger
     {
@@ -439,6 +515,10 @@ namespace AdminTgBot.Infrastructure
 		EditCategoryName,
 		ReturnToCatalogEditor,
 		EnterCategoryName,
+		CommandBotOwnerStarted,
+		EnterAdminName,
+		SuggestConfirmAddSuperAdmin,
+		SelectMenu,
 	}
 
     public enum State
@@ -463,5 +543,10 @@ namespace AdminTgBot.Infrastructure
 		CommandButtons,
 		CategoryNameEditor,
 		NewCategoryNameEditor,
+		CommandBotOwner,
+		BotOwnerEnterLogin,
+		BotOwnerEnterPassword,
+		BotOwnerEnterAdminName,
+		BotOwnerSelectMenu,
 	}
 }

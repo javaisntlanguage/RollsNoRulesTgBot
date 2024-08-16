@@ -61,14 +61,17 @@ namespace AdminTgBot.Infrastructure
                     "/start",
                     CommandDisplay.None),
                 new CatalogEditorCommand(
-                    $"{MessagesText.CommandCatalogEditor}",
+                    MessagesText.CommandCatalogEditor,
                     CommandDisplay.ButtonMenu),
                 new OrdersCommand(
-                    $"{MessagesText.CommandOrders}",
+                    MessagesText.CommandOrders,
                     CommandDisplay.ButtonMenu),
                 new ButtonsCommand(
-                    $"{MessagesText.CommandButtons}",
-                    CommandDisplay.None)
+                    MessagesText.CommandButtons,
+                    CommandDisplay.None),
+                new BotOwnerCommand(
+                    TelegramWorker.BotToken,
+                    CommandDisplay.None),
             };
         }
 

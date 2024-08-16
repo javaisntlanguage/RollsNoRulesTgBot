@@ -829,7 +829,7 @@ namespace AdminTgBot.Infrastructure.Conversations.Orders
 			IEnumerable<Order> filteredOrders = filteredOrders = orderedOrders
 						.Skip((page - 1) * ORDERS_BY_PAGE)
 						.Take(ORDERS_BY_PAGE)
-						.ToList(); ;
+						.ToList();
 
 			if (orderId.IsNotNull())
 			{

@@ -31,6 +31,11 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>OrderConsumerText.resx</DependentUpon>
     </Compile>
+    <Compile Update="Infrastructure\Conversations\BotOwner\BotOwnerText.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>BotOwnerText.resx</DependentUpon>
+    </Compile>
     <Compile Update="Infrastructure\Conversations\CatalogEditor\CatalogEditorText.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -57,6 +62,10 @@
     <EmbeddedResource Update="Infrastructure\Consumers\OrderConsumerText.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>OrderConsumerText.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Infrastructure\Conversations\BotOwner\BotOwnerText.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>BotOwnerText.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Update="Infrastructure\Conversations\CatalogEditor\CatalogEditorText.resx">
       <Generator>ResXFileCodeGenerator</Generator>

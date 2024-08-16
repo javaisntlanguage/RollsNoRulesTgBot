@@ -38,10 +38,10 @@ namespace Telegram.Util.Core
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>
-        protected IBotCommandHandler GetCommand(Message message)
+        protected IBotCommandHandler? GetCommand(Message message)
         {
-            long userId = message.From.Id;
-            IBotCommandHandler command = null;
+            long userId = message.From!.Id;
+            IBotCommandHandler? command = null;
 
             command = Commands
                 .FirstOrDefault(x =>

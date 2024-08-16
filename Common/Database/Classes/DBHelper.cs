@@ -8,7 +8,7 @@ using NLog.Time;
 using Database.Resources;
 using Database.Tables;
 
-namespace Database
+namespace Database.Classes
 {
     public class DBHelper
     {
@@ -18,6 +18,7 @@ namespace Database
         }
 
         private static readonly MD5 _MD5 = MD5.Create();
+
         public static string GetPasswordHash(string password)
         {
             byte[] bPassword = Encoding.ASCII.GetBytes(password);
@@ -28,7 +29,7 @@ namespace Database
 
         public static string PhonePrettyPrint(string phone)
         {
-            if(phone.Length != 11 || phone[0] != '7')
+            if (phone.Length != 11 || phone[0] != '7')
             {
                 throw new ArgumentException($"Неверный формат телефона: {phone}");
             }

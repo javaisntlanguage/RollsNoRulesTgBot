@@ -5,6 +5,7 @@
         internal class TransitionGuard
         {
             internal IList<GuardCondition> Conditions { get; }
+            internal Action? FailFunc { get; }
 
             public static readonly TransitionGuard Empty = new TransitionGuard(new Tuple<Func<object[],bool>, string>[0]);
 
@@ -53,34 +54,43 @@
 
             #endregion
 
-            internal TransitionGuard(Tuple<Func<bool>, string>[] guards)
+            internal TransitionGuard(Tuple<Func<bool>, string>[] guards, Action? failFunc = null)
             {
                 Conditions = guards
                     .Select(g => new GuardCondition(g.Item1, Reflection.InvocationInfo.Create(g.Item1, g.Item2)))
                     .ToList();
+
+                FailFunc = failFunc;
             }
 
-            internal TransitionGuard(Func<bool> guard, string? description = null)
+            internal TransitionGuard(Func<bool> guard, string? description = null, Action? failFunc = null)
             {
                 Conditions = new List<GuardCondition>
                 {
                     new GuardCondition(guard, Reflection.InvocationInfo.Create(guard, description))
                 };
-            }
 
-            internal TransitionGuard(Tuple<Func<object[], bool>, string>[] guards)
+				FailFunc = failFunc;
+
+			}
+
+            internal TransitionGuard(Tuple<Func<object[], bool>, string>[] guards, Action? failFunc = null)
             {
                 Conditions = guards
                     .Select(g => new GuardCondition(g.Item1, Reflection.InvocationInfo.Create(g.Item1, g.Item2)))
                     .ToList();
-            }
 
-            internal TransitionGuard(Func<object[], bool> guard, string? description = null)
+				FailFunc = failFunc;
+			}
+
+            internal TransitionGuard(Func<object[], bool> guard, string? description = null, Action? failFunc = null)
             {
                 Conditions = new List<GuardCondition>
                 {
                     new GuardCondition(guard, Reflection.InvocationInfo.Create(guard, description))
                 };
+
+                FailFunc = failFunc;
             }
             
             /// <summary>

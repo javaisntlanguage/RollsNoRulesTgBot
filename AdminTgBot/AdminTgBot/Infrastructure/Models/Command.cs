@@ -39,6 +39,11 @@ namespace AdminTgBot.Infrastructure.Models
 		BackToCategories,
 		EditCategoryAttribute,
 		EditCategoryVisibility,
-		EditCategoryAttributeYes
+		EditCategoryAttributeYes,
+		AddSuperAdmin,
+		ResetPasswordSuperAdmin,
+		AddSuperAdminConfirm,
+		BackToMenuActions,
+		ResetPasswordSuperAdminConcrete
 	}
 }

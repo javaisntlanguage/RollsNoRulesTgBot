@@ -1,5 +1,6 @@
 ﻿using Telegram.Util.Core.StateMachine.Reflection;
 using StateMachine;
+using Telegram.Util.Core.StateMachine.Exceptions;
 
 namespace Telegram.Util.Core.StateMachine
 {
@@ -629,7 +630,7 @@ namespace Telegram.Util.Core.StateMachine
         void DefaultUnhandledTriggerAction(TState state, TTrigger trigger, ICollection<string> unmetGuardConditions)
         {
             if (unmetGuardConditions?.Any() ?? false)
-                throw new InvalidOperationException(
+                throw new GuardException(
                     string.Format(
                         StateMachineResources.NoTransitionsUnmetGuardConditions,
                         trigger, state, string.Join(", ", unmetGuardConditions)));

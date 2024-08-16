@@ -71,7 +71,30 @@ namespace Telegram.Util.Core
             return result;
         }
 
-        protected async Task NextStateMessageAsync()
+		private async Task<string> CutTextAsync(string text, ParseMode? parseMode)
+		{
+			while (text.Length > MAX_MESSAGE_LENGTH)
+			{
+				string textFirstPart = text.Substring(0, MAX_MESSAGE_LENGTH);
+				await _botClient.SendTextMessageAsync(ChatId, textFirstPart, parseMode: parseMode);
+				text = text.Substring(MAX_MESSAGE_LENGTH);
+			}
+
+            return text;
+		}
+		private async Task<string> CutMessageTextAsync(string text, ParseMode? parseMode)
+		{
+			while (text.Length > MAX_MESSAGE_LENGTH)
+			{
+				string textFirstPart = text.Substring(0, MAX_MESSAGE_LENGTH);
+				await _botClient.SendTextMessageAsync(ChatId, textFirstPart, parseMode: parseMode);
+				text = text.Substring(MAX_MESSAGE_LENGTH);
+			}
+
+			return text;
+		}
+
+		protected async Task NextStateMessageAsync()
         {
             await NextStateAsync(_message);
         }
@@ -101,12 +124,7 @@ namespace Telegram.Util.Core
         {
             Message result = null!;
 
-            if (text.Length > MAX_MESSAGE_LENGTH)
-            {
-                string textFirstPart = text.Substring(0, MAX_MESSAGE_LENGTH);
-                await _botClient.SendTextMessageAsync(ChatId, textFirstPart, parseMode: parseMode);
-                text = text.Substring(MAX_MESSAGE_LENGTH);
-            }
+            text = await CutTextAsync(text, parseMode);
 
             if (photo.IsNullOrEmpty())
             {
@@ -127,7 +145,26 @@ namespace Telegram.Util.Core
             return result;
         }
 
-        public async Task<Message> EditMessageReplyMarkupAsync(int messageId, InlineKeyboardMarkup replyMarkup)
+		public async Task<Message> SendVideoAsync(string text, string path, ParseMode? parseMode = null, IReplyMarkup? replyMarkup = null, bool isOutOfQueue = false)
+		{
+			Message result = null!;
+
+			text = await CutMessageTextAsync(text, parseMode);
+
+
+			await using Stream stream = System.IO.File.OpenRead(path);
+			InputFileStream inputFile = InputFile.FromStream(stream);
+			result = await _botClient.SendVideoAsync(ChatId, inputFile, caption: text, parseMode: parseMode, replyMarkup: replyMarkup);
+
+			if (!isOutOfQueue)
+			{
+				_lastMessageId = result.MessageId;
+			}
+
+			return result;
+		}
+
+		public async Task<Message> EditMessageReplyMarkupAsync(int messageId, InlineKeyboardMarkup replyMarkup)
         {
             return await _botClient.EditMessageReplyMarkupAsync(ChatId, messageId, replyMarkup);
         }
@@ -137,5 +174,13 @@ namespace Telegram.Util.Core
             Message result = await ShowButtonMenuAsync(ChatId, text, additionalButtons);
             return result;
         }
-    }
+
+		public void CheckText(string? text)
+		{
+			if (text.IsNullOrEmpty())
+            {
+                throw new MessageTextException();
+            }
+		}
+	}
 }

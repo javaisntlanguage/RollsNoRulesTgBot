@@ -124,11 +124,38 @@ namespace AdminTgBot.Infrastructure {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Пожалуйста, введите текст.
+        /// </summary>
+        internal static string MessageTextExcepted {
+            get {
+                return ResourceManager.GetString("MessageTextExcepted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Нет.
+        /// </summary>
+        internal static string No {
+            get {
+                return ResourceManager.GetString("No", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to X.
         /// </summary>
         internal static string NoPagination {
             get {
                 return ResourceManager.GetString("NoPagination", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to У вас недостаточно прав для совершения данного действия.
+        /// </summary>
+        internal static string NotEnoughRights {
+            get {
+                return ResourceManager.GetString("NotEnoughRights", resourceCulture);
             }
         }
         
@@ -165,6 +192,33 @@ namespace AdminTgBot.Infrastructure {
         internal static string UnknownCommand {
             get {
                 return ResourceManager.GetString("UnknownCommand", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Значение слишком длинное. Разрешенная длина: {0}.
+        /// </summary>
+        internal static string ValueTooLong {
+            get {
+                return ResourceManager.GetString("ValueTooLong", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Значение слишком короткое. Минимальная длина: {0}.
+        /// </summary>
+        internal static string ValueTooShort {
+            get {
+                return ResourceManager.GetString("ValueTooShort", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Да.
+        /// </summary>
+        internal static string Yes {
+            get {
+                return ResourceManager.GetString("Yes", resourceCulture);
             }
         }
     }

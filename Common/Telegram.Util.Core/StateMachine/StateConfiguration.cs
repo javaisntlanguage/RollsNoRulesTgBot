@@ -362,6 +362,28 @@ namespace Telegram.Util.Core.StateMachine
             }
 
             /// <summary>
+            ///  Accept the specified trigger, transition to the destination state, and guard condition. 
+            /// </summary>
+            /// <typeparam name="TArg0"></typeparam>
+            /// <param name="trigger">The accepted trigger.</param>
+            /// <param name="destinationState">The state that the trigger will cause a
+            /// transition to.</param>
+            /// <param name="guard">Function that must return true in order for the
+            /// trigger to be accepted. Takes a single argument of type TArg0</param>
+            /// <param name="guardDescription">Guard description</param>
+            /// <returns>The receiver.</returns>
+            public StateConfiguration PermitIf<TArg0>(TriggerWithParameters<TArg0> trigger, TState destinationState, Func<TArg0, bool> guard, string? guardDescription = null, Action? failFunc = null)
+            {
+                if (trigger == null) throw new ArgumentNullException(nameof(trigger));
+                EnforceNotIdentityTransition(destinationState);
+
+                return InternalPermitIf(
+                    trigger.Trigger,
+                    destinationState,
+                    new TransitionGuard(TransitionGuard.ToPackedGuard(guard), guardDescription));
+            }
+
+            /// <summary>
             /// Accept the specified trigger, transition to the destination state, and guard conditions.
             /// </summary>
             /// <typeparam name="TArg0"></typeparam>

@@ -9,6 +9,7 @@ using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types;
 using Telegram.Bot;
 using Telegram.Util.Core.Exceptions;
+using Telegram.Util.Core.StateMachine.Exceptions;
 
 namespace AdminTgBot.Infrastructure
 {
@@ -60,8 +61,8 @@ namespace AdminTgBot.Infrastructure
 
         private async Task ProcessUpdateForUser(Update update)
         {
-            try
-            {
+			try
+			{
                 switch (update.Type)
                 {
                     case UpdateType.Message:
@@ -86,7 +87,17 @@ namespace AdminTgBot.Infrastructure
                         }
                 }
             }
-            catch (NotLastMessageException ex)
+            catch (GuardException ex)
+            {
+				long chatId = update.Message?.Chat.Id ?? update.CallbackQuery.Message.Chat.Id;
+				await _telegramClient.SendTextMessageAsync(chatId, MessagesText.NotEnoughRights);
+			}
+            catch (MessageTextException ex)
+            {
+				long chatId = update.Message?.Chat.Id ?? update.CallbackQuery.Message.Chat.Id;
+				await _telegramClient.SendTextMessageAsync(chatId, MessagesText.MessageTextExcepted);
+			}
+			catch (NotLastMessageException ex)
             {
                 long chatId = update.Message?.Chat.Id ?? update.CallbackQuery.Message.Chat.Id;
                 await _telegramClient.AnswerCallbackQueryAsync(update.CallbackQuery.Id, MessagesText.GoLastMessage, showAlert: true);

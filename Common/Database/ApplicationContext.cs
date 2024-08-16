@@ -35,6 +35,9 @@ namespace Database
         public DbSet<AdminState> AdminStates { get; set; }
         public DbSet<SellLocation> SellLocations { get; set; }
         public DbSet<AdminInRole> AdminInRoles { get; set; }
+        public DbSet<AdminPermission> AdminPermissions { get; set; }
+        public DbSet<Right> Rights { get; set; }
+        public DbSet<GroupPermission> GroupPermissions { get; set; }
 
         public ApplicationContext(DbContextOptions options) : base(options)
         {
@@ -172,5 +175,29 @@ namespace Database
                 property.SetScale(2);
             }
         }
-    }
+
+		public bool HasRight(int adminId, Guid rightId)
+		{
+			IQueryable<AdminPermission> permissionsAndGrups = AdminPermissions
+                .Where(ap => ap.AdminId == adminId);
+
+            var groupPermissions = permissionsAndGrups
+                .Include(pg => pg.Right)
+                .Where(pg => pg.Right.IsGroup)
+                .Join(GroupPermissions, ap => ap.RightId, gp => gp.GroupId,
+                (ap, gp) => new
+                {
+                    AdminId = ap.AdminId,
+                    RightId = gp.RightId,
+                });
+
+            if(groupPermissions.Any(gp => gp.RightId == rightId) || 
+               permissionsAndGrups.Any(pg => pg.RightId == rightId))
+            {
+				return true;
+			}
+
+            return false;
+		}
+	}
 }

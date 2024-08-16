@@ -44,6 +44,8 @@ namespace AdminTgBot.Infrastructure.Models
 		ResetPasswordSuperAdmin,
 		AddSuperAdminConfirm,
 		BackToMenuActions,
-		ResetPasswordSuperAdminConcrete
+		ResetPasswordSuperAdminConcrete,
+		EditName,
+		EditPassword
 	}
 }

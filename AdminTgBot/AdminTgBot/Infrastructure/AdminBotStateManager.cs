@@ -31,6 +31,7 @@ using System.Data;
 using AdminTgBot.Infrastructure.Conversations.BotOwner;
 using Database.Classes;
 using Telegram.Util.Core.StateMachine.Exceptions;
+using AdminTgBot.Infrastructure.Conversations.Lkk;
 
 namespace AdminTgBot.Infrastructure
 {
@@ -79,6 +80,7 @@ namespace AdminTgBot.Infrastructure
             SetHandler(new CatalogEditorConversation(this));
             SetHandler(new OrdersConversation(this));
             SetHandler(new BotOwnerConversation(this));
+            SetHandler(new LkkConversation(this));
         }
 
         protected override void ConfigureMachine()
@@ -89,6 +91,7 @@ namespace AdminTgBot.Infrastructure
             .Permit(Trigger.CommandCatalogEditorStarted, State.CommandCatalogEditor)
             .Permit(Trigger.CommandOrdersStarted, State.CommandOrders)
 			.Permit(Trigger.CommandBotOwnerStarted, State.CommandBotOwner)
+			.Permit(Trigger.CommandLkkStarted, State.CommandLkk)
             .Ignore(Trigger.Ignore);
 
             _machine.Configure(State.CommandButtons)
@@ -203,6 +206,11 @@ namespace AdminTgBot.Infrastructure
             _machine.Configure(State.BotOwnerEnterAdminName)
             .SubstateOf(State.CommandBotOwner)
             .Permit(Trigger.SelectMenu, State.BotOwnerSelectMenu);
+
+            _machine.Configure(State.CommandLkk)
+            .SubstateOf(State.New)
+			.OnEntryFromAsync(Trigger.CommandLkkStarted, NextStateMessageAsync)
+;
 		}
 
 		/// <summary>
@@ -217,6 +225,7 @@ namespace AdminTgBot.Infrastructure
                 CatalogEditor = GetHandler<CatalogEditorConversation>()!,
                 Orders = GetHandler<OrdersConversation>()!,
 				BotOwner = GetHandler<BotOwnerConversation>()!,
+				Lkk = GetHandler<LkkConversation>()!,
             });
 
             await dataSource.SetAdminState(ChatId, (int)CurrentState, data, _lastMessageId);
@@ -258,7 +267,7 @@ namespace AdminTgBot.Infrastructure
                 {
                     AdminConversations conversations = JsonConvert.DeserializeObject<AdminConversations>(data)!;
 
-                    _handlers = conversations.GetHandlers(_botClient, dataSource, this);
+                    _handlers = conversations.GetHandlers(dataSource, this);
                 }
                 catch (Exception ex)
                 {
@@ -384,6 +393,18 @@ namespace AdminTgBot.Infrastructure
 			_message = message;
 
 			await _machine.FireAsync(Trigger.CommandBotOwnerStarted);
+		}
+
+		/// <summary>
+		/// обработка команды личного кабинета админа
+		/// </summary>
+		/// <param name="message"></param>
+		/// <returns></returns>
+		public async Task LkkAsync(Message message)
+		{
+			_message = message;
+
+			await _machine.FireAsync(Trigger.CommandLkkStarted);
 		}
 
 		public async Task<string> GetFileAsync(string fileId)
@@ -519,6 +540,7 @@ namespace AdminTgBot.Infrastructure
 		EnterAdminName,
 		SuggestConfirmAddSuperAdmin,
 		SelectMenu,
+		CommandLkkStarted,
 	}
 
     public enum State
@@ -548,5 +570,6 @@ namespace AdminTgBot.Infrastructure
 		BotOwnerEnterPassword,
 		BotOwnerEnterAdminName,
 		BotOwnerSelectMenu,
+		CommandLkk,
 	}
 }

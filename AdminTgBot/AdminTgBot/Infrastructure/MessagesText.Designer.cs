@@ -97,6 +97,15 @@ namespace AdminTgBot.Infrastructure {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Личный кабинет.
+        /// </summary>
+        internal static string CommandLkk {
+            get {
+                return ResourceManager.GetString("CommandLkk", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Заказы.
         /// </summary>
         internal static string CommandOrders {
@@ -106,7 +115,7 @@ namespace AdminTgBot.Infrastructure {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Старт.
+        ///   Looks up a localized string similar to /start.
         /// </summary>
         internal static string CommandStart {
             get {

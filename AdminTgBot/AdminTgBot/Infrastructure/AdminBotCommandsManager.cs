@@ -58,7 +58,7 @@ namespace AdminTgBot.Infrastructure
             return new AdminBotCommandHandler[]
             {
                 new StartCommand(
-                    "/start",
+					MessagesText.CommandStart,
                     CommandDisplay.None),
                 new CatalogEditorCommand(
                     MessagesText.CommandCatalogEditor,
@@ -72,6 +72,9 @@ namespace AdminTgBot.Infrastructure
                 new BotOwnerCommand(
                     TelegramWorker.BotToken,
                     CommandDisplay.None),
+                new LkkCommand(
+					MessagesText.CommandLkk,
+                    CommandDisplay.ButtonMenu),
             };
         }
 

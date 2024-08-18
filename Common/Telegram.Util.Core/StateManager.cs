@@ -18,6 +18,7 @@ using Microsoft.IdentityModel.Tokens;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 using Helper;
+using Database.Tables;
 
 namespace Telegram.Util.Core
 {
@@ -164,6 +165,11 @@ namespace Telegram.Util.Core
 			return result;
 		}
 
+        public async Task DeleteMessage(int messageId)
+        {
+            await _botClient.DeleteMessageAsync(ChatId, messageId);
+        }
+
 		public async Task<Message> EditMessageReplyMarkupAsync(int messageId, InlineKeyboardMarkup replyMarkup)
         {
             return await _botClient.EditMessageReplyMarkupAsync(ChatId, messageId, replyMarkup);
@@ -182,5 +188,29 @@ namespace Telegram.Util.Core
                 throw new MessageTextException();
             }
 		}
+
+		public void CheckTextLength(string? text, int? minLength = null, int? maxLength = null)
+        {
+            if (minLength == null &&  maxLength == null)
+            {
+                throw new ArgumentException("Минимальная или максимальная длина должны быть заданы");
+            }
+
+			if (minLength != null && text!.Length < minLength)
+			{
+                throw new MinLengthMessageException(minLength);
+			}
+
+			if (maxLength != null && text!.Length > maxLength)
+			{
+				throw new MaxLengthMessageException(maxLength);
+			}
+		}
+
+        public void CheckTextAndLength(string? text, int? minLength = null, int? maxLength = null)
+        {
+            CheckText(text);
+            CheckTextLength(text, minLength, maxLength);
+        }
 	}
 }

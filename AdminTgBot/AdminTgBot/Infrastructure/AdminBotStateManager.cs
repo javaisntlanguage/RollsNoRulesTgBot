@@ -209,7 +209,25 @@ namespace AdminTgBot.Infrastructure
 
             _machine.Configure(State.CommandLkk)
             .SubstateOf(State.New)
-			.OnEntryFromAsync(Trigger.CommandLkkStarted, NextStateMessageAsync)
+            .OnEntryFromAsync(Trigger.CommandLkkStarted, NextStateMessageAsync)
+            .Permit(Trigger.SuggestEditName, State.LkkEnterName)
+            .Permit(Trigger.SuggestEditPassword, State.LkkEnterOldPassword);
+
+            _machine.Configure(State.LkkEnterName)
+            .SubstateOf(State.CommandLkk)
+            .Permit(Trigger.BackToLkk, State.CommandLkk);
+
+            _machine.Configure(State.LkkEnterOldPassword)
+            .SubstateOf(State.CommandLkk)
+            .Permit(Trigger.EnterNewPassword, State.LkkEnterNewPassword);
+
+            _machine.Configure(State.LkkEnterNewPassword)
+            .SubstateOf(State.LkkEnterOldPassword)
+            .Permit(Trigger.SuggestConfirmNewAdminPassword, State.LkkConfirmNewPassword);
+
+            _machine.Configure(State.LkkConfirmNewPassword)
+            .SubstateOf(State.LkkEnterNewPassword)
+            .Permit(Trigger.BackToLkk, State.CommandLkk);
 ;
 		}
 
@@ -541,6 +559,11 @@ namespace AdminTgBot.Infrastructure
 		SuggestConfirmAddSuperAdmin,
 		SelectMenu,
 		CommandLkkStarted,
+		SuggestEditName,
+		BackToLkk,
+		SuggestEditPassword,
+		EnterNewPassword,
+		SuggestConfirmNewAdminPassword,
 	}
 
     public enum State
@@ -571,5 +594,9 @@ namespace AdminTgBot.Infrastructure
 		BotOwnerEnterAdminName,
 		BotOwnerSelectMenu,
 		CommandLkk,
+		LkkEnterName,
+		LkkEnterOldPassword,
+		LkkEnterNewPassword,
+		LkkConfirmNewPassword,
 	}
 }

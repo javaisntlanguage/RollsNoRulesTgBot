@@ -61,11 +61,38 @@ namespace AdminTgBot.Infrastructure.Conversations.Lkk {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Подтвердите новый пароль.
+        /// </summary>
+        internal static string ConfirmNewPassword {
+            get {
+                return ResourceManager.GetString("ConfirmNewPassword", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Пароли должны совпадать. Попробуйте ввести снова.
+        /// </summary>
+        internal static string ConfirmNewPasswordNotSame {
+            get {
+                return ResourceManager.GetString("ConfirmNewPasswordNotSame", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Изменить имя.
         /// </summary>
         internal static string EditName {
             get {
                 return ResourceManager.GetString("EditName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Имя успешно изменено.
+        /// </summary>
+        internal static string EditNameSuccess {
+            get {
+                return ResourceManager.GetString("EditNameSuccess", resourceCulture);
             }
         }
         
@@ -79,11 +106,93 @@ namespace AdminTgBot.Infrastructure.Conversations.Lkk {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Добро пожаловать в личный кабинет.
+        ///   Looks up a localized string similar to Забыл пароль.
+        /// </summary>
+        internal static string EditPasswordForgot {
+            get {
+                return ResourceManager.GetString("EditPasswordForgot", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Пароль успешно изменен.
+        /// </summary>
+        internal static string EditPasswordSuccess {
+            get {
+                return ResourceManager.GetString("EditPasswordSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Введите новый пароль.
+        /// </summary>
+        internal static string EnterNewPassword {
+            get {
+                return ResourceManager.GetString("EnterNewPassword", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Похоже, ваш новый пароль потерялся. Попробуйте повторить операцию в личном кабинете.
+        /// </summary>
+        internal static string NewPasswordLost {
+            get {
+                return ResourceManager.GetString("NewPasswordLost", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Имя должно отличаться. Попробуйте ввести снова.
+        /// </summary>
+        internal static string SameNameError {
+            get {
+                return ResourceManager.GetString("SameNameError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Новый пароль должен отличаться от текущего. Попробуйте ввести снова.
+        /// </summary>
+        internal static string SamePasswordError {
+            get {
+                return ResourceManager.GetString("SamePasswordError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Текущее значение: {0}
+        ///Введите новое.
+        /// </summary>
+        internal static string SuggestEditName {
+            get {
+                return ResourceManager.GetString("SuggestEditName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Введите старый пароль.
+        /// </summary>
+        internal static string SuggestEditPassword {
+            get {
+                return ResourceManager.GetString("SuggestEditPassword", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Добро пожаловать в личный кабинет, {0}.
         /// </summary>
         internal static string Welcome {
             get {
                 return ResourceManager.GetString("Welcome", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Неверный пароль. Попробуйте снова.
+        /// </summary>
+        internal static string WrongOldPassword {
+            get {
+                return ResourceManager.GetString("WrongOldPassword", resourceCulture);
             }
         }
     }

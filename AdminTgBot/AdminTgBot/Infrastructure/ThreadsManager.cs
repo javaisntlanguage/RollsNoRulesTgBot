@@ -10,6 +10,7 @@ using Telegram.Bot.Types;
 using Telegram.Bot;
 using Telegram.Util.Core.Exceptions;
 using Telegram.Util.Core.StateMachine.Exceptions;
+using Database.Tables;
 
 namespace AdminTgBot.Infrastructure
 {
@@ -61,13 +62,15 @@ namespace AdminTgBot.Infrastructure
 
         private async Task ProcessUpdateForUser(Update update)
         {
+			long chatId = update.Message?.Chat.Id ?? update.CallbackQuery!.Message!.Chat.Id;
+
 			try
 			{
                 switch (update.Type)
                 {
                     case UpdateType.Message:
                         {
-                            Message message = update.Message;
+                            Message message = update.Message!;
 
                             if (!await _commandsManager.ProcessMessageAsync(message))
                             {
@@ -77,7 +80,7 @@ namespace AdminTgBot.Infrastructure
                         }
                     case UpdateType.CallbackQuery:
                         {
-                            CallbackQuery query = update.CallbackQuery;
+                            CallbackQuery query = update.CallbackQuery!;
 
                             if (!await _commandsManager.ProcessQueryAsync(query))
                             {
@@ -87,24 +90,30 @@ namespace AdminTgBot.Infrastructure
                         }
                 }
             }
-            catch (GuardException ex)
+            catch (GuardException)
             {
-				long chatId = update.Message?.Chat.Id ?? update.CallbackQuery.Message.Chat.Id;
 				await _telegramClient.SendTextMessageAsync(chatId, MessagesText.NotEnoughRights);
 			}
-            catch (MessageTextException ex)
+            catch (MessageTextException)
             {
-				long chatId = update.Message?.Chat.Id ?? update.CallbackQuery.Message.Chat.Id;
 				await _telegramClient.SendTextMessageAsync(chatId, MessagesText.MessageTextExcepted);
 			}
-			catch (NotLastMessageException ex)
+            catch (MinLengthMessageException ex)
             {
-                long chatId = update.Message?.Chat.Id ?? update.CallbackQuery.Message.Chat.Id;
-                await _telegramClient.AnswerCallbackQueryAsync(update.CallbackQuery.Id, MessagesText.GoLastMessage, showAlert: true);
+				string errorText = string.Format(MessagesText.ValueTooShort, ex.MinLength);
+				await _telegramClient.SendTextMessageAsync(chatId, errorText);
+			}
+            catch (MaxLengthMessageException ex)
+            {
+				string errorText = string.Format(MessagesText.ValueTooLong, ex.MaxLength);
+				await _telegramClient.SendTextMessageAsync(chatId, errorText);
+			}
+			catch (NotLastMessageException)
+            {
+                await _telegramClient.AnswerCallbackQueryAsync(update.CallbackQuery!.Id, MessagesText.GoLastMessage, showAlert: true);
             }
             catch (Exception ex)
             {
-                long chatId = update.Message?.Chat.Id ?? update.CallbackQuery.Message.Chat.Id;
                 await _telegramClient.SendTextMessageAsync(chatId, MessagesText.SomethingWrong);
 
                 string message = $"UserId: {chatId}\n";

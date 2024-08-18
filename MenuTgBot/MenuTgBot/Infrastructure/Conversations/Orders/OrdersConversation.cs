@@ -25,6 +25,7 @@ using Azure;
 using System.Diagnostics;
 using System.Reflection;
 using System.Resources;
+using Database.Classes;
 
 namespace MenuTgBot.Infrastructure.Conversations.Orders
 {

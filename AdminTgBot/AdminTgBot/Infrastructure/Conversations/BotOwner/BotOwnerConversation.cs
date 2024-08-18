@@ -171,7 +171,7 @@ namespace AdminTgBot.Infrastructure.Conversations.BotOwner
 			string newPassword = randomSeq.GenString(12);
 			string text = string.Format(BotOwnerText.NewPasswordReset, newPassword);
 
-			admin.PasswordHash = DBHelper.GetPasswordHash(newPassword);
+			admin.SetPassword(newPassword);
 			_dataSource.AdminCredentials.Update(admin);
 			await _dataSource.SaveChangesAsync();
 
@@ -277,6 +277,12 @@ namespace AdminTgBot.Infrastructure.Conversations.BotOwner
 
 			InlineKeyboardMarkup? markup = GetBackToMenuActionsButton();
 
+			if (messageText!.Length < AdminCredential.NAME_MIN_LENGTH)
+			{
+				string errorText = string.Format(MessagesText.ValueTooShort, AdminCredential.NAME_MIN_LENGTH);
+				await _stateManager.SendMessageAsync(errorText, replyMarkup: markup);
+			}
+
 			if (messageText!.Length > AdminCredential.NAME_MAX_LENGTH)
 			{
 				string errorText = string.Format(MessagesText.ValueTooLong, AdminCredential.NAME_MAX_LENGTH);
@@ -333,7 +339,7 @@ namespace AdminTgBot.Infrastructure.Conversations.BotOwner
 				return Trigger.Ignore;
 			}
 
-			NewAdminCredential.PasswordHash = DBHelper.GetPasswordHash(messageText!);
+			NewAdminCredential.SetPassword(messageText!);
 
 			await _stateManager.SendMessageAsync(BotOwnerText.EnterName, replyMarkup: markup);
 

@@ -138,4 +138,10 @@
   <data name="UnknownCommand" xml:space="preserve">
     <value>Неизвестная команда</value>
   </data>
+  <data name="ValueTooLong" xml:space="preserve">
+    <value>Значение слишком длинное. Разрешенная длина: {0}</value>
+  </data>
+  <data name="ValueTooShort" xml:space="preserve">
+    <value>Значение слишком короткое. Минимальная длина: {0}</value>
+  </data>
 </root>

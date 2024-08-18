@@ -122,5 +122,23 @@ namespace MenuTgBot.Infrastructure {
                 return ResourceManager.GetString("UnknownCommand", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Значение слишком длинное. Разрешенная длина: {0}.
+        /// </summary>
+        internal static string ValueTooLong {
+            get {
+                return ResourceManager.GetString("ValueTooLong", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Значение слишком короткое. Минимальная длина: {0}.
+        /// </summary>
+        internal static string ValueTooShort {
+            get {
+                return ResourceManager.GetString("ValueTooShort", resourceCulture);
+            }
+        }
     }
 }

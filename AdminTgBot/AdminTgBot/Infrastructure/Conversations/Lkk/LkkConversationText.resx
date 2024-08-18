@@ -117,13 +117,50 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="ConfirmNewPassword" xml:space="preserve">
+    <value>Подтвердите новый пароль</value>
+  </data>
+  <data name="ConfirmNewPasswordNotSame" xml:space="preserve">
+    <value>Пароли должны совпадать. Попробуйте ввести снова</value>
+  </data>
   <data name="EditName" xml:space="preserve">
     <value>Изменить имя</value>
+  </data>
+  <data name="EditNameSuccess" xml:space="preserve">
+    <value>Имя успешно изменено</value>
   </data>
   <data name="EditPassword" xml:space="preserve">
     <value>Изменить пароль</value>
   </data>
+  <data name="EditPasswordForgot" xml:space="preserve">
+    <value>Забыл пароль</value>
+  </data>
+  <data name="EditPasswordSuccess" xml:space="preserve">
+    <value>Пароль успешно изменен</value>
+  </data>
+  <data name="EnterNewPassword" xml:space="preserve">
+    <value>Введите новый пароль</value>
+  </data>
+  <data name="NewPasswordLost" xml:space="preserve">
+    <value>Похоже, ваш новый пароль потерялся. Попробуйте повторить операцию в личном кабинете</value>
+  </data>
+  <data name="SameNameError" xml:space="preserve">
+    <value>Имя должно отличаться. Попробуйте ввести снова</value>
+  </data>
+  <data name="SamePasswordError" xml:space="preserve">
+    <value>Новый пароль должен отличаться от текущего. Попробуйте ввести снова</value>
+  </data>
+  <data name="SuggestEditName" xml:space="preserve">
+    <value>Текущее значение: {0}
+Введите новое</value>
+  </data>
+  <data name="SuggestEditPassword" xml:space="preserve">
+    <value>Введите старый пароль</value>
+  </data>
   <data name="Welcome" xml:space="preserve">
-    <value>Добро пожаловать в личный кабинет</value>
+    <value>Добро пожаловать в личный кабинет, {0}</value>
+  </data>
+  <data name="WrongOldPassword" xml:space="preserve">
+    <value>Неверный пароль. Попробуйте снова</value>
   </data>
 </root>

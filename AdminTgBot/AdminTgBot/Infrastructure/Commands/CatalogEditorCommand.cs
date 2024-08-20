@@ -19,7 +19,7 @@ namespace AdminTgBot.Infrastructure.Commands
         {
             await base.StartCommandAsync(stateManager, message);
 
-            await (stateManager as AdminBotStateManager).CatalogEditorAsync(message);
+            await (stateManager as AdminBotStateManager)!.CatalogEditorAsync(message);
         }
     }
 }

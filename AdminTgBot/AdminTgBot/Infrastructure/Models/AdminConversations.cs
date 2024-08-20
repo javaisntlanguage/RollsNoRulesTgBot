@@ -1,4 +1,5 @@
 ﻿using AdminTgBot.Infrastructure.Conversations;
+using AdminTgBot.Infrastructure.Conversations.Administration;
 using AdminTgBot.Infrastructure.Conversations.BotOwner;
 using AdminTgBot.Infrastructure.Conversations.CatalogEditor;
 using AdminTgBot.Infrastructure.Conversations.Lkk;
@@ -22,7 +23,8 @@ namespace AdminTgBot.Infrastructure.Models
         public required CatalogEditorConversation CatalogEditor { get; set; }
         public required OrdersConversation Orders { get; set; }
         public required BotOwnerConversation BotOwner { get; set; }
-		public LkkConversation Lkk { get; set; }
+		public required LkkConversation Lkk { get; set; }
+		public required AdministrationConversation Administration { get; set; }
 
 		internal Dictionary<string, IConversation> GetHandlers(ApplicationContext dataSource, AdminBotStateManager statesManager)
         {
@@ -33,6 +35,7 @@ namespace AdminTgBot.Infrastructure.Models
 			AddToHandlers(statesManager, result, Orders);
 			AddToHandlers(statesManager, result, BotOwner);
 			AddToHandlers(statesManager, result, Lkk);
+			AddToHandlers(statesManager, result, Administration);
 
             return result;
         }

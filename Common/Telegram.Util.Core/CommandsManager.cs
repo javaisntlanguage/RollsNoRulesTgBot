@@ -83,41 +83,18 @@ namespace Telegram.Util.Core
             return await _stateManagers[chatId].NextStateAsync(query);
         }
 
-        public IEnumerable<KeyboardButton> GetDefaultMenuButtons()
+        public List<IEnumerable<KeyboardButton>> GetDefaultMenuButtons()
         {
-            IEnumerable<KeyboardButton> result = Commands
+            int rows = Commands.Length / 3;
+            rows = rows == 0 ? 1 : rows;
+
+			List<IEnumerable<KeyboardButton>> result = Commands
                     .Where(command => command.DisplayMode == CommandDisplay.ButtonMenu)
                     .Select(command =>
-                        new KeyboardButton(command.Command));
-
-            return result;
-        }
-
-        /// <summary>
-        /// показать кнопки меню
-        /// </summary>
-        /// <param name="chatId"></param>
-        /// <param name="text"></param>
-        /// <returns></returns>
-        public async Task<Message> ShowButtonMenuAsync(long chatId, string text, IEnumerable<KeyboardButton> additionalButtons = null)
-        {
-            IEnumerable<KeyboardButton> defaultButtons = GetDefaultMenuButtons();
-
-            List<IEnumerable<KeyboardButton>> keyboard = new List<IEnumerable<KeyboardButton>>()
-            {
-                defaultButtons
-            };
-
-            if (additionalButtons.IsNotNull())
-            {
-                keyboard.Insert(0, additionalButtons);
-            }
-            ReplyKeyboardMarkup markup = new ReplyKeyboardMarkup(keyboard)
-            {
-                ResizeKeyboard = true
-            };
-
-            Message result = await _botClient.SendTextMessageAsync(chatId, text, replyMarkup: markup);
+                        new KeyboardButton(command.Command))
+                    .ToArray()
+                    .Split(rows)
+                    .ToList();
 
             return result;
         }

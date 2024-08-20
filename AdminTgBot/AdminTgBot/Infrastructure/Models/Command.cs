@@ -47,6 +47,10 @@ namespace AdminTgBot.Infrastructure.Models
 		ResetPasswordSuperAdminConcrete,
 		EditName,
 		EditPassword,
-		ForgotPassword
+		ForgotPassword,
+		AdministrationRigths,
+		AdministrationUsers,
+		AdministrationRightGroups,
+		AdministrationUserRights
 	}
 }

@@ -20,7 +20,7 @@ namespace MenuTgBot
             Configuration = configuration;
         }
 
-        public IConfiguration Configuration { get; }
+        public static IConfiguration Configuration { get; private set; }
 
         public void Start()
         {

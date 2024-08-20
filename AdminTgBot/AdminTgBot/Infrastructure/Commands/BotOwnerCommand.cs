@@ -18,7 +18,7 @@ namespace AdminTgBot.Infrastructure.Commands
 		{
 			await base.StartCommandAsync(stateManager, message);
 
-			await (stateManager as AdminBotStateManager).BotOwnerAsync(message);
+			await (stateManager as AdminBotStateManager)!.BotOwnerAsync(message);
 		}
 	}
 }

@@ -51,7 +51,7 @@ namespace AdminTgBot.Infrastructure.Conversations.Start
                     }
                 case State.StartPassword:
                     {
-                        await AuthAsync(message.Text!);
+                        await AuthAsync(message);
                         return Trigger.EndOfConversation;
                     }
             }
@@ -59,14 +59,19 @@ namespace AdminTgBot.Infrastructure.Conversations.Start
             return null;
         }
 
-        public async Task<Trigger?> TryNextStepAsync(ApplicationContext dataSource, CallbackQuery query)
+        public Task<Trigger?> TryNextStepAsync(ApplicationContext dataSource, CallbackQuery query)
         {
             return null;
         }
 
-        private async Task AuthAsync(string password)
+        private async Task AuthAsync(Message message)
         {
-            string passwordHash = DBHelper.GetPasswordHash(password);
+            string? messageText = message.Text;
+            _stateManager.CheckText(messageText);
+
+            await _stateManager.DeleteMessageAsync(message);
+
+            string passwordHash = DBHelper.GetPasswordHash(messageText!);
             AdminCredential? admin = await _dataSource.AdminCredentials.FirstOrDefaultAsync(ac => ac.Login == Login && ac.PasswordHash == passwordHash);
             if (admin == null)
             {

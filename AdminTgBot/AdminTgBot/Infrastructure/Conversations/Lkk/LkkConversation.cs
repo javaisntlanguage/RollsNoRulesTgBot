@@ -109,7 +109,7 @@ namespace AdminTgBot.Infrastructure.Conversations.Lkk
 
 		private async Task<Trigger> ConfirmNewPasswordAsync(Message message)
 		{
-			await _stateManager.DeleteMessage(message.MessageId);
+			await _stateManager.DeleteMessageAsync(message.MessageId);
 
 			if (NewPassword == null)
 			{
@@ -141,7 +141,7 @@ namespace AdminTgBot.Infrastructure.Conversations.Lkk
 
 		private async Task<Trigger> SuggestConfirmNewPasswordAsync(Message message)
 		{
-			await _stateManager.DeleteMessage(message.MessageId);
+			await _stateManager.DeleteMessageAsync(message.MessageId);
 
 			string? messageText = message.Text;
 			_stateManager.CheckTextAndLength(messageText, AdminCredential.PASSWORD_MIN_LENGTH, AdminCredential.PASSWORD_MAX_LENGTH);
@@ -161,7 +161,7 @@ namespace AdminTgBot.Infrastructure.Conversations.Lkk
 
 		private async Task<Trigger?> SuggestEnterNewPasswordAsync(Message message)
 		{
-			await _stateManager.DeleteMessage(message.MessageId);
+			await _stateManager.DeleteMessageAsync(message.MessageId);
 
 			string? messageText = message.Text;
 			_stateManager.CheckText(messageText);

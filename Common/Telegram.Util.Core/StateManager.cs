@@ -43,35 +43,6 @@ namespace Telegram.Util.Core
         /// </summary>
         protected abstract void ConfigureMachine();
 
-        /// <summary>
-        /// показать кнопки меню
-        /// </summary>
-        /// <param name="chatId"></param>
-        /// <param name="text"></param>
-        /// <returns></returns>
-        private async Task<Message> ShowButtonMenuAsync(long chatId, string text, IEnumerable<KeyboardButton>? additionalButtons = null)
-        {
-            IEnumerable<KeyboardButton> defaultButtons = _commandsManager.GetDefaultMenuButtons();
-
-            List<IEnumerable<KeyboardButton>> keyboard = new List<IEnumerable<KeyboardButton>>()
-            {
-                defaultButtons
-            };
-
-            if (additionalButtons.IsNotNull())
-            {
-                keyboard.Insert(0, additionalButtons);
-            }
-            ReplyKeyboardMarkup markup = new ReplyKeyboardMarkup(keyboard)
-            {
-                ResizeKeyboard = true
-            };
-
-            Message result = await _botClient.SendTextMessageAsync(chatId, text, replyMarkup: markup);
-
-            return result;
-        }
-
 		private async Task<string> CutTextAsync(string text, ParseMode? parseMode)
 		{
 			while (text.Length > MAX_MESSAGE_LENGTH)
@@ -165,7 +136,12 @@ namespace Telegram.Util.Core
 			return result;
 		}
 
-        public async Task DeleteMessage(int messageId)
+        public async Task DeleteMessageAsync(Message message)
+        {
+            await DeleteMessageAsync(message.MessageId);
+        }
+
+        public async Task DeleteMessageAsync(int messageId)
         {
             await _botClient.DeleteMessageAsync(ChatId, messageId);
         }
@@ -177,9 +153,21 @@ namespace Telegram.Util.Core
 
         public async Task<Message> ShowButtonMenuAsync(string text, IEnumerable<KeyboardButton> additionalButtons = null)
         {
-            Message result = await ShowButtonMenuAsync(ChatId, text, additionalButtons);
-            return result;
-        }
+			List<IEnumerable<KeyboardButton>> defaultButtons = _commandsManager.GetDefaultMenuButtons();
+
+			if (additionalButtons.IsNotNull())
+			{
+				defaultButtons.Insert(0, additionalButtons);
+			}
+			ReplyKeyboardMarkup markup = new ReplyKeyboardMarkup(defaultButtons)
+			{
+				ResizeKeyboard = true
+			};
+
+			Message result = await _botClient.SendTextMessageAsync(ChatId, text, replyMarkup: markup);
+
+			return result;
+		}
 
 		public void CheckText(string? text)
 		{

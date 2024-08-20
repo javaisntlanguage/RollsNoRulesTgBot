@@ -8,9 +8,9 @@ using Telegram.Util.Core.Enums;
 
 namespace AdminTgBot.Infrastructure.Commands
 {
-	internal class LkkCommand : AdminBotCommandHandler
+	internal class AdministrationCommand : AdminBotCommandHandler
 	{
-		public LkkCommand(string command, CommandDisplay displayMode) : base(command, displayMode)
+		public AdministrationCommand(string command, CommandDisplay displayMode) : base(command, displayMode)
 		{
 		}
 
@@ -18,7 +18,7 @@ namespace AdminTgBot.Infrastructure.Commands
 		{
 			await base.StartCommandAsync(stateManager, message);
 
-			await (stateManager as AdminBotStateManager)!.LkkAsync(message);
+			await (stateManager as AdminBotStateManager)!.AdministrationAsync(message);
 		}
 	}
 }

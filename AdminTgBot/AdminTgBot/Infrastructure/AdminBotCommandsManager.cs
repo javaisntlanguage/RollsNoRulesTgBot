@@ -75,6 +75,9 @@ namespace AdminTgBot.Infrastructure
                 new LkkCommand(
 					MessagesText.CommandLkk,
                     CommandDisplay.ButtonMenu),
+                new AdministrationCommand(
+					MessagesText.CommandAdministration,
+                    CommandDisplay.ButtonMenu),
             };
         }
 

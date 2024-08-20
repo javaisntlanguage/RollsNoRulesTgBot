@@ -32,10 +32,10 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
     internal class OrdersConversation : IConversation
     {
         private const int SMS_RESEND_TIMER = 30;
-        private const int SMS_LENGTH = 4;
-        private readonly MenuBotStateManager _stateManager;
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
         private static readonly RabbitEventHandler _rabbitEventHandler = new RabbitEventHandler(_logger);
+        private static readonly int _smsLength = int.Parse(MenuTgBotMain.Configuration["SmsLength"]);
+		private readonly MenuBotStateManager _stateManager;
         private ApplicationContext _dataSource;
 
         public DeliveryType? OrderDeliveryType { get; set; }
@@ -400,9 +400,9 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
 
         private async Task<Trigger?> CheckSmsAsync(string messageText)
         {
-            if (messageText.Length != SMS_LENGTH)
+            if (messageText.Length != _smsLength)
             {
-                string text = string.Format(OrdersText.SmsLengthError, SMS_LENGTH);
+                string text = string.Format(OrdersText.SmsLengthError, _smsLength);
                 await _stateManager.SendMessageAsync(text);
                 return Trigger.Ignore;
             }
@@ -492,7 +492,7 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
         private async Task RequestSmsAsync()
         {
             RandomSeq random = new RandomSeq();
-            SmsCode = random.GenNum(SMS_LENGTH);
+            SmsCode = random.GenNum(_smsLength);
 
             string text = string.Format(OrdersText.EnterSms, DBHelper.PhonePrettyPrint(PreaparedPhone), SMS_RESEND_TIMER.ToString());
             await _stateManager.ShowButtonMenuAsync(text);

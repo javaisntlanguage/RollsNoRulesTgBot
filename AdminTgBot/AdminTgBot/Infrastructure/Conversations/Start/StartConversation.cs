@@ -61,7 +61,7 @@ namespace AdminTgBot.Infrastructure.Conversations.Start
 
         public Task<Trigger?> TryNextStepAsync(ApplicationContext dataSource, CallbackQuery query)
         {
-            return null;
+            return null!;
         }
 
         private async Task AuthAsync(Message message)

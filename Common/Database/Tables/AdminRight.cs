@@ -9,15 +9,15 @@ using System.Threading.Tasks;
 namespace Database.Tables
 {
 	[PrimaryKey(nameof(AdminId), nameof(RightId))]
-	public class AdminPermission
+	public class AdminRight
 	{
-		[ForeignKey(nameof(AdminCredential))]
+		[ForeignKey(nameof(Admin))]
 		public int AdminId { get; set; }
 		[ForeignKey("Right")]
 		public Guid RightId { get; set; }
 
-		public AdminCredential AdminCredential { get; set; }
-		public Right Right { get; set; }
+		public AdminCredential? Admin { get; set; }
+		public Right? Right { get; set; }
 
 	}
 }

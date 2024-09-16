@@ -52,5 +52,18 @@ namespace Telegram.Util.Core
 
             return $"{price.ToString("0.##")} {currencySymbol}";
         }
+
+        public static InlineKeyboardMarkup ToInlineMarkup(this InlineKeyboardButton button)
+        {
+            return new InlineKeyboardMarkup(button);
+        }
+        public static InlineKeyboardMarkup ToInlineMarkup(this IEnumerable<InlineKeyboardButton> buttons)
+        {
+            return new InlineKeyboardMarkup(buttons);
+        }
+        public static InlineKeyboardMarkup ToInlineMarkup(this IEnumerable<IEnumerable<InlineKeyboardButton>> buttons)
+        {
+            return new InlineKeyboardMarkup(buttons);
+        }
     }
 }

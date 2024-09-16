@@ -23,6 +23,6 @@ namespace Database.Tables
 		public string? Photo { get; set; }
         public bool IsVisible { get; set; }
         [JsonIgnore()]
-        public ICollection<ProductCategories> ProductCategories { get; set; }
+        public ICollection<ProductCategory>? ProductCategories { get; set; }
     }
 }

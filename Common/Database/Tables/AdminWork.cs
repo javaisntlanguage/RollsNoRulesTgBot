@@ -14,6 +14,6 @@ namespace Database.Tables
         public int AdminId { get; set; }
         public DateTimeOffset WorkDate { get; set; }
 
-        public AdminCredential Admin {  get; set; }
+        public AdminCredential? Admin {  get; set; }
     }
 }

@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Database.Migrations
 {
     [DbContext(typeof(ApplicationContext))]
-    [Migration("20240816170102_43")]
+    [Migration("20240916170101_43")]
     partial class _43
     {
         /// <inheritdoc />
@@ -51,6 +51,7 @@ namespace Database.Migrations
                         .HasColumnType("nvarchar(255)");
 
                     b.Property<string>("HouseNumber")
+                        .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
@@ -100,22 +101,7 @@ namespace Database.Migrations
                     b.ToTable("AdminCredentials");
                 });
 
-            modelBuilder.Entity("Database.Tables.AdminInRole", b =>
-                {
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint");
-
-                    b.Property<int>("RoleId")
-                        .HasColumnType("int");
-
-                    b.HasKey("UserId", "RoleId");
-
-                    b.HasIndex("RoleId");
-
-                    b.ToTable("AdminInRoles");
-                });
-
-            modelBuilder.Entity("Database.Tables.AdminPermission", b =>
+            modelBuilder.Entity("Database.Tables.AdminRight", b =>
                 {
                     b.Property<int>("AdminId")
                         .HasColumnType("int");
@@ -127,7 +113,7 @@ namespace Database.Migrations
 
                     b.HasIndex("RightId");
 
-                    b.ToTable("AdminPermissions");
+                    b.ToTable("AdminRights");
                 });
 
             modelBuilder.Entity("Database.Tables.AdminState", b =>
@@ -136,7 +122,6 @@ namespace Database.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<string>("Data")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("LastMessageId")
@@ -148,6 +133,21 @@ namespace Database.Migrations
                     b.HasKey("UserId");
 
                     b.ToTable("AdminStates");
+                });
+
+            modelBuilder.Entity("Database.Tables.AdminsInGroup", b =>
+                {
+                    b.Property<int>("AdminId")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("GroupId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("AdminId", "GroupId");
+
+                    b.HasIndex("GroupId");
+
+                    b.ToTable("AdminInGroups");
                 });
 
             modelBuilder.Entity("Database.Tables.Category", b =>
@@ -169,29 +169,6 @@ namespace Database.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Categories");
-                });
-
-            modelBuilder.Entity("Database.Tables.GroupPermission", b =>
-                {
-                    b.Property<Guid>("GroupId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("RightId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int?>("AdminPermissionAdminId")
-                        .HasColumnType("int");
-
-                    b.Property<Guid?>("AdminPermissionRightId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("GroupId", "RightId");
-
-                    b.HasIndex("RightId");
-
-                    b.HasIndex("AdminPermissionAdminId", "AdminPermissionRightId");
-
-                    b.ToTable("GroupPermissions");
                 });
 
             modelBuilder.Entity("Database.Tables.Order", b =>
@@ -302,7 +279,7 @@ namespace Database.Migrations
                     b.ToTable("Products");
                 });
 
-            modelBuilder.Entity("Database.Tables.ProductCategories", b =>
+            modelBuilder.Entity("Database.Tables.ProductCategory", b =>
                 {
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
@@ -319,25 +296,35 @@ namespace Database.Migrations
 
             modelBuilder.Entity("Database.Tables.Right", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<Guid>("RigthId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<bool>("IsGroup")
-                        .HasColumnType("bit");
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
 
-                    b.HasKey("Id");
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.HasKey("RigthId");
 
                     b.ToTable("Rights");
                 });
 
-            modelBuilder.Entity("Database.Tables.Role", b =>
+            modelBuilder.Entity("Database.Tables.RightGroup", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("uniqueidentifier");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -346,7 +333,22 @@ namespace Database.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Roles");
+                    b.ToTable("RightGroups");
+                });
+
+            modelBuilder.Entity("Database.Tables.RightsInGroup", b =>
+                {
+                    b.Property<Guid>("GroupId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("RightId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("GroupId", "RightId");
+
+                    b.HasIndex("RightId");
+
+                    b.ToTable("RightInGroups");
                 });
 
             modelBuilder.Entity("Database.Tables.SellLocation", b =>
@@ -358,6 +360,7 @@ namespace Database.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Name")
+                        .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
@@ -379,28 +382,12 @@ namespace Database.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("Database.Tables.UserInRole", b =>
-                {
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint");
-
-                    b.Property<int>("RoleId")
-                        .HasColumnType("int");
-
-                    b.HasKey("UserId", "RoleId");
-
-                    b.HasIndex("RoleId");
-
-                    b.ToTable("UserInRoles");
-                });
-
             modelBuilder.Entity("Database.Tables.UserState", b =>
                 {
                     b.Property<long>("UserId")
                         .HasColumnType("bigint");
 
                     b.Property<string>("Data")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("LastMessageId")
@@ -425,63 +412,40 @@ namespace Database.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Database.Tables.AdminInRole", b =>
+            modelBuilder.Entity("Database.Tables.AdminRight", b =>
                 {
-                    b.HasOne("Database.Tables.Role", "Role")
-                        .WithMany()
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Database.Tables.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Role");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Database.Tables.AdminPermission", b =>
-                {
-                    b.HasOne("Database.Tables.AdminCredential", "AdminCredential")
-                        .WithMany()
+                    b.HasOne("Database.Tables.AdminCredential", "Admin")
+                        .WithMany("AdminRights")
                         .HasForeignKey("AdminId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Database.Tables.Right", "Right")
-                        .WithMany()
+                        .WithMany("AdminRights")
                         .HasForeignKey("RightId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("AdminCredential");
+                    b.Navigation("Admin");
 
                     b.Navigation("Right");
                 });
 
-            modelBuilder.Entity("Database.Tables.GroupPermission", b =>
+            modelBuilder.Entity("Database.Tables.AdminsInGroup", b =>
                 {
-                    b.HasOne("Database.Tables.Right", "Group")
-                        .WithMany()
+                    b.HasOne("Database.Tables.AdminCredential", "Admin")
+                        .WithMany("AdminsInGroups")
+                        .HasForeignKey("AdminId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Database.Tables.RightGroup", "Group")
+                        .WithMany("AdminsInGroup")
                         .HasForeignKey("GroupId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Database.Tables.Right", "AdminRight")
-                        .WithMany()
-                        .HasForeignKey("RightId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Database.Tables.AdminPermission", null)
-                        .WithMany("GroupPermissions")
-                        .HasForeignKey("AdminPermissionAdminId", "AdminPermissionRightId");
-
-                    b.Navigation("AdminRight");
+                    b.Navigation("Admin");
 
                     b.Navigation("Group");
                 });
@@ -520,7 +484,7 @@ namespace Database.Migrations
                     b.Navigation("Order");
                 });
 
-            modelBuilder.Entity("Database.Tables.ProductCategories", b =>
+            modelBuilder.Entity("Database.Tables.ProductCategory", b =>
                 {
                     b.HasOne("Database.Tables.Category", "Category")
                         .WithMany()
@@ -539,23 +503,23 @@ namespace Database.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("Database.Tables.UserInRole", b =>
+            modelBuilder.Entity("Database.Tables.RightsInGroup", b =>
                 {
-                    b.HasOne("Database.Tables.Role", "Role")
-                        .WithMany()
-                        .HasForeignKey("RoleId")
+                    b.HasOne("Database.Tables.RightGroup", "Group")
+                        .WithMany("RightInGroups")
+                        .HasForeignKey("GroupId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Database.Tables.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
+                    b.HasOne("Database.Tables.Right", "AdminRight")
+                        .WithMany("RightInGroups")
+                        .HasForeignKey("RightId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Role");
+                    b.Navigation("AdminRight");
 
-                    b.Navigation("User");
+                    b.Navigation("Group");
                 });
 
             modelBuilder.Entity("Database.Tables.UserState", b =>
@@ -569,9 +533,11 @@ namespace Database.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Database.Tables.AdminPermission", b =>
+            modelBuilder.Entity("Database.Tables.AdminCredential", b =>
                 {
-                    b.Navigation("GroupPermissions");
+                    b.Navigation("AdminRights");
+
+                    b.Navigation("AdminsInGroups");
                 });
 
             modelBuilder.Entity("Database.Tables.Order", b =>
@@ -582,6 +548,20 @@ namespace Database.Migrations
             modelBuilder.Entity("Database.Tables.Product", b =>
                 {
                     b.Navigation("ProductCategories");
+                });
+
+            modelBuilder.Entity("Database.Tables.Right", b =>
+                {
+                    b.Navigation("AdminRights");
+
+                    b.Navigation("RightInGroups");
+                });
+
+            modelBuilder.Entity("Database.Tables.RightGroup", b =>
+                {
+                    b.Navigation("AdminsInGroup");
+
+                    b.Navigation("RightInGroups");
                 });
 
             modelBuilder.Entity("Database.Tables.User", b =>

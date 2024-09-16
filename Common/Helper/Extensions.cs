@@ -62,7 +62,7 @@ namespace Helper
         }
 
         [System.Diagnostics.DebuggerNonUserCode()]
-        public static bool IsNotNullOrEmpty(this string s)
+        public static bool IsNotNullOrEmpty(this string? s)
         {
             return !s.IsNullOrEmpty();
         }

@@ -9,13 +9,13 @@ using System.Threading.Tasks;
 namespace Database.Tables
 {
     [PrimaryKey(nameof(ProductId), nameof(CategoryId))]
-    public class ProductCategories
+    public class ProductCategory
     {
         [ForeignKey("Product")]
         public int ProductId { get; set; }
         [ForeignKey("Category")]
         public int CategoryId { get; set; }
-        public Product Product { get; set; }
-        public Category Category { get; set; }
+        public Product? Product { get; set; }
+        public Category? Category { get; set; }
     }
 }

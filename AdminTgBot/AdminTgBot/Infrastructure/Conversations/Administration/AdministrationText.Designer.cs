@@ -61,6 +61,72 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} ({1})
+        ///
+        ///Группы прав: {2}
+        ///Отдельные права: {3}.
+        /// </summary>
+        internal static string AdminDetails {
+            get {
+                return ResourceManager.GetString("AdminDetails", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Сотрудник не найден.
+        /// </summary>
+        internal static string AdminNotFound {
+            get {
+                return ResourceManager.GetString("AdminNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} ({1}).
+        /// </summary>
+        internal static string AdminPreview {
+            get {
+                return ResourceManager.GetString("AdminPreview", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Вернуться в предыдущий раздел.
+        /// </summary>
+        internal static string Back {
+            get {
+                return ResourceManager.GetString("Back", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Пусто.
+        /// </summary>
+        internal static string Empty {
+            get {
+                return ResourceManager.GetString("Empty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Группы прав.
+        /// </summary>
+        internal static string PermissionGroups {
+            get {
+                return ResourceManager.GetString("PermissionGroups", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Отдельные права.
+        /// </summary>
+        internal static string Permissions {
+            get {
+                return ResourceManager.GetString("Permissions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Группы прав.
         /// </summary>
         internal static string RightGroups {
@@ -75,6 +141,15 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration {
         internal static string Rights {
             get {
                 return ResourceManager.GetString("Rights", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Выберите сотрудника.
+        /// </summary>
+        internal static string ShowAdminList {
+            get {
+                return ResourceManager.GetString("ShowAdminList", resourceCulture);
             }
         }
         

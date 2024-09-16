@@ -51,6 +51,11 @@ namespace AdminTgBot.Infrastructure.Models
 		AdministrationRigths,
 		AdministrationUsers,
 		AdministrationRightGroups,
-		AdministrationUserRights
+		AdministrationUserRights,
+		AdminDetails,
+		BackToAdministration,
+		MovePaginationAdminsSearch,
+		AdminPermissionGroups,
+		AdminPermissions
 	}
 }

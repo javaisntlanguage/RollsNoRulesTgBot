@@ -16,7 +16,7 @@ namespace Database.Tables
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public long UserId { get; set; }
         public int StateId { get; set; }
-        public string Data { get; set; }
+        public string? Data { get; set; }
         public int? LastMessageId { get; set; }
     }
 }

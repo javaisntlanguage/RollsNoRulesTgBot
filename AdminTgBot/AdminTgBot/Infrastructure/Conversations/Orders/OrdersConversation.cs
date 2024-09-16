@@ -59,7 +59,7 @@ namespace AdminTgBot.Infrastructure.Conversations.Orders
 						{
 							await ShowNewOrdersAsync();
 						}
-						return Trigger.Ignore;
+						break;
 					}
 				case State.FilterDateFrom:
 					{
@@ -826,7 +826,7 @@ namespace AdminTgBot.Infrastructure.Conversations.Orders
 				.OrderByDescending(o => o.DateFrom)
 				.ToList();
 
-			IEnumerable<Order> filteredOrders = filteredOrders = orderedOrders
+			IEnumerable<Order> filteredOrders = orderedOrders
 						.Skip((page - 1) * ORDERS_BY_PAGE)
 						.Take(ORDERS_BY_PAGE)
 						.ToList();

@@ -518,7 +518,10 @@ namespace AdminTgBot.Infrastructure
 
             bool result = await _handlers.Values
                 .ToAsyncEnumerable()
-                .AnyAwaitAsync(async x => await CallTriggerAsync(await x.TryNextStepAsync(dataSource, query)));
+                .AnyAwaitAsync(async x => 
+                    await CallTriggerAsync(
+                        await (x.TryNextStepAsync(dataSource, query) ??
+                                Task.FromResult<Trigger?>(null))));
 
             await SaveStateAsync(dataSource);
             return result;

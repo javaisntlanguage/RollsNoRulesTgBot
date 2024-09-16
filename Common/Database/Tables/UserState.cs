@@ -15,8 +15,8 @@ namespace Database.Tables
         [ForeignKey("User")]
         public long UserId { get; set; }
         public int StateId { get; set; }
-        public string Data { get; set; }
-        public User User { get; set; }
+        public string? Data { get; set; }
+        public User? User { get; set; }
         public int? LastMessageId { get; set; }
     }
 }

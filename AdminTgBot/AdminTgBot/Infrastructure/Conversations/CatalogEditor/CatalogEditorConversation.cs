@@ -61,7 +61,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
                         {
                             await ShowCategoriesAsync();
                         }
-                        return Trigger.Ignore;
+                        break;
                     }
                 case State.ProductNameEditor:
                     {
@@ -329,7 +329,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
 
             NewProduct.IsVisible = true;
 
-            ProductCategories product = new ProductCategories();
+            ProductCategory product = new ProductCategory();
             product.Product = NewProduct;
             product.CategoryId = CategoryId.Value;
 
@@ -344,7 +344,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
 
             if(NewCategory == null)
             {
-				NewCategory = new Category();
+				NewCategory = new Category() { Name = string.Empty };
             }
 
             switch (attribute)

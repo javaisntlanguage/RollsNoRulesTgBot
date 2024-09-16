@@ -20,23 +20,24 @@ namespace Database.Tables
         public int Number { get; set; }
         public OrderState State { get; set; } = OrderState.New;
         public DateTimeOffset DateFrom { get; set; }
+        [Required]
         [MaxLength(11)]
         public string Phone {  get; set; }
         public decimal Sum { get; set; }
 
         [ForeignKey("Address")]
         public long? AddressId { get; set; }
-        public Address Address { get; set; }
+        public Address? Address { get; set; }
 
         [ForeignKey("SellLocation")]
         public int? SellLocationId { get; set; }
-        public SellLocation SellLocation { get; set; }
+        public SellLocation? SellLocation { get; set; }
 
         [ForeignKey("User")]
         public long UserId { get; set; }
         [JsonIgnore()]
-        public User User { get; set; }
+        public User? User { get; set; }
 
-        public IEnumerable<OrderCart> OrderCartList { get; set; }
+        public List<OrderCart>? OrderCartList { get; set; }
 	}
 }

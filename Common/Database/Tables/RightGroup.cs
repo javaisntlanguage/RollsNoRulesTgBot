@@ -1,17 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Database.Tables
 {
-	public class Right
+	public class RightGroup
 	{
-		[Key]
-		public Guid RigthId { get; set; }
+		public Guid Id { get; set; }
 		[Required]
 		[MaxLength(64)]
 		public string Name { get; set; }
@@ -19,7 +17,7 @@ namespace Database.Tables
 		[MaxLength(255)]
 		public string Description { get; set; }
 
-		public List<AdminRight>? AdminRights { get; set; }
 		public List<RightsInGroup>? RightInGroups { get; set; }
+		public List<AdminsInGroup>? AdminsInGroup { get; set; }
 	}
 }

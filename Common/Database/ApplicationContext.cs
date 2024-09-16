@@ -26,18 +26,17 @@ namespace Database
         public DbSet<Address> Addresses { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<Category> Categories { get; set; }
-        public DbSet<Role> Roles { get; set; }
-        public DbSet<UserInRole> UserInRoles { get; set; }
-        public DbSet<ProductCategories> ProductCategories { get; set; }
+        public DbSet<ProductCategory> ProductCategories { get; set; }
         public DbSet<AdminCredential> AdminCredentials { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderCart> OrderCarts { get; set; }
         public DbSet<AdminState> AdminStates { get; set; }
         public DbSet<SellLocation> SellLocations { get; set; }
-        public DbSet<AdminInRole> AdminInRoles { get; set; }
-        public DbSet<AdminPermission> AdminPermissions { get; set; }
+        public DbSet<AdminRight> AdminRights { get; set; }
         public DbSet<Right> Rights { get; set; }
-        public DbSet<GroupPermission> GroupPermissions { get; set; }
+        public DbSet<RightsInGroup> RightInGroups { get; set; }
+        public DbSet<AdminsInGroup> AdminInGroups { get; set; }
+        public DbSet<RightGroup> RightGroups { get; set; }
 
         public ApplicationContext(DbContextOptions options) : base(options)
         {
@@ -142,19 +141,6 @@ namespace Database
             return order;
         }
 
-        public IQueryable<RolesList> GetUserRoles(long userId)
-        {
-            return UserInRoles
-                .Where(ur => ur.UserId == userId)
-                .Select(ur => (RolesList)ur.Role.Id);
-        }
-        public IQueryable<RolesList> GetAdminRoles(long userId)
-        {
-            return AdminInRoles
-                .Where(ur => ur.UserId == userId)
-                .Select(ur => (RolesList)ur.Role.Id);
-        }
-
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -178,26 +164,23 @@ namespace Database
 
 		public bool HasRight(int adminId, Guid rightId)
 		{
-			IQueryable<AdminPermission> permissionsAndGrups = AdminPermissions
-                .Where(ap => ap.AdminId == adminId);
-
-            var groupPermissions = permissionsAndGrups
-                .Include(pg => pg.Right)
-                .Where(pg => pg.Right.IsGroup)
-                .Join(GroupPermissions, ap => ap.RightId, gp => gp.GroupId,
-                (ap, gp) => new
-                {
-                    AdminId = ap.AdminId,
-                    RightId = gp.RightId,
-                });
-
-            if(groupPermissions.Any(gp => gp.RightId == rightId) || 
-               permissionsAndGrups.Any(pg => pg.RightId == rightId))
+			if (AdminRights
+				.Where(ar => ar.AdminId == adminId && ar.RightId == rightId)
+				.Select(ar => ar.RightId)
+				.Union(AdminInGroups
+					.Include(ag => ag.RightInGroups)
+					.Where(ag => ag.AdminId == adminId)
+					.SelectMany(ag => ag.RightInGroups)
+					.Where(rg => rg.RightId == rightId)
+					.Select(rg => rg.RightId))
+				.Any(rigth => rigth == rightId))
             {
-				return true;
-			}
+                return true;
+            }
 
-            return false;
+
+
+			return false;
 		}
 	}
 }

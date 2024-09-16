@@ -32,7 +32,8 @@ namespace Database.Tables
         [Required]
         [MaxLength(NAME_MAX_LENGTH)]
         public string Name { get; set; }
-
+        public List<AdminsInGroup>? AdminsInGroups { get; set; }
+        public List<AdminRight>? AdminRights { get; set; }
 		public void SetPassword(string messageText)
 		{
             PasswordHash = DBHelper.GetPasswordHash(messageText);

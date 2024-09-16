@@ -180,10 +180,10 @@ namespace AdminTgBot.Infrastructure.Conversations.BotOwner
 
 		private async Task<Trigger?> ChooseSuperAdminForResetPasswordAsync()
 		{
-			IEnumerable<AdminCredential> superAdmins = _dataSource.AdminPermissions
+			IEnumerable<AdminCredential> superAdmins = _dataSource.AdminRights
 				.Where(ap => ap.RightId == RightHelper.SuperAdmin)
-				.Include(ap => ap.AdminCredential)
-				.Select(ap => ap.AdminCredential!)
+				.Include(ap => ap.Admin)
+				.Select(ap => ap.Admin!)
 				.ToArray();
 
 			if(!superAdmins.Any()) 
@@ -248,7 +248,7 @@ namespace AdminTgBot.Infrastructure.Conversations.BotOwner
 				await _dataSource.AddAsync(NewAdminCredential);
 				await _dataSource.SaveChangesAsync();
 
-				AdminPermission adminPermission = new()
+				AdminRight adminPermission = new()
 				{
 					RightId = RightHelper.SuperAdmin,
 					AdminId = NewAdminCredential.Id,
@@ -383,7 +383,7 @@ namespace AdminTgBot.Infrastructure.Conversations.BotOwner
 
 		private async Task<Trigger> SelectMenuAsync()
 		{
-			bool hasSuperAdmins = _dataSource.AdminPermissions.Any(ap => ap.RightId == RightHelper.SuperAdmin);
+			bool hasSuperAdmins = _dataSource.AdminRights.Any(ap => ap.RightId == RightHelper.SuperAdmin);
 
 			if (!hasSuperAdmins)
 			{
@@ -436,7 +436,7 @@ namespace AdminTgBot.Infrastructure.Conversations.BotOwner
 		{
 			InlineKeyboardMarkup? result = null;
 
-			if(_dataSource.AdminPermissions.Any(ap => ap.RightId == RightHelper.SuperAdmin))
+			if(_dataSource.AdminRights.Any(ap => ap.RightId == RightHelper.SuperAdmin))
 			{
 				InlineKeyboardButton[][] buttons = 
 					[

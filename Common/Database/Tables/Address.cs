@@ -14,12 +14,14 @@ namespace Database.Tables
     {
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long Id { get; set; }
-
+        [Required]
         [MaxLength(255)]
         public string City { get; set; }
-        [MaxLength(255)]
-        public string Street { get; set; }
-        [MaxLength(255)]
+		[Required]
+		[MaxLength(255)]
+		public string Street { get; set; }
+		[Required]
+		[MaxLength(255)]
         public string? HouseNumber { get; set; }
         [MaxLength(255)]
         public string? Building { get; set; }
@@ -30,7 +32,7 @@ namespace Database.Tables
 
         [ForeignKey("User")]
         public long UserId { get; set; }
-        public User User { get; set; }
+        public User? User { get; set; }
 
         public override string ToString()
         {

@@ -14,12 +14,13 @@ namespace Database.Tables
         public int Id { get; set; }
         [ForeignKey("Order")]
         public int OrderId { get; set; }
+        [Required]
         [MaxLength(64)]
         public string ProductName { get; set; }
 
         public int Count { get; set; }
         public decimal Price { get; set; }
 
-        public Order Order { get; set; }
+        public Order? Order { get; set; }
     }
 }

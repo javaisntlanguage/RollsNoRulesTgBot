@@ -33,12 +33,13 @@ using Database.Classes;
 using Telegram.Util.Core.StateMachine.Exceptions;
 using AdminTgBot.Infrastructure.Conversations.Lkk;
 using AdminTgBot.Infrastructure.Conversations.Administration;
+using Telegram.Util.Core.Interfaces;
+using AdminTgBot.Infrastructure.Interfaces;
 
 namespace AdminTgBot.Infrastructure
 {
     internal class AdminBotStateManager : StateManager
     {
-        private readonly IDbContextFactory<ApplicationContext> _contextFactory;
         private readonly StateMachine<State, Trigger> _machine;
         private Dictionary<string, IConversation> _handlers;
         private static readonly Dictionary<State, Guid> Rights;
@@ -56,26 +57,22 @@ namespace AdminTgBot.Infrastructure
 
 		}
 
-        private AdminBotStateManager(ITelegramBotClient botClient, IDbContextFactory<ApplicationContext> contextFactory,
-            AdminBotCommandsManager commandsManager, long chatId)
-        {
+        public AdminBotStateManager(ITelegramBotClient botClient, 
+            IDbContextFactory<ApplicationContext> contextFactory,
+			IMenuHandler menuHandler, 
+            long chatId) : base(botClient, contextFactory, menuHandler)
+		{
             ChatId = chatId;
 			_message = new Message();
-            _commandsManager = commandsManager;
             _machine = new StateMachine<State, Trigger>(() => CurrentState,
                 s =>
                 {
 					CurrentState = s;
                 });
             _handlers = new Dictionary<string, IConversation>();
-            _botClient = botClient;
-            _contextFactory = contextFactory;
-
-            ConfigureMachine();
-            ConfigureHandlers();
         }
         #region Private Methods
-        protected override void ConfigureHandlers()
+        public override void ConfigureHandlers()
         {
             SetHandler(new StartConversation(this));
             SetHandler(new CatalogEditorConversation(this));
@@ -85,7 +82,7 @@ namespace AdminTgBot.Infrastructure
             SetHandler(new AdministrationConversation(this));
         }
 
-        protected override void ConfigureMachine()
+        public override void ConfigureMachine()
         {
             _machine.Configure(State.New)
             .Permit(Trigger.CommandButtonsStarted, State.CommandStart)
@@ -351,11 +348,11 @@ namespace AdminTgBot.Infrastructure
 
 		private void CheckRights()
 		{
-            if(Rights.TryGetValue(CurrentState, out Guid right))
+            if(Rights.TryGetValue(CurrentState, out Guid rightId))
             {
-                if(!HasRight(right))
+                if(!HasRight(rightId))
                 {
-                    throw new GuardException($"Нет прав. AdminId={AdminId} State={CurrentState}, Right={right}");
+                    throw new GuardException($"Нет прав. AdminId={AdminId} State={CurrentState}, Right={rightId}");
                 }
             }
 		}
@@ -454,17 +451,6 @@ namespace AdminTgBot.Infrastructure
             string result = Convert.ToBase64String(file);
 
             return result;
-        }
-
-        public static async Task<AdminBotStateManager> CreateAsync(ITelegramBotClient botClient,
-            IDbContextFactory<ApplicationContext> contextFactory, AdminBotCommandsManager commandsManager, long chatId)
-        {
-            await using ApplicationContext dataSource = await contextFactory.CreateDbContextAsync();
-
-            AdminBotStateManager stateManager = new AdminBotStateManager(botClient, contextFactory, commandsManager, chatId);
-            await stateManager.StateRecoveryAsync(dataSource);
-
-            return stateManager;
         }
 
         /// <summary>

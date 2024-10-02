@@ -70,6 +70,7 @@ namespace Database
             {
                 state.StateId = stateId;
                 state.Data = data;
+                state.LastMessageId = lastMessageId;
             }
 
             await SaveChangesAsync();

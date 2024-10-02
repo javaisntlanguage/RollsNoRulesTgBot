@@ -73,6 +73,15 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Управление группами сотрудника.
+        /// </summary>
+        internal static string AdminGroupManaging {
+            get {
+                return ResourceManager.GetString("AdminGroupManaging", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Сотрудник не найден.
         /// </summary>
         internal static string AdminNotFound {
@@ -105,6 +114,24 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration {
         internal static string Empty {
             get {
                 return ResourceManager.GetString("Empty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ❌Исключить.
+        /// </summary>
+        internal static string GroupTurnOff {
+            get {
+                return ResourceManager.GetString("GroupTurnOff", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ✅ Включить.
+        /// </summary>
+        internal static string GroupTurnOn {
+            get {
+                return ResourceManager.GetString("GroupTurnOn", resourceCulture);
             }
         }
         

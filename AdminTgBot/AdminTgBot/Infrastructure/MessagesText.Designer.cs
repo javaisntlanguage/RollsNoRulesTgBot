@@ -133,6 +133,15 @@ namespace AdminTgBot.Infrastructure {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Пусто.
+        /// </summary>
+        internal static string Empty {
+            get {
+                return ResourceManager.GetString("Empty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Вернитесь к последнему сообщению.
         /// </summary>
         internal static string GoLastMessage {

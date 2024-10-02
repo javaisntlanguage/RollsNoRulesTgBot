@@ -5,35 +5,28 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Configuration;
+using System.Configuration;
 
 namespace Database
 {
     public class ContextFactory : IDbContextFactory<ApplicationContext>
     {
-        #region Protected properties
+        IConfiguration _configuration;
 
-        protected string ConnectionString { get; set; }
-
-        #endregion
-        #region Public constructors
-
-        public ContextFactory(string connectionString)
+		public ContextFactory(IConfiguration configuraion)
         {
-            ConnectionString = connectionString;
+			_configuration = configuraion;
         }
-
-        #endregion
-        #region Public methods
 
         public ApplicationContext CreateDbContext()
         {
             DbContextOptionsBuilder<ApplicationContext> optionsBuilder = new DbContextOptionsBuilder<ApplicationContext>();
 
-            optionsBuilder.UseSqlServer(ConnectionString);
+            optionsBuilder.UseSqlServer(_configuration.GetConnectionString("RollsNoRules"));
 
             return new ApplicationContext(optionsBuilder.Options);
         }
-
-        #endregion
     }
 }

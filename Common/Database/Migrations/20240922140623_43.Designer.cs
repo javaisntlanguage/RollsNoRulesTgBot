@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Database.Migrations
 {
     [DbContext(typeof(ApplicationContext))]
-    [Migration("20240916170101_43")]
+    [Migration("20240922140623_43")]
     partial class _43
     {
         /// <inheritdoc />
@@ -297,7 +297,6 @@ namespace Database.Migrations
             modelBuilder.Entity("Database.Tables.Right", b =>
                 {
                     b.Property<Guid>("RigthId")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Description")
@@ -344,9 +343,17 @@ namespace Database.Migrations
                     b.Property<Guid>("RightId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int?>("AdminsInGroupAdminId")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("AdminsInGroupGroupId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("GroupId", "RightId");
 
                     b.HasIndex("RightId");
+
+                    b.HasIndex("AdminsInGroupAdminId", "AdminsInGroupGroupId");
 
                     b.ToTable("RightInGroups");
                 });
@@ -517,6 +524,10 @@ namespace Database.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Database.Tables.AdminsInGroup", null)
+                        .WithMany("RightInGroups")
+                        .HasForeignKey("AdminsInGroupAdminId", "AdminsInGroupGroupId");
+
                     b.Navigation("AdminRight");
 
                     b.Navigation("Group");
@@ -538,6 +549,11 @@ namespace Database.Migrations
                     b.Navigation("AdminRights");
 
                     b.Navigation("AdminsInGroups");
+                });
+
+            modelBuilder.Entity("Database.Tables.AdminsInGroup", b =>
+                {
+                    b.Navigation("RightInGroups");
                 });
 
             modelBuilder.Entity("Database.Tables.Order", b =>

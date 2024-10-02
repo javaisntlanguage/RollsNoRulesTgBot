@@ -10,6 +10,7 @@ namespace Database.Tables
 {
 	public class Right
 	{
+		[DatabaseGenerated(DatabaseGeneratedOption.None)]
 		[Key]
 		public Guid RigthId { get; set; }
 		[Required]

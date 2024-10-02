@@ -11,135 +11,140 @@ using Telegram.Bot;
 using Telegram.Util.Core.Exceptions;
 using Telegram.Util.Core.StateMachine.Exceptions;
 using Database.Tables;
+using Telegram.Util.Core.Interfaces;
+using Microsoft.Extensions.Options;
+using Telegram.Util.Core.Models;
 
 namespace AdminTgBot.Infrastructure
 {
-    internal class ThreadsManager
-    {
-        private static readonly ConcurrentDictionary<long, object> Users = new ConcurrentDictionary<long, object>();
-        private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
-        private readonly TelegramBotClient _telegramClient;
-        private readonly AdminBotCommandsManager _commandsManager;
-        private readonly int _messageTimeout;
+	internal class ThreadsManager : IThreadsManager
+	{
+		private static readonly ConcurrentDictionary<long, object> Users = new ConcurrentDictionary<long, object>();
+		private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
+		private readonly ITelegramBotClient _telegramClient;
+		private readonly ICommandsManager _commandsManager;
+		private readonly TelegramSettings _config;
 
-        public ThreadsManager(TelegramBotClient telegramClient, AdminBotCommandsManager commandsManager, int timeout)
-        {
-            _telegramClient = telegramClient;
-            _commandsManager = commandsManager;
-            _messageTimeout = timeout;
-        }
+		public ThreadsManager(ITelegramBotClient telegramClient,
+			ICommandsManager commandsManager,
+			IOptions<TelegramSettings> options)
+		{
+			_telegramClient = telegramClient;
+			_commandsManager = commandsManager;
+			_config = options.Value;
+		}
 
-        public async Task<bool> ProcessUpdate(Update update)
-        {
-            long chatId = update.Message?.Chat.Id ?? update.CallbackQuery.Message.Chat.Id;
+		public async Task<bool> ProcessUpdate(Update update)
+		{
+			long chatId = update.Message?.Chat.Id ?? update.CallbackQuery.Message.Chat.Id;
 
-            if (Users.TryAdd(chatId, new()))
-            {
-                _ = Task.Run(() => SetMessageTimeout(chatId));
-                await ProcessUpdateForUser(update);
-                Users.TryRemove(chatId, out _);
-                return true;
-            }
+			if (Users.TryAdd(chatId, new()))
+			{
+				_ = Task.Run(() => SetMessageTimeout(chatId));
+				await ProcessUpdateForUser(update);
+				Users.TryRemove(chatId, out _);
+				return true;
+			}
 
-            //может быть слишком много запросов
-            try
-            {
-                await _telegramClient.SendChatActionAsync(chatId, ChatAction.Typing);
-            }
-            catch
-            {
+			//может быть слишком много запросов
+			try
+			{
+				await _telegramClient.SendChatActionAsync(chatId, ChatAction.Typing);
+			}
+			catch
+			{
 
-            }
+			}
 
-            return false;
-        }
+			return false;
+		}
 
-        private void SetMessageTimeout(long chatId)
-        {
-            Thread.Sleep(_messageTimeout * 1000);
-            Users.TryRemove(chatId, out _);
-        }
+		private void SetMessageTimeout(long chatId)
+		{
+			Thread.Sleep(_config.MessageTimeoutSec * 1000);
+			Users.TryRemove(chatId, out _);
+		}
 
-        private async Task ProcessUpdateForUser(Update update)
-        {
+		private async Task ProcessUpdateForUser(Update update)
+		{
 			long chatId = update.Message?.Chat.Id ?? update.CallbackQuery!.Message!.Chat.Id;
 
 			try
 			{
-                switch (update.Type)
-                {
-                    case UpdateType.Message:
-                        {
-                            Message message = update.Message!;
+				switch (update.Type)
+				{
+					case UpdateType.Message:
+						{
+							Message message = update.Message!;
 
-                            if (!await _commandsManager.ProcessMessageAsync(message))
-                            {
-                                await ProcessUnknownCommandAsync(message);
-                            }
-                            break;
-                        }
-                    case UpdateType.CallbackQuery:
-                        {
-                            CallbackQuery query = update.CallbackQuery!;
+							if (!await _commandsManager.ProcessMessageAsync(message))
+							{
+								await ProcessUnknownCommandAsync(message);
+							}
+							break;
+						}
+					case UpdateType.CallbackQuery:
+						{
+							CallbackQuery query = update.CallbackQuery!;
 
-                            if (!await _commandsManager.ProcessQueryAsync(query))
-                            {
-                                await ProcessUnknownQueryAsync(query);
-                            }
-                            break;
-                        }
-                }
-            }
-            catch (GuardException)
-            {
+							if (!await _commandsManager.ProcessQueryAsync(query))
+							{
+								await ProcessUnknownQueryAsync(query);
+							}
+							break;
+						}
+				}
+			}
+			catch (GuardException)
+			{
 				await _telegramClient.SendTextMessageAsync(chatId, MessagesText.NotEnoughRights);
 			}
-            catch (MessageTextException)
-            {
+			catch (MessageTextException)
+			{
 				await _telegramClient.SendTextMessageAsync(chatId, MessagesText.MessageTextExcepted);
 			}
-            catch (MinLengthMessageException ex)
-            {
+			catch (MinLengthMessageException ex)
+			{
 				string errorText = string.Format(MessagesText.ValueTooShort, ex.MinLength);
 				await _telegramClient.SendTextMessageAsync(chatId, errorText);
 			}
-            catch (MaxLengthMessageException ex)
-            {
+			catch (MaxLengthMessageException ex)
+			{
 				string errorText = string.Format(MessagesText.ValueTooLong, ex.MaxLength);
 				await _telegramClient.SendTextMessageAsync(chatId, errorText);
 			}
 			catch (NotLastMessageException)
-            {
-                await _telegramClient.AnswerCallbackQueryAsync(update.CallbackQuery!.Id, MessagesText.GoLastMessage, showAlert: true);
-            }
-            catch (Exception ex)
-            {
-                await _telegramClient.SendTextMessageAsync(chatId, MessagesText.SomethingWrong);
+			{
+				await _telegramClient.AnswerCallbackQueryAsync(update.CallbackQuery!.Id, MessagesText.GoLastMessage, showAlert: true);
+			}
+			catch (Exception ex)
+			{
+				await _telegramClient.SendTextMessageAsync(chatId, MessagesText.SomethingWrong);
 
-                string message = $"UserId: {chatId}\n";
-                _logger.Error(message, ex);
-                Console.WriteLine(message + ex.ToString());
-            }
-        }
+				string message = $"UserId: {chatId}\n";
+				_logger.Error(message, ex);
+				Console.WriteLine(message + ex.ToString());
+			}
+		}
 
-        /// <summary>
-        ///     Обработка команды не известной для бота
-        /// </summary>
-        /// <param name="message">Сообщение с командой </param>
-        private async Task ProcessUnknownCommandAsync(Message message)
-        {
-            long chatId = message.Chat.Id;
-            await _telegramClient.SendTextMessageAsync(chatId, MessagesText.UnknownCommand);
-        }
+		/// <summary>
+		///     Обработка команды не известной для бота
+		/// </summary>
+		/// <param name="message">Сообщение с командой </param>
+		private async Task ProcessUnknownCommandAsync(Message message)
+		{
+			long chatId = message.Chat.Id;
+			await _telegramClient.SendTextMessageAsync(chatId, MessagesText.UnknownCommand);
+		}
 
-        /// <summary>
-        ///     Обработка команды не известной для бота
-        /// </summary>
-        /// <param name="message">Сообщение с командой </param>
-        private async Task ProcessUnknownQueryAsync(CallbackQuery query)
-        {
-            string queryId = query.Id.ToString();
-            await _telegramClient.AnswerCallbackQueryAsync(queryId, MessagesText.UnknownCommand, showAlert: true);
-        }
-    }
+		/// <summary>
+		///     Обработка команды не известной для бота
+		/// </summary>
+		/// <param name="message">Сообщение с командой </param>
+		private async Task ProcessUnknownQueryAsync(CallbackQuery query)
+		{
+			string queryId = query.Id.ToString();
+			await _telegramClient.AnswerCallbackQueryAsync(queryId, MessagesText.UnknownCommand, showAlert: true);
+		}
+	}
 }

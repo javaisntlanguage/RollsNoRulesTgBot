@@ -153,6 +153,9 @@
   <data name="NoPagination" xml:space="preserve">
     <value>X</value>
   </data>
+  <data name="NoPagination" xml:space="preserve">
+    <value>X</value>
+  </data>
   <data name="NotEnoughRights" xml:space="preserve">
     <value>У вас недостаточно прав для совершения данного действия</value>
   </data>
@@ -176,5 +179,8 @@
   </data>
   <data name="Yes" xml:space="preserve">
     <value>Да</value>
+  </data>
+  <data name="Empty" xml:space="preserve">
+    <value>Пусто</value>
   </data>
 </root>

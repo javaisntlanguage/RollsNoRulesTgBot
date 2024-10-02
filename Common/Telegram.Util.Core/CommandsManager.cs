@@ -14,89 +14,76 @@ using Telegram.Util.Core.Interfaces;
 
 namespace Telegram.Util.Core
 {
-    public abstract class CommandsManager
-    {
-        protected ITelegramBotClient _botClient;
-        protected Dictionary<long, StateManager> _stateManagers;
-        public IBotCommandHandler[] Commands { get; protected set; }
+    public abstract class CommandsManager : ICommandsManager
+	{
+		protected ITelegramBotClient _botClient;
+		protected Dictionary<long, StateManager> _stateManagers;
+		protected IMenuHandler _menuHandler;
 
-        /// <summary>
-        /// назначить состояние пользователю
-        /// </summary>
-        /// <param name="userId"></param>
-        /// <returns></returns>
-        protected abstract Task InitStateManagerIfNotExistsAsync(long chatId);
+		protected CommandsManager(ITelegramBotClient botClient, 
+			IMenuHandler menuHandler)
+		{
+			_botClient = botClient;
+			_menuHandler = menuHandler;
+		}
 
-        /// <summary>
-        /// создание меню
-        /// </summary>
-        /// <returns></returns>
-        protected abstract IBotCommandHandler[] GetComands();
 
-        /// <summary>
-        /// парсинг команды от пользователя
-        /// </summary>
-        /// <param name="message"></param>
-        /// <returns></returns>
-        protected IBotCommandHandler? GetCommand(Message message)
-        {
-            long userId = message.From!.Id;
-            IBotCommandHandler? command = null;
 
-            command = Commands
-                .FirstOrDefault(x =>
-                    x.Command == message.Text);
-            return command;
-        }
+		/// <summary>
+		/// назначить состояние пользователю
+		/// </summary>
+		/// <param name="userId"></param>
+		/// <returns></returns>
+		protected abstract Task InitStateManagerIfNotExistsAsync(long chatId);
 
-        /// <summary>
-        /// обработка сообщения от пользователя
-        /// </summary>
-        /// <param name="message"></param>
-        /// <returns></returns>
-        public async Task<bool> ProcessMessageAsync(Message message)
-        {
-            long chatId = message.Chat.Id;
-            await InitStateManagerIfNotExistsAsync(chatId);
+		/// <summary>
+		/// парсинг команды от пользователя
+		/// </summary>
+		/// <param name="message"></param>
+		/// <returns></returns>
+		protected IBotCommandHandler? GetCommand(Message message)
+		{
+			long userId = message.From!.Id;
+			IBotCommandHandler? command = null;
 
-            IBotCommandHandler command = GetCommand(message);
+			command = _menuHandler.Commands
+				.FirstOrDefault(x =>
+					x.Command == message.Text);
+			return command;
+		}
 
-            if (command.IsNotNull())
-            {
-                await command.StartCommandAsync(_stateManagers[chatId], message);
-                return true;
-            }
+		/// <summary>
+		/// обработка сообщения от пользователя
+		/// </summary>
+		/// <param name="message"></param>
+		/// <returns></returns>
+		public async Task<bool> ProcessMessageAsync(Message message)
+		{
+			long chatId = message.Chat.Id;
+			await InitStateManagerIfNotExistsAsync(chatId);
 
-            return await _stateManagers[chatId].NextStateAsync(message);
-        }
+			IBotCommandHandler? command = GetCommand(message);
 
-        /// <summary>
-        /// обработка запроса от пользователя
-        /// </summary>
-        /// <param name="query"></param>
-        /// <returns></returns>
-        public async Task<bool> ProcessQueryAsync(CallbackQuery query)
-        {
-            long chatId = query.Message.Chat.Id;
-            await InitStateManagerIfNotExistsAsync(chatId);
+			if (command != null)
+			{
+				await command.StartCommandAsync(_stateManagers[chatId], message);
+				return true;
+			}
 
-            return await _stateManagers[chatId].NextStateAsync(query);
-        }
+			return await _stateManagers[chatId].NextStateAsync(message);
+		}
 
-        public List<IEnumerable<KeyboardButton>> GetDefaultMenuButtons()
-        {
-            int rows = Commands.Length / 3;
-            rows = rows == 0 ? 1 : rows;
+		/// <summary>
+		/// обработка запроса от пользователя
+		/// </summary>
+		/// <param name="query"></param>
+		/// <returns></returns>
+		public async Task<bool> ProcessQueryAsync(CallbackQuery query)
+		{
+			long chatId = query.Message!.Chat.Id;
+			await InitStateManagerIfNotExistsAsync(chatId);
 
-			List<IEnumerable<KeyboardButton>> result = Commands
-                    .Where(command => command.DisplayMode == CommandDisplay.ButtonMenu)
-                    .Select(command =>
-                        new KeyboardButton(command.Command))
-                    .ToArray()
-                    .Split(rows)
-                    .ToList();
-
-            return result;
-        }
-    }
+			return await _stateManagers[chatId].NextStateAsync(query);
+		}
+	}
 }

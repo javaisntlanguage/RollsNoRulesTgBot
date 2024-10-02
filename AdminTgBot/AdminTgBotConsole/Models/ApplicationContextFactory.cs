@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AdminTgBotConsole
+namespace AdminTgBotConsole.Models
 {
     public class ApplicationContextFactory : IDesignTimeDbContextFactory<ApplicationContext>
     {
@@ -19,8 +19,8 @@ namespace AdminTgBotConsole
             .AddJsonFile("appsettings.json")
                 .Build();
 
-            var builder = new DbContextOptionsBuilder<ApplicationContext>();
-            var connectionString = configuration["ConnectionString"];
+			DbContextOptionsBuilder<ApplicationContext> builder = new();
+			string? connectionString = configuration["ConnectionString"];
 
             builder.UseSqlServer(connectionString);
 

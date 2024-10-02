@@ -1,19 +1,32 @@
 ﻿using AdminTgBot;
+using AdminTgBotConsole;
+using DependencyInjection;
+using DependencyInjection.Extensions;
+using DependencyInjection.Inferfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.Reflection;
 
 if(EF.IsDesignTime)
 {
     return;
 }
 
-IConfiguration Configuration = new ConfigurationBuilder()
-   .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-   .AddEnvironmentVariables()
-   .AddCommandLine(args)
-   .Build();
+IocBuilder iocbuilder = new();
+string basePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
 
-AdminTgBotMain telegram = new AdminTgBotMain(Configuration);
-telegram.Start();
+IConfigurationRoot config = iocbuilder
+    .CreateConfigurationBuilder(basePath, "appsettings.json")
+    .Build();
+
+ServiceProvider iocContainer = iocbuilder
+    .CreateIocContainer()
+    .UseStartup<Startup>(config)
+    .BuildServiceProvider();
+
+IApplicationRunner runner = iocContainer.GetRequiredService<IApplicationRunner>();
+runner.Run();
 
 await Task.Delay(-1);

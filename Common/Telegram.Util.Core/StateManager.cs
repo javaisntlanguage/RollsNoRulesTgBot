@@ -19,6 +19,7 @@ using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 using Helper;
 using Database.Tables;
+using Telegram.Util.Core.Models;
 
 namespace Telegram.Util.Core
 {
@@ -26,22 +27,32 @@ namespace Telegram.Util.Core
     {
         private int MAX_MESSAGE_LENGTH = 4096;
         protected static readonly Logger _logger = LogManager.GetCurrentClassLogger();
-        protected CommandsManager _commandsManager;
         protected Message _message;
         protected CallbackQuery _query;
         protected int? _lastMessageId;
         protected ITelegramBotClient _botClient;
+		protected readonly IDbContextFactory<ApplicationContext> _contextFactory;
+		private readonly IMenuHandler _menuHandler;
 
-        public long ChatId { get; protected set; }
+		public long ChatId { get; protected set; }
+
+        protected StateManager(ITelegramBotClient botClient, 
+            IDbContextFactory<ApplicationContext> contextFactory,
+			IMenuHandler menuHandler)
+        {
+            _botClient = botClient;
+			_contextFactory = contextFactory;
+			_menuHandler = menuHandler;
+		}
 
         /// <summary>
         /// назначение классов-обработчиков команд
         /// </summary>
-        protected abstract void ConfigureHandlers();
+        public abstract void ConfigureHandlers();
         /// <summary>
         /// конфигурация конечного автомата
         /// </summary>
-        protected abstract void ConfigureMachine();
+        public abstract void ConfigureMachine();
 
 		private async Task<string> CutTextAsync(string text, ParseMode? parseMode)
 		{
@@ -153,7 +164,7 @@ namespace Telegram.Util.Core
 
         public async Task<Message> ShowButtonMenuAsync(string text, IEnumerable<KeyboardButton> additionalButtons = null)
         {
-			List<IEnumerable<KeyboardButton>> defaultButtons = _commandsManager.GetDefaultMenuButtons();
+			List<IEnumerable<KeyboardButton>> defaultButtons = _menuHandler.GetDefaultMenuButtons();
 
 			if (additionalButtons.IsNotNull())
 			{

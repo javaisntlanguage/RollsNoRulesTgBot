@@ -139,11 +139,18 @@ namespace Database.Migrations
                 columns: table => new
                 {
                     GroupId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    RightId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    RightId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    AdminsInGroupAdminId = table.Column<int>(type: "int", nullable: true),
+                    AdminsInGroupGroupId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_RightInGroups", x => new { x.GroupId, x.RightId });
+                    table.ForeignKey(
+                        name: "FK_RightInGroups_AdminInGroups_AdminsInGroupAdminId_AdminsInGroupGroupId",
+                        columns: x => new { x.AdminsInGroupAdminId, x.AdminsInGroupGroupId },
+                        principalTable: "AdminInGroups",
+                        principalColumns: new[] { "AdminId", "GroupId" });
                     table.ForeignKey(
                         name: "FK_RightInGroups_RightGroups_GroupId",
                         column: x => x.GroupId,
@@ -169,6 +176,11 @@ namespace Database.Migrations
                 column: "RightId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_RightInGroups_AdminsInGroupAdminId_AdminsInGroupGroupId",
+                table: "RightInGroups",
+                columns: new[] { "AdminsInGroupAdminId", "AdminsInGroupGroupId" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_RightInGroups_RightId",
                 table: "RightInGroups",
                 column: "RightId");
@@ -178,19 +190,19 @@ namespace Database.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "AdminInGroups");
-
-            migrationBuilder.DropTable(
                 name: "AdminRights");
 
             migrationBuilder.DropTable(
                 name: "RightInGroups");
 
             migrationBuilder.DropTable(
-                name: "RightGroups");
+                name: "AdminInGroups");
 
             migrationBuilder.DropTable(
                 name: "Rights");
+
+            migrationBuilder.DropTable(
+                name: "RightGroups");
 
             migrationBuilder.AlterColumn<string>(
                 name: "Data",

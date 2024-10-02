@@ -48,11 +48,11 @@ namespace AdminTgBot.Infrastructure.Conversations.BotOwner
 			{
 				case State.CommandBotOwner:
 					{
-						if(message.Text == TelegramWorker.BotToken)
+						/*if(message.Text == TelegramWorker.BotToken)
 						{
 							await _stateManager.SendMessageAsync(BotOwnerText.Welcome);
 							return Trigger.SelectMenu;
-						}
+						}*/
 						break;
 					}
 				case State.BotOwnerSelectMenu:

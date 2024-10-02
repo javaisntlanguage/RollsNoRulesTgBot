@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Telegram.Util.Core.Enums;
 
 namespace AdminTgBot.Infrastructure.Models
 {
     internal enum Command
-    {
-        Ignore,
+	{
+        Ignore = CommandsDefault.Ignore,
         ShowCategoryProducts,
         AddProduct,
 		BackToCategory,
@@ -56,6 +57,10 @@ namespace AdminTgBot.Infrastructure.Models
 		BackToAdministration,
 		MovePaginationAdminsSearch,
 		AdminPermissionGroups,
-		AdminPermissions
+		AdminPermissions,
+		AdminGroupDetails,
+		BackToAdminManaging,
+		MovePaginationAdminGorups,
+		SwitchGroupForAdmin
 	}
 }

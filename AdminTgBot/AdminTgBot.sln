@@ -15,9 +15,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Helper", "..\Common\Helper\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Telegram.Util.Core", "..\Common\Telegram.Util.Core\Telegram.Util.Core.csproj", "{667D8F48-807C-4973-8B4B-E52DDB38E363}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitClient", "..\Common\RabbitClient\RabbitClient.csproj", "{A7D86C0B-A8C1-461E-B279-5D68E7252A46}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RabbitClient", "..\Common\RabbitClient\RabbitClient.csproj", "{A7D86C0B-A8C1-461E-B279-5D68E7252A46}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessageContracts", "..\Common\MessageContracts\MessageContracts.csproj", "{FBC477E7-D276-4AE3-84DA-814EBC04459A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MessageContracts", "..\Common\MessageContracts\MessageContracts.csproj", "{FBC477E7-D276-4AE3-84DA-814EBC04459A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DependencyInjection", "..\Common\DependencyInjection\DependencyInjection.csproj", "{9CB6D557-001A-4EA4-821D-D079B8AA0F62}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -53,6 +55,10 @@ Global
 		{FBC477E7-D276-4AE3-84DA-814EBC04459A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FBC477E7-D276-4AE3-84DA-814EBC04459A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FBC477E7-D276-4AE3-84DA-814EBC04459A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9CB6D557-001A-4EA4-821D-D079B8AA0F62}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9CB6D557-001A-4EA4-821D-D079B8AA0F62}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9CB6D557-001A-4EA4-821D-D079B8AA0F62}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9CB6D557-001A-4EA4-821D-D079B8AA0F62}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -63,6 +69,7 @@ Global
 		{667D8F48-807C-4973-8B4B-E52DDB38E363} = {0FF1C08C-69D1-4E09-AAD8-BD7FD2E29839}
 		{A7D86C0B-A8C1-461E-B279-5D68E7252A46} = {0FF1C08C-69D1-4E09-AAD8-BD7FD2E29839}
 		{FBC477E7-D276-4AE3-84DA-814EBC04459A} = {0FF1C08C-69D1-4E09-AAD8-BD7FD2E29839}
+		{9CB6D557-001A-4EA4-821D-D079B8AA0F62} = {0FF1C08C-69D1-4E09-AAD8-BD7FD2E29839}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {BBED0024-D2E7-43AE-B964-C45092E53159}

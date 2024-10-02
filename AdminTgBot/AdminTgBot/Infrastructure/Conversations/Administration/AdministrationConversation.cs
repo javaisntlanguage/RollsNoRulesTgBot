@@ -20,17 +20,21 @@ using Database.Tables;
 using AdminTgBot.Infrastructure.Conversations.Orders;
 using MessageContracts;
 using Microsoft.EntityFrameworkCore;
+using Azure;
+using Telegram.Util.Core.Extensions;
 
 namespace AdminTgBot.Infrastructure.Conversations.Administration
 {
-	internal class AdministrationConversation : IConversation
+    internal class AdministrationConversation : IConversation
 	{
 		private ApplicationContext _dataSource;
 		private readonly AdminBotStateManager _stateManager;
 		private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
 		private const int ADMINS_BY_PAGE = 5;
+		private const int GROUPS_BY_PAGE = 5;
 
 		public AdminsFilterModel AdminsFilter { get; set; }
+		public int AdminId { get; set; }
 
 		public AdministrationConversation()
 		{
@@ -100,6 +104,7 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration
 									return Trigger.Ignore;
 								}
 							case Command.AdminDetails:
+							case Command.BackToAdminManaging:
 								{
 									int adminId = data["AdminId"]!.Value<int>();
 									await ShowAdminDetailsAsync(adminId);
@@ -107,8 +112,26 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration
 								}
 							case Command.AdminPermissionGroups:
 								{
-									int adminId = data["AdminId"]!.Value<int>();
-									await ShowAdminPermissionGroupsAsync(adminId);
+									await ShowAdminPermissionGroupsAsync();
+									return Trigger.Ignore;
+								}
+							case Command.MovePaginationAdminGorups:
+								{
+									int page = data["Page"]!.Value<int>();
+									await ShowAdminPermissionGroupsAsync(page);
+									return Trigger.Ignore;
+								}
+							case Command.SwitchGroupForAdmin:
+								{
+									Guid groupId = (Guid)data["G"]!;
+									int page = data["P"]!.Value<int>();
+									await SwitchGroupForAdminAsync(groupId, page);
+									return Trigger.Ignore;
+								}
+							case Command.AdminGroupDetails:
+								{
+									Guid groupId = (Guid)data["G"]!;
+									await ShowAdminGroupDetailsAsync(groupId);
 									return Trigger.Ignore;
 								}
 						}
@@ -119,9 +142,136 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration
 			return null;
 		}
 
-		private async Task ShowAdminPermissionGroupsAsync(int adminId)
+		private async Task ShowAdminGroupDetailsAsync(Guid groupId)
 		{
-			//var groups = _dataSource.RigthSettings
+			IQueryable<RightsInGroup> rights = _dataSource.RightInGroups
+				.Where(rg => rg.GroupId == groupId);
+		}
+
+		private async Task SwitchGroupForAdminAsync(Guid groupId, int page)
+		{
+			AdminsInGroup? adminInGroup = await _dataSource.AdminInGroups
+					.FirstOrDefaultAsync(ag => ag.AdminId == AdminId && ag.GroupId == groupId);
+
+			if (adminInGroup == null)
+			{
+				AdminsInGroup adminInGroupNew = new AdminsInGroup()
+				{
+					AdminId = AdminId,
+					GroupId = groupId,
+				};
+
+				await _dataSource.AdminInGroups.AddAsync(adminInGroupNew);
+			}
+            else
+            {
+				_dataSource.AdminInGroups.Remove(adminInGroup);
+			}
+
+			await _dataSource.SaveChangesAsync();
+			await ShowAdminPermissionGroupsAsync(page);
+		}
+
+		private async Task ShowAdminPermissionGroupsAsync(int page=1)
+		{
+			IQueryable<GroupView> groups = _dataSource.RightGroups
+				.Skip((page - 1) * GROUPS_BY_PAGE)
+				.Take(GROUPS_BY_PAGE)
+				.Include(g => g.AdminsInGroup)
+				.Select(g => new GroupView
+				{
+					Id = g.Id,
+					Name = g.Name,
+					IsInGroup = g.AdminsInGroup!.Any(ag => ag.AdminId == AdminId),
+				});
+
+			int groupsCount = _dataSource.RightGroups.Count();
+
+			InlineKeyboardMarkup markup = GetAdminGroupsButtons(groups, groupsCount, page);
+
+			await _stateManager.SendMessageAsync(AdministrationText.AdminGroupManaging, replyMarkup: markup);
+		}
+
+		private InlineKeyboardMarkup GetAdminGroupsButtons(IQueryable<GroupView> groupsView, int groupsCount, int page)
+		{
+			List<InlineKeyboardButton[]> keyboard = new List<InlineKeyboardButton[]>();
+
+			if (groupsView.Any())
+			{
+				keyboard = groupsView
+					.AsEnumerable()
+					.Select(group =>
+					{
+						InlineKeyboardButton[] row = new InlineKeyboardButton[]
+						{
+								new InlineKeyboardButton(group.Name)
+								{
+									CallbackData = JsonConvert.SerializeObject(new
+									{
+										Cmd = Command.AdminGroupDetails,
+										G = group.Id,
+									})
+								},
+
+						}
+						.Union([GetSwitchGroupButton(group, page)])
+						.ToArray();
+
+						return row;
+					})
+					.ToList();
+
+				InlineKeyboardButton[] pagination = TelegramHelper.GetPagination(page, groupsCount, GROUPS_BY_PAGE, Command.MovePaginationAdminGorups);
+				keyboard.Add(pagination);
+			}
+			else
+			{
+				keyboard = 
+					[
+						[ 
+							new(MessagesText.Empty)
+							{
+								CallbackData = JsonConvert.SerializeObject(new
+								{
+									Cmd = Command.Ignore,
+								})
+							}
+						]
+					];
+			}
+
+			keyboard.Add(
+			[
+				new InlineKeyboardButton(AdministrationText.Back)
+				{
+					CallbackData = JsonConvert.SerializeObject(new
+					{
+						Cmd = Command.BackToAdminManaging,
+						AdminId = AdminId
+					})
+				}
+			]);
+
+			InlineKeyboardMarkup result = new InlineKeyboardMarkup(keyboard); 
+			return result;
+		}
+
+		private InlineKeyboardButton GetSwitchGroupButton(GroupView groupView, int page)
+		{
+			string text = groupView.IsInGroup ? AdministrationText.GroupTurnOff : AdministrationText.GroupTurnOn;
+			bool groupMode = !groupView.IsInGroup;
+			
+			InlineKeyboardButton result = new(text)
+			{
+				CallbackData = JsonConvert.SerializeObject(new
+				{
+					Cmd = Command.SwitchGroupForAdmin,
+					G = groupView.Id,
+					P = page
+				})
+			};
+
+			return result;
 		}
 
 		private async Task ShowAdminDetailsAsync(int adminId)
@@ -132,6 +282,8 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration
 			{
 				return;
 			}
+
+			AdminId = adminId;
 
 			int groupsCount = _dataSource.AdminInGroups
 				.Where(ap => ap.AdminId == adminId).Count();
@@ -157,7 +309,6 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration
 					CallbackData = JsonConvert.SerializeObject(new
 					{
 						Cmd = Command.AdminPermissionGroups,
-						AdminId = adminId,
 					})
 				},
 				new InlineKeyboardButton(AdministrationText.Permissions)
@@ -165,7 +316,6 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration
 					CallbackData = JsonConvert.SerializeObject(new
 					{
 						Cmd = Command.AdminPermissions,
-						AdminId = adminId,
 					})
 				},
 			];

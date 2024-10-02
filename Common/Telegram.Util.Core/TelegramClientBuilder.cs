@@ -1,11 +1,12 @@
 ﻿using Telegram.Bot;
 using Telegram.Bot.Types;
+using Telegram.Util.Core.Interfaces;
 
 namespace Telegram.Util.Core
 {
-    public class TelegramBotClientBuilder<TStateManager> where TStateManager : class
+    public class TelegramClientBuilder
     {
-        public IEnumerable<BotCommandHandler<TStateManager>> BotCommandHandlers { get; set; }
+        public IEnumerable<IBotCommandHandler> BotCommandHandlers { get; set; }
         public IEnumerable<BotCommand> BotCommands { get; set; }
         private ITelegramBotClient _bot { get; set; }
 
@@ -14,7 +15,7 @@ namespace Telegram.Util.Core
         /// </summary>
         /// <param name="telegramBotClient"></param>
         /// <returns></returns>
-        public TelegramBotClientBuilder<TStateManager> InitTelegramBotClient(ITelegramBotClient telegramBotClient)
+        public TelegramClientBuilder InitTelegramBotClient(ITelegramBotClient telegramBotClient)
         {
             _bot = telegramBotClient;
             return this;
@@ -24,7 +25,7 @@ namespace Telegram.Util.Core
         /// </summary>
         /// <param name="commands"></param>
         /// <returns></returns>
-        public TelegramBotClientBuilder<TStateManager> InitMenuCommands(IEnumerable<BotCommandHandler<TStateManager>> commands)
+        public TelegramClientBuilder InitMenuCommands(IEnumerable<IBotCommandHandler> commands)
         {
             BotCommandHandlers = commands;
 
@@ -41,7 +42,7 @@ namespace Telegram.Util.Core
         /// Активация команд меню
         /// </summary>
         /// <returns></returns>
-        public TelegramBotClientBuilder<TStateManager> SetMenuCommands()
+        public TelegramClientBuilder SetMenuCommands()
         {
             _bot.SetMyCommandsAsync(BotCommands).ConfigureAwait(false);
             return this;

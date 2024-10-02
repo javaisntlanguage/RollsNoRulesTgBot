@@ -20,7 +20,7 @@ using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
-using Telegram.Util.Core;
+using Telegram.Util.Core.Extensions;
 using CategoryAttribute = AdminTgBot.Infrastructure.Conversations.CatalogEditor.Models.CategoryAttribute;
 
 namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
@@ -450,7 +450,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
                 string caption = string.Format(CatalogEditorText.ProductDetails,
                 NewProduct.Name,
                 NewProduct.Description,
-                NewProduct.Price.ToString(TelegramHelper.PRICE_FORMAT));
+                NewProduct.Price.ToString(TelegramExstension.PRICE_FORMAT));
 
                 InlineKeyboardButton[] AddProduct = GetAddNewProductButton();
                 InlineKeyboardMarkup markup = new InlineKeyboardMarkup(AddProduct);
@@ -1305,7 +1305,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
                 text = string.Format(CatalogEditorText.ProductDetails,
                 product.Name,
                 product.Description,
-                product.Price.ToString(TelegramHelper.PRICE_FORMAT));
+                product.Price.ToString(TelegramExstension.PRICE_FORMAT));
 
                 InlineKeyboardButton[] pagination = GetPaginationProduct(categoryId.Value, product.Id);
 

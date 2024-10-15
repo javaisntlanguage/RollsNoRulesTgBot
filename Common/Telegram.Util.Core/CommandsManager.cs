@@ -19,12 +19,16 @@ namespace Telegram.Util.Core
 		protected ITelegramBotClient _botClient;
 		protected Dictionary<long, StateManager> _stateManagers;
 		protected IMenuHandler _menuHandler;
+		private readonly IStateManagerFactory<StateManager> _stateManagerFactory;
 
 		protected CommandsManager(ITelegramBotClient botClient, 
-			IMenuHandler menuHandler)
+			IMenuHandler menuHandler,
+			IStateManagerFactory<StateManager> stateManagerFactory)
 		{
 			_botClient = botClient;
 			_menuHandler = menuHandler;
+			_stateManagerFactory = stateManagerFactory;
+			_stateManagers = new Dictionary<long, StateManager>();
 		}
 
 
@@ -34,7 +38,13 @@ namespace Telegram.Util.Core
 		/// </summary>
 		/// <param name="userId"></param>
 		/// <returns></returns>
-		protected abstract Task InitStateManagerIfNotExistsAsync(long chatId);
+		protected void InitStateManagerIfNotExists(long chatId)
+		{
+			if (!_stateManagers.ContainsKey(chatId))
+			{
+				_stateManagers[chatId] = _stateManagerFactory.Create(chatId);
+			}
+		}
 
 		/// <summary>
 		/// парсинг команды от пользователя
@@ -60,7 +70,7 @@ namespace Telegram.Util.Core
 		public async Task<bool> ProcessMessageAsync(Message message)
 		{
 			long chatId = message.Chat.Id;
-			await InitStateManagerIfNotExistsAsync(chatId);
+			InitStateManagerIfNotExists(chatId);
 
 			IBotCommandHandler? command = GetCommand(message);
 
@@ -81,7 +91,7 @@ namespace Telegram.Util.Core
 		public async Task<bool> ProcessQueryAsync(CallbackQuery query)
 		{
 			long chatId = query.Message!.Chat.Id;
-			await InitStateManagerIfNotExistsAsync(chatId);
+			InitStateManagerIfNotExists(chatId);
 
 			return await _stateManagers[chatId].NextStateAsync(query);
 		}

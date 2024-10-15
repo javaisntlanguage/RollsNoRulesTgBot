@@ -30,6 +30,7 @@ namespace AdminTgBot.Infrastructure.Extensions
 				.AddSingleton<IMenuHandlerBuilder, MenuHandlerBuilder>()
 				.AddSingleton<IMenuHandler>(service => service.GetRequiredService<IMenuHandlerBuilder>().Build())
 				.AddSingleton<ICommandsManager, AdminBotCommandsManager>()
+				.AddSingleton<IAdminStateMachineBuilder, AdminStateMachineBuilder>()
 				.AddSingleton<IAdminStateManagerFactory, StateManagerFactory>()
 				.AddSingleton<IThreadsManager, ThreadsManager>()
 				.AddSingleton<ITelegramWorker, TelegramWorker>();

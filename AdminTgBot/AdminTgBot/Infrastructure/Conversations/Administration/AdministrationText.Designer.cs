@@ -73,6 +73,17 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Группа прав &quot;{0}&quot;
+        ///
+        ///Включает права: {1}.
+        /// </summary>
+        internal static string AdminGroupDetails {
+            get {
+                return ResourceManager.GetString("AdminGroupDetails", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Управление группами сотрудника.
         /// </summary>
         internal static string AdminGroupManaging {
@@ -114,6 +125,15 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration {
         internal static string Empty {
             get {
                 return ResourceManager.GetString("Empty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to В этой группе пока нет прав.
+        /// </summary>
+        internal static string EmptyGroup {
+            get {
+                return ResourceManager.GetString("EmptyGroup", resourceCulture);
             }
         }
         
@@ -168,6 +188,24 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration {
         internal static string Rights {
             get {
                 return ResourceManager.GetString("Rights", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ❌Убрать.
+        /// </summary>
+        internal static string RightTurnOff {
+            get {
+                return ResourceManager.GetString("RightTurnOff", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ✅ Добавить.
+        /// </summary>
+        internal static string RightTurnOn {
+            get {
+                return ResourceManager.GetString("RightTurnOn", resourceCulture);
             }
         }
         

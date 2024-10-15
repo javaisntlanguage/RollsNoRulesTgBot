@@ -49,10 +49,6 @@ namespace Telegram.Util.Core
         /// назначение классов-обработчиков команд
         /// </summary>
         public abstract void ConfigureHandlers();
-        /// <summary>
-        /// конфигурация конечного автомата
-        /// </summary>
-        public abstract void ConfigureMachine();
 
 		private async Task<string> CutTextAsync(string text, ParseMode? parseMode)
 		{

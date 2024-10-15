@@ -27,36 +27,11 @@ namespace AdminTgBot.Infrastructure
 {
     internal class AdminBotCommandsManager : CommandsManager
     {
-        private readonly IDbContextFactory<ApplicationContext> _contextFactory;
-		private readonly IAdminStateManagerFactory _stateManagerFactory;
-		private readonly AdminSettings _config;
-
 		public AdminBotCommandsManager(ITelegramBotClient botClient,
 			IMenuHandler menuHandler,
-			IDbContextFactory<ApplicationContext> contextFactory,
 			IAdminStateManagerFactory stateManagerFactory,
-            IOptions<AdminSettings> options) : base(botClient, menuHandler)
+            IOptions<AdminSettings> options) : base(botClient, menuHandler, stateManagerFactory)
         {
-            _contextFactory = contextFactory;
-			_stateManagerFactory = stateManagerFactory;
-            _config = options.Value;
-			_stateManagers = new Dictionary<long, StateManager>();
         }
-
-        #region Private Methods
-
-        /// <summary>
-        /// назначить состояние пользователя
-        /// </summary>
-        /// <param name="chatId"></param>
-        /// <returns></returns>
-        protected override async Task InitStateManagerIfNotExistsAsync(long chatId)
-        {
-            if (!_stateManagers.ContainsKey(chatId))
-            {
-                _stateManagers[chatId] = _stateManagerFactory.Create(chatId);
-            }
-        }
-        #endregion
-    }
+	}
 }

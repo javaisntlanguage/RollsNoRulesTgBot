@@ -249,7 +249,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
                             case Command.AddProduct:
                                 {
                                     await AddProductAsync();
-                                    return Trigger.ReturnToCalatog;
+                                    return Trigger.ReturnToCatalog;
                                 }
                         }
                         break;

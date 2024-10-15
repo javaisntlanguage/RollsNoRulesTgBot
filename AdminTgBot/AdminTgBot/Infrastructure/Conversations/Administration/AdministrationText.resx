@@ -168,4 +168,18 @@
   <data name="GroupTurnOn" xml:space="preserve">
     <value>✅ Включить</value>
   </data>
+  <data name="AdminGroupDetails" xml:space="preserve">
+    <value>Группа прав "{0}"
+
+Включает права: {1}</value>
+  </data>
+  <data name="EmptyGroup" xml:space="preserve">
+    <value>В этой группе пока нет прав</value>
+  </data>
+  <data name="RightTurnOff" xml:space="preserve">
+    <value>❌Убрать</value>
+  </data>
+  <data name="RightTurnOn" xml:space="preserve">
+    <value>✅ Добавить</value>
+  </data>
 </root>

@@ -12,22 +12,13 @@ using Helper;
 using Newtonsoft.Json;
 using Database.Tables;
 using Microsoft.EntityFrameworkCore;
-using NLog;
-using Database.Enums;
 using AdminTgBot.Infrastructure.Conversations;
 using AdminTgBot.Infrastructure.Models;
 using AdminTgBot.Infrastructure.Conversations.Start;
 using AdminTgBot.Infrastructure.Conversations.CatalogEditor;
 using AdminTgBot.Infrastructure.Exceptions;
-using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Types.ReplyMarkups;
-using System.Security.AccessControl;
-using File = Telegram.Bot.Types.File;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
-using Microsoft.EntityFrameworkCore.Internal;
 using Newtonsoft.Json.Linq;
 using AdminTgBot.Infrastructure.Conversations.Orders;
-using System.Data;
 using AdminTgBot.Infrastructure.Conversations.BotOwner;
 using Database.Classes;
 using Telegram.Util.Core.StateMachine.Exceptions;
@@ -35,6 +26,8 @@ using AdminTgBot.Infrastructure.Conversations.Lkk;
 using AdminTgBot.Infrastructure.Conversations.Administration;
 using Telegram.Util.Core.Interfaces;
 using AdminTgBot.Infrastructure.Interfaces;
+using Microsoft.Extensions.Options;
+using Telegram.Util.Core.Exceptions;
 
 namespace AdminTgBot.Infrastructure
 {
@@ -42,7 +35,8 @@ namespace AdminTgBot.Infrastructure
     {
         private readonly StateMachine<State, Trigger> _machine;
         private Dictionary<string, IConversation> _handlers;
-        private static readonly Dictionary<State, Guid> Rights;
+		private AdminSettings _config;
+		private static readonly Dictionary<State, Guid> Rights;
 
 		public State CurrentState { get; private set; }
 		public bool IsAuth { get; set; }
@@ -59,181 +53,35 @@ namespace AdminTgBot.Infrastructure
 
         public AdminBotStateManager(ITelegramBotClient botClient, 
             IDbContextFactory<ApplicationContext> contextFactory,
-			IMenuHandler menuHandler, 
-            long chatId) : base(botClient, contextFactory, menuHandler)
+			IMenuHandler menuHandler,
+			IAdminStateMachineBuilder stateMachineBuilder,
+            IOptions<AdminSettings> options,
+			long chatId) : base(botClient, contextFactory, menuHandler)
 		{
-            ChatId = chatId;
 			_message = new Message();
-            _machine = new StateMachine<State, Trigger>(() => CurrentState,
-                s =>
-                {
-					CurrentState = s;
-                });
+            _machine = stateMachineBuilder.Build(
+                stateAccessor: () => CurrentState,
+                stateMutator: s =>
+			    {
+				    CurrentState = s;
+			    }, 
+                messageHandler: NextStateMessageAsync
+            );
             _handlers = new Dictionary<string, IConversation>();
-        }
+            _config = options.Value;
+
+            ChatId = chatId;
+		}
         #region Private Methods
         public override void ConfigureHandlers()
         {
             SetHandler(new StartConversation(this));
             SetHandler(new CatalogEditorConversation(this));
             SetHandler(new OrdersConversation(this));
-            SetHandler(new BotOwnerConversation(this));
+            SetHandler(new BotOwnerConversation(this, _config));
             SetHandler(new LkkConversation(this));
             SetHandler(new AdministrationConversation(this));
         }
-
-        public override void ConfigureMachine()
-        {
-            _machine.Configure(State.New)
-            .Permit(Trigger.CommandButtonsStarted, State.CommandStart)
-            .Permit(Trigger.CommandStartStarted, State.CommandStart)
-            .Permit(Trigger.CommandCatalogEditorStarted, State.CommandCatalogEditor)
-            .Permit(Trigger.CommandOrdersStarted, State.CommandOrders)
-			.Permit(Trigger.CommandBotOwnerStarted, State.CommandBotOwner)
-			.Permit(Trigger.CommandLkkStarted, State.CommandLkk)
-			.Permit(Trigger.CommandAdministrationStarted, State.CommandAdministration)
-            .Ignore(Trigger.Ignore);
-
-            _machine.Configure(State.CommandButtons)
-            .SubstateOf(State.New)
-            .OnEntryFromAsync(Trigger.CommandButtonsStarted, NextStateMessageAsync)
-            .Ignore(Trigger.Ignore);
-
-			_machine.Configure(State.CommandStart)
-            .SubstateOf(State.New) 
-            .Permit(Trigger.EnterLogin, State.StartLogin)
-            .Permit(Trigger.EnterPassword, State.StartPassword)
-            .OnEntryFromAsync(Trigger.CommandStartStarted, NextStateMessageAsync);
-
-            _machine.Configure(State.StartLogin)
-            .SubstateOf(State.CommandStart);
-
-            _machine.Configure(State.StartPassword)
-            .SubstateOf(State.StartLogin)
-            .Permit(Trigger.EndOfConversation, State.New);
-
-            _machine.Configure(State.CommandCatalogEditor)
-            .SubstateOf(State.New)
-            .Permit(Trigger.EditProductName, State.ProductNameEditor)
-            .Permit(Trigger.EditProductDescription, State.ProductDescriptionEditor)
-            .Permit(Trigger.EditProductPrice, State.ProductPriceEditor)
-            .Permit(Trigger.EditProductPhoto, State.ProductPhotoEditor)
-            .Permit(Trigger.EnterProductName, State.NewProductNameEditor)
-            .Permit(Trigger.EnterProductDescription, State.NewProductDescriptionEditor)
-            .Permit(Trigger.EnterProductPrice, State.NewProductPriceEditor)
-            .Permit(Trigger.EnterProductPhoto, State.NewProductPhotoEditor)
-            .Permit(Trigger.EditCategoryName, State.CategoryNameEditor)
-            .Permit(Trigger.EnterCategoryName, State.NewCategoryNameEditor)
-            .OnEntryFromAsync(Trigger.CommandCatalogEditorStarted, NextStateMessageAsync);
-
-            _machine.Configure(State.ProductNameEditor)
-            .SubstateOf(State.CommandCatalogEditor)
-            .Permit(Trigger.ReturnToProductAttributeEditor, State.CommandCatalogEditor);
-
-            _machine.Configure(State.ProductDescriptionEditor)
-            .SubstateOf(State.CommandCatalogEditor)
-            .Permit(Trigger.ReturnToProductAttributeEditor, State.CommandCatalogEditor);
-
-            _machine.Configure(State.ProductPriceEditor)
-            .SubstateOf(State.CommandCatalogEditor)
-            .Permit(Trigger.ReturnToProductAttributeEditor, State.CommandCatalogEditor);
-
-            _machine.Configure(State.ProductPhotoEditor)
-            .SubstateOf(State.CommandCatalogEditor)
-            .Permit(Trigger.ReturnToProductAttributeEditor, State.CommandCatalogEditor);
-
-            _machine.Configure(State.NewProductNameEditor)
-            .SubstateOf(State.CommandCatalogEditor);
-
-            _machine.Configure(State.NewProductDescriptionEditor)
-            .SubstateOf(State.CommandCatalogEditor);
-
-            _machine.Configure(State.NewProductPriceEditor)
-            .SubstateOf(State.CommandCatalogEditor);
-
-            _machine.Configure(State.NewProductPhotoEditor)
-            .SubstateOf(State.CommandCatalogEditor)
-            .Permit(Trigger.ReturnToCalatog, State.CommandCatalogEditor);
-
-			_machine.Configure(State.CategoryNameEditor)
-            .SubstateOf(State.CommandCatalogEditor)
-            .Permit(Trigger.ReturnToCatalogEditor, State.CommandCatalogEditor);
-
-			_machine.Configure(State.NewCategoryNameEditor)
-		    .SubstateOf(State.CommandCatalogEditor)
-			.Permit(Trigger.ReturnToCatalogEditor, State.CommandCatalogEditor);
-
-			_machine.Configure(State.CommandOrders)
-			.SubstateOf(State.New)
-			.OnEntryFromAsync(Trigger.CommandOrdersStarted, NextStateMessageAsync)
-            .Permit(Trigger.WaitForDateFrom, State.FilterDateFrom)
-            .Permit(Trigger.WaitForDateTo, State.FilterDateTo)
-            .Permit(Trigger.WaitForOrderFilterId, State.FilterId);
-
-			_machine.Configure(State.FilterDateFrom)
-			.SubstateOf(State.CommandOrders)
-            .Permit(Trigger.BackToOrderFilter, State.CommandOrders);
-
-			_machine.Configure(State.FilterDateTo)
-			.SubstateOf(State.CommandOrders)
-            .Permit(Trigger.BackToOrderFilter, State.CommandOrders);
-
-			_machine.Configure(State.FilterId)
-			.SubstateOf(State.CommandOrders)
-            .Permit(Trigger.BackToOrderFilter, State.CommandOrders);
-
-			_machine.Configure(State.CommandBotOwner)
-			.SubstateOf(State.New)
-			.OnEntryFromAsync(Trigger.CommandBotOwnerStarted, NextStateMessageAsync)
-            .Permit(Trigger.SelectMenu, State.BotOwnerSelectMenu);
-
-			_machine.Configure(State.BotOwnerSelectMenu)
-			.SubstateOf(State.CommandBotOwner)
-			.OnEntryFromAsync(Trigger.SelectMenu, NextStateMessageAsync)
-            .Permit(Trigger.EnterLogin, State.BotOwnerEnterLogin)
-            .PermitReentry(Trigger.SelectMenu);
-
-			_machine.Configure(State.BotOwnerEnterLogin)
-			.SubstateOf(State.CommandBotOwner)
-            .Permit(Trigger.EnterPassword, State.BotOwnerEnterPassword)
-            .Permit(Trigger.SelectMenu, State.BotOwnerSelectMenu);
-
-			_machine.Configure(State.BotOwnerEnterPassword)
-			.SubstateOf(State.CommandBotOwner)
-            .Permit(Trigger.EnterAdminName, State.BotOwnerEnterAdminName)
-			.Permit(Trigger.SelectMenu, State.BotOwnerSelectMenu);
-
-            _machine.Configure(State.BotOwnerEnterAdminName)
-            .SubstateOf(State.CommandBotOwner)
-            .Permit(Trigger.SelectMenu, State.BotOwnerSelectMenu);
-
-            _machine.Configure(State.CommandLkk)
-            .SubstateOf(State.New)
-            .OnEntryFromAsync(Trigger.CommandLkkStarted, NextStateMessageAsync)
-            .Permit(Trigger.SuggestEditName, State.LkkEnterName)
-            .Permit(Trigger.SuggestEditPassword, State.LkkEnterOldPassword);
-
-            _machine.Configure(State.LkkEnterName)
-            .SubstateOf(State.CommandLkk)
-            .Permit(Trigger.BackToLkk, State.CommandLkk);
-
-            _machine.Configure(State.LkkEnterOldPassword)
-            .SubstateOf(State.CommandLkk)
-            .Permit(Trigger.EnterNewPassword, State.LkkEnterNewPassword);
-
-            _machine.Configure(State.LkkEnterNewPassword)
-            .SubstateOf(State.LkkEnterOldPassword)
-            .Permit(Trigger.SuggestConfirmNewAdminPassword, State.LkkConfirmNewPassword);
-
-            _machine.Configure(State.LkkConfirmNewPassword)
-            .SubstateOf(State.LkkEnterNewPassword)
-            .Permit(Trigger.BackToLkk, State.CommandLkk);
-
-            _machine.Configure(State.CommandAdministration)
-            .SubstateOf(State.New)
-			.OnEntryFromAsync(Trigger.CommandAdministrationStarted, NextStateMessageAsync);
-;
-		}
 
 		/// <summary>
 		/// сохранить состояние пользователя
@@ -259,7 +107,7 @@ namespace AdminTgBot.Infrastructure
         /// </summary>
         /// <param name="userState"></param>
         /// <returns></returns>
-        private async Task StateRecoveryAsync(ApplicationContext dataSource)
+        public async Task StateRecoveryAsync(ApplicationContext dataSource)
         {
             AdminState? adminState = await dataSource.AdminStates
                     .FirstOrDefaultAsync(us => us.UserId == ChatId);
@@ -282,13 +130,13 @@ namespace AdminTgBot.Infrastructure
             }
         }
 
-        private void RecoverHandlers(string data, ApplicationContext dataSource)
+        private void RecoverHandlers(string? data, ApplicationContext dataSource)
         {
             if (data.IsNotNullOrEmpty())
             {
                 try
                 {
-                    AdminConversations conversations = JsonConvert.DeserializeObject<AdminConversations>(data)!;
+                    AdminConversations conversations = JsonConvert.DeserializeObject<AdminConversations>(data!)!;
 
 					_handlers = conversations.GetHandlers(dataSource, this);
                 }
@@ -431,7 +279,7 @@ namespace AdminTgBot.Infrastructure
 		}
 
 		/// <summary>
-		/// обработка команды администирования бота
+		/// обработка команды администрирования бота
 		/// </summary>
 		/// <param name="message"></param>
 		/// <returns></returns>
@@ -498,7 +346,7 @@ namespace AdminTgBot.Infrastructure
             {
                 if (!IsOutOfQueue(_query))
                 {
-                    return false;
+                    throw new NotLastMessageException();
                 }
             }
 
@@ -554,7 +402,7 @@ namespace AdminTgBot.Infrastructure
         EnterProductDescription,
         EnterProductPrice,
         EnterProductPhoto,
-        ReturnToCalatog,
+        ReturnToCatalog,
 		CommandOrdersStarted,
 		WaitForDateFrom,
 		BackToOrderFilter,

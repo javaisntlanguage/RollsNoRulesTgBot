@@ -22,6 +22,7 @@ using MessageContracts;
 using Microsoft.EntityFrameworkCore;
 using Azure;
 using Telegram.Util.Core.Extensions;
+using System.Text.RegularExpressions;
 
 namespace AdminTgBot.Infrastructure.Conversations.Administration
 {
@@ -32,6 +33,7 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration
 		private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
 		private const int ADMINS_BY_PAGE = 5;
 		private const int GROUPS_BY_PAGE = 5;
+		private const int RIGHTS_BY_PAGE = 5;
 
 		public AdminsFilterModel AdminsFilter { get; set; }
 		public int AdminId { get; set; }
@@ -84,7 +86,7 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration
 						{
 							case Command.AdministrationRigths:
 								{
-									await ShowRigthsMenuAsync();
+									await ShowRightsMenuAsync();
 									return Trigger.Ignore;
 								}
 							case Command.AdministrationUsers:
@@ -128,10 +130,22 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration
 									await SwitchGroupForAdminAsync(groupId, page);
 									return Trigger.Ignore;
 								}
+							case Command.SwitchRightForAdmin:
+								{
+									Guid rightId = (Guid)data["R"]!;
+									int page = data["P"]!.Value<int>();
+									await SwitchRightForAdminAsync(rightId, page);
+									return Trigger.Ignore;
+								}
 							case Command.AdminGroupDetails:
 								{
 									Guid groupId = (Guid)data["G"]!;
 									await ShowAdminGroupDetailsAsync(groupId);
+									return Trigger.Ignore;
+								}
+							case Command.AdminPermissions:
+								{
+									await ShowAdminRightsAsync();
 									return Trigger.Ignore;
 								}
 						}
@@ -144,8 +158,71 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration
 
 		private async Task ShowAdminGroupDetailsAsync(Guid groupId)
 		{
-			IQueryable<RightsInGroup> rights = _dataSource.RightInGroups
-				.Where(rg => rg.GroupId == groupId);
+			var rights = _dataSource.RightInGroups
+				.Where(rg => rg.GroupId == groupId)
+				.Include(rg => rg.Group)
+				.Include(rg => rg.AdminRight)
+				.Select(rg => new
+				{
+					GroupName = rg.Group!.Name,
+					RigthName = rg.AdminRight!.Name
+				});
+
+			string text;
+
+			if (rights.Any())
+			{
+				string groupName = rights.First().GroupName;
+				string rightsInGroup = string.Join(", ", rights.Select(r => r.RigthName));
+				text = string.Format(AdministrationText.AdminGroupDetails, groupName, rightsInGroup);
+			}
+			else
+			{
+				text = AdministrationText.EmptyGroup;
+			}
+
+			InlineKeyboardMarkup markup = GetAdminGroupDetailsButtons(groupId);
+
+			await _stateManager.SendMessageAsync(text, replyMarkup: markup);
+		}
+
+		private InlineKeyboardMarkup GetAdminGroupDetailsButtons(Guid groupId)
+		{
+			InlineKeyboardButton button = new InlineKeyboardButton(AdministrationText.Back)
+			{
+				CallbackData = JsonConvert.SerializeObject(new
+				{
+					Cmd = Command.AdminPermissionGroups,
+				})
+			};
+
+			InlineKeyboardMarkup result = new InlineKeyboardMarkup(button);
+
+			return result;
+		}
+
+		private async Task SwitchRightForAdminAsync(Guid rightId, int page)
+		{
+			AdminRight? adminRight = await _dataSource.AdminRights
+					.FirstOrDefaultAsync(ag => ag.AdminId == AdminId && ag.RightId == rightId);
+
+			if (adminRight == null)
+			{
+				AdminRight adminRightNew = new AdminRight()
+				{
+					AdminId = AdminId,
+					RightId = rightId,
+				};
+
+				await _dataSource.AdminRights.AddAsync(adminRightNew);
+			}
+			else
+			{
+				_dataSource.AdminRights.Remove(adminRight);
+			}
+
+			await _dataSource.SaveChangesAsync();
+			await ShowAdminRightsAsync(page);
 		}
 
 		private async Task SwitchGroupForAdminAsync(Guid groupId, int page)
@@ -172,6 +249,26 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration
 			await ShowAdminPermissionGroupsAsync(page);
 		}
 
+		private async Task ShowAdminRightsAsync(int page = 1)
+		{
+			IQueryable<RightView> rights = _dataSource.Rights
+				.Skip((page - 1) * RIGHTS_BY_PAGE)
+				.Take(RIGHTS_BY_PAGE)
+				.Include(right => right.AdminRights)
+				.Select(right => new RightView
+				{
+					Id = right.RigthId,
+					Name = right.Name,
+					AdminHasRight = right.AdminRights!.Any(ag => ag.AdminId == AdminId),
+				}); ;
+
+			int rightsCount = _dataSource.Rights.Count();
+
+			InlineKeyboardMarkup markup = GetAdminRightsButtons(rights, rightsCount, page);
+
+			await _stateManager.SendMessageAsync(AdministrationText.AdminGroupManaging, replyMarkup: markup);
+		}
+
 		private async Task ShowAdminPermissionGroupsAsync(int page=1)
 		{
 			IQueryable<GroupView> groups = _dataSource.RightGroups
@@ -190,6 +287,70 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration
 			InlineKeyboardMarkup markup = GetAdminGroupsButtons(groups, groupsCount, page);
 
 			await _stateManager.SendMessageAsync(AdministrationText.AdminGroupManaging, replyMarkup: markup);
+		}
+
+		private InlineKeyboardMarkup GetAdminRightsButtons(IQueryable<RightView> rights, int rightsCount, int page)
+		{
+			List<InlineKeyboardButton[]> keyboard = new List<InlineKeyboardButton[]>();
+
+			if (rights.Any())
+			{
+				keyboard = rights
+					.AsEnumerable()
+					.Select(right =>
+					{
+						InlineKeyboardButton[] row = new InlineKeyboardButton[]
+						{
+								new InlineKeyboardButton(right.Name)
+								{
+									CallbackData = JsonConvert.SerializeObject(new
+									{
+										Cmd = Command.AdminGroupDetails,
+										Right = right.Id,
+									})
+								},
+
+						}
+						.Union([GetSwitchRightButton(right, page)])
+						.ToArray();
+
+						return row;
+					})
+					.ToList();
+
+				InlineKeyboardButton[] pagination = TelegramHelper.GetPagination(page, rightsCount, GROUPS_BY_PAGE, Command.MovePaginationAdminGorups);
+				keyboard.Add(pagination);
+			}
+			else
+			{
+				keyboard =
+					[
+						[
+							new(MessagesText.Empty)
+							{
+								CallbackData = JsonConvert.SerializeObject(new
+								{
+									Cmd = Command.Ignore,
+								})
+							}
+						]
+					];
+			}
+
+			keyboard.Add(
+			[
+				new InlineKeyboardButton(AdministrationText.Back)
+				{
+					CallbackData = JsonConvert.SerializeObject(new
+					{
+						Cmd = Command.BackToAdminManaging,
+						AdminId = AdminId
+					})
+				}
+			]);
+
+			InlineKeyboardMarkup result = new InlineKeyboardMarkup(keyboard);
+			return result;
 		}
 
 		private InlineKeyboardMarkup GetAdminGroupsButtons(IQueryable<GroupView> groupsView, int groupsCount, int page)
@@ -253,6 +414,24 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration
 			]);
 
 			InlineKeyboardMarkup result = new InlineKeyboardMarkup(keyboard); 
+			return result;
+		}
+
+		private InlineKeyboardButton GetSwitchRightButton(RightView rightView, int page)
+		{
+			string text = rightView.AdminHasRight ? AdministrationText.GroupTurnOff : AdministrationText.GroupTurnOn;
+			bool groupMode = !rightView.AdminHasRight;
+
+			InlineKeyboardButton result = new(text)
+			{
+				CallbackData = JsonConvert.SerializeObject(new
+				{
+					Cmd = Command.SwitchRightForAdmin,
+					R = rightView.Id,
+					P = page
+				})
+			};
+
 			return result;
 		}
 
@@ -476,12 +655,12 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration
 			return result;
 		}
 
-		private async Task ShowRigthsMenuAsync()
+		private async Task ShowRightsMenuAsync()
 		{
-			InlineKeyboardButton[][] buttons = GetRigthsMenuButtons();
+			InlineKeyboardButton[][] buttons = GetRightsMenuButtons();
 		}
 
-		private InlineKeyboardButton[][] GetRigthsMenuButtons()
+		private InlineKeyboardButton[][] GetRightsMenuButtons()
 		{
 			InlineKeyboardButton[][] result =
 			[

@@ -61,6 +61,7 @@ namespace AdminTgBot.Infrastructure.Models
 		AdminGroupDetails,
 		BackToAdminManaging,
 		MovePaginationAdminGorups,
-		SwitchGroupForAdmin
+		SwitchGroupForAdmin,
+		SwitchRightForAdmin
 	}
 }

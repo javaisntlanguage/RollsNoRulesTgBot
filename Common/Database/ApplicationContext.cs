@@ -51,10 +51,10 @@ namespace Database
 
         public async Task SetAdminState(long userId, int stateId, string data, int? lastMessageId)
         {
-            AdminState state = await AdminStates
-                .FirstOrDefaultAsync(adminState =>  adminState.UserId == userId);
+            AdminState? state = await AdminStates
+				.FirstOrDefaultAsync(adminState => adminState.UserId == userId);
 
-            if(state.IsNull())
+            if(state == null)
             {
                 AdminState newState = new AdminState()
                 {
@@ -77,10 +77,10 @@ namespace Database
         }
         public async Task UserStates_Set(long userId, int stateId, string data, int? lastMessageId)
         {
-            UserState state = await UserStates
+            UserState? state = await UserStates
                 .FirstOrDefaultAsync(state => state.UserId == userId);
 
-            if (state.IsNull())
+            if (state == null)
             {
                 UserState newState = new UserState()
                 {
@@ -171,15 +171,13 @@ namespace Database
 				.Union(AdminInGroups
 					.Include(ag => ag.RightInGroups)
 					.Where(ag => ag.AdminId == adminId)
-					.SelectMany(ag => ag.RightInGroups)
+					.SelectMany(ag => ag.RightInGroups!)
 					.Where(rg => rg.RightId == rightId)
 					.Select(rg => rg.RightId))
-				.Any(rigth => rigth == rightId))
+				.Any(right => right == rightId))
             {
                 return true;
             }
-
-
 
 			return false;
 		}

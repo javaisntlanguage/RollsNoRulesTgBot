@@ -36,7 +36,7 @@ namespace AdminTgBot.Infrastructure
 
 		public async Task<bool> ProcessUpdate(Update update)
 		{
-			long chatId = update.Message?.Chat.Id ?? update.CallbackQuery.Message.Chat.Id;
+			long chatId = update.Message?.Chat.Id ?? update.CallbackQuery!.Message!.Chat.Id;
 
 			if (Users.TryAdd(chatId, new()))
 			{
@@ -140,7 +140,7 @@ namespace AdminTgBot.Infrastructure
 		/// <summary>
 		///     Обработка команды не известной для бота
 		/// </summary>
-		/// <param name="message">Сообщение с командой </param>
+		/// <param name="query">Запрос с командой </param>
 		private async Task ProcessUnknownQueryAsync(CallbackQuery query)
 		{
 			string queryId = query.Id.ToString();

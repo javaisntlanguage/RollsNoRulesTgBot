@@ -23,6 +23,7 @@ namespace AdminTgBot.Infrastructure.Conversations.BotOwner
 	{
 		private ApplicationContext _dataSource;
 		private readonly AdminBotStateManager _stateManager;
+		private readonly AdminSettings _config;
 		private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
 		public AdminCredential? NewAdminCredential { get; set; }
@@ -31,12 +32,13 @@ namespace AdminTgBot.Infrastructure.Conversations.BotOwner
 		{
 			_stateManager = null!;
 			_dataSource = null!;
-
+			_config = null!;
 		}
 
-		public BotOwnerConversation(AdminBotStateManager statesManager)
+		public BotOwnerConversation(AdminBotStateManager statesManager, AdminSettings config)
 		{
 			_stateManager = statesManager;
+			_config = config;
 			_dataSource = null!;
 		}
 
@@ -48,11 +50,11 @@ namespace AdminTgBot.Infrastructure.Conversations.BotOwner
 			{
 				case State.CommandBotOwner:
 					{
-						/*if(message.Text == TelegramWorker.BotToken)
+						if(message.Text == _config.TelegramBotToken)
 						{
 							await _stateManager.SendMessageAsync(BotOwnerText.Welcome);
 							return Trigger.SelectMenu;
-						}*/
+						}
 						break;
 					}
 				case State.BotOwnerSelectMenu:

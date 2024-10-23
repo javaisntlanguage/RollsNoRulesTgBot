@@ -249,4 +249,7 @@
     <value>Наименование: {0}
 Описание: {1}</value>
   </data>
+  <data name="ShowRights" xml:space="preserve">
+    <value>Просмотр всех прав пользователей</value>
+  </data>
 </root>

@@ -75,6 +75,16 @@ namespace AdminTgBot.Infrastructure.Models
 		MovePaginationRightsInGroup,
 		SwitchRightForGroup,
 		RightOfGroupDetails,
-		AdminGroupRightDetails
+		AdminGroupRightDetails,
+		RightDetails,
+		MovePaginationRights,
+		ManageCatalog,
+		ManageSellLocation,
+		SellLocationDetails,
+		MovePaginationSellLocations,
+		BackToWelcome,
+		AddSellLocation,
+		BackToSellLocations,
+		RejectSellLocation
 	}
 }

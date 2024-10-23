@@ -232,10 +232,22 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration
 									await ShowGroupRightsAsync(page);
 									return Trigger.Ignore;
 								}
+							case Command.MovePaginationRights:
+								{
+									int page = data["P"]!.Value<int>();
+									await ShowRightsAsync(page);
+									return Trigger.Ignore;
+								}
 							case Command.AdminGroupRightDetails:
 								{
 									Guid rightId = (Guid)data["RightId"]!;
 									await ShowAdminGroupRightDetailsAsync(rightId);
+									return Trigger.Ignore;
+								}
+							case Command.RightDetails:
+								{
+									Guid rightId = (Guid)data["RightId"]!;
+									await ShowRightDetailsAsync(rightId);
 									return Trigger.Ignore;
 								}
 							case Command.RightOfGroupDetails:
@@ -244,6 +256,12 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration
 									await ShowGroupRightDetailsAsync(rightId);
 									return Trigger.Ignore;
 								}
+							case Command.AdministrationUserRights:
+								{
+									await ShowRightsAsync();
+									return Trigger.Ignore;
+								}
+
 						}
 						break;
 					}
@@ -276,6 +294,21 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration
 			return null;
 		}
 
+		private async Task ShowRightDetailsAsync(Guid rightId)
+		{
+			Right? right = await _dataSource.Rights.FirstOrDefaultAsync(r => r.RigthId == rightId);
+
+			if (!await CheckRightAsync(right, rightId))
+			{
+				return;
+			}
+
+			InlineKeyboardMarkup markup = GetRightDetailsButtons();
+			string text = string.Format(AdministrationText.RightDetails, right!.Name, right.Description);
+
+			await _stateManager.SendMessageAsync(text, markup);
+		}
+
 		private async Task ShowGroupRightDetailsAsync(Guid rightId)
 		{
 			Right? right = await _dataSource.Rights.FirstOrDefaultAsync(r => r.RigthId == rightId);
@@ -306,6 +339,19 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration
 			await _stateManager.SendMessageAsync(text, markup);
 		}
 
+		private InlineKeyboardMarkup GetRightDetailsButtons()
+		{
+			InlineKeyboardButton keyboard = new(AdministrationText.Back)
+			{
+				CallbackData = JsonConvert.SerializeObject(new
+				{
+					Cmd = Command.AdministrationUserRights,
+				})
+			};
+
+			InlineKeyboardMarkup result = new(keyboard);
+			return result;
+		}
 		private InlineKeyboardMarkup GetGroupRightDetailsButtons()
 		{
 			InlineKeyboardButton keyboard = new(AdministrationText.Back)
@@ -707,6 +753,18 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration
 			await _stateManager.SendMessageAsync(AdministrationText.GroupRightsManaging, markup: markup);
 		}
 
+		private async Task ShowRightsAsync(int page = 1)
+		{
+			IQueryable<Right> rights = _dataSource.Rights
+				.Skip((page - 1) * RIGHTS_BY_PAGE)
+				.Take(RIGHTS_BY_PAGE);
+
+			int rightsCount = _dataSource.Rights.Count();
+
+			InlineKeyboardMarkup markup = GetRightsButtons(rights, rightsCount, page);
+			await _stateManager.SendMessageAsync(AdministrationText.ShowRights, markup);
+		}
+
 		private async Task ShowAdminRightsAsync(int page = 1)
 		{
 			IQueryable<RightView> rights = _dataSource.Rights
@@ -718,7 +776,7 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration
 					Id = right.RigthId,
 					Name = right.Name,
 					AdminHasRight = right.AdminRights!.Any(ag => ag.AdminId == AdminId),
-				}); ;
+				});
 
 			int rightsCount = _dataSource.Rights.Count();
 
@@ -760,6 +818,68 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration
 			await _stateManager.SendMessageAsync(AdministrationText.AdminGroupManaging, markup: markup);
 		}
 
+		private InlineKeyboardMarkup GetRightsButtons(IQueryable<Right> rights, int rightsCount, int page)
+		{
+			List<InlineKeyboardButton[]> keyboard = new List<InlineKeyboardButton[]>();
+
+			if (rights.Any())
+			{
+				keyboard = rights
+					.AsEnumerable()
+					.Select(right =>
+					{
+						InlineKeyboardButton[] row = new InlineKeyboardButton[]
+						{
+								new InlineKeyboardButton(right.Name)
+								{
+									CallbackData = JsonConvert.SerializeObject(new
+									{
+										Cmd = Command.RightDetails,
+										RightId = right.RigthId,
+									})
+								},
+
+						}
+						.ToArray();
+
+						return row;
+					})
+					.ToList();
+
+				InlineKeyboardButton[] pagination = TelegramHelper.GetPagination(page, rightsCount, RIGHTS_BY_PAGE, Command.MovePaginationRights);
+				keyboard.Add(pagination);
+			}
+			else
+			{
+				keyboard =
+					[
+						[
+							new(MessagesText.Empty)
+							{
+								CallbackData = JsonConvert.SerializeObject(new
+								{
+									Cmd = Command.Ignore,
+								})
+							}
+						]
+					];
+			}
+
+			keyboard.Add(
+			[
+				new InlineKeyboardButton(AdministrationText.Back)
+				{
+					CallbackData = JsonConvert.SerializeObject(new
+					{
+						Cmd = Command.AdministrationRights,
+					})
+				}
+			]);
+
+			InlineKeyboardMarkup result = new InlineKeyboardMarkup(keyboard);
+			return result;
+		}
+
 		private InlineKeyboardMarkup GetAdminRightsButtons(IQueryable<RightView> rights, int rightsCount, int page)
 		{
 			List<InlineKeyboardButton[]> keyboard = new List<InlineKeyboardButton[]>();
@@ -789,7 +909,7 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration
 					})
 					.ToList();
 
-				InlineKeyboardButton[] pagination = TelegramHelper.GetPagination(page, rightsCount, GROUPS_BY_PAGE, Command.MovePaginationAdminRights);
+				InlineKeyboardButton[] pagination = TelegramHelper.GetPagination(page, rightsCount, RIGHTS_BY_PAGE, Command.MovePaginationAdminRights);
 				keyboard.Add(pagination);
 			}
 			else

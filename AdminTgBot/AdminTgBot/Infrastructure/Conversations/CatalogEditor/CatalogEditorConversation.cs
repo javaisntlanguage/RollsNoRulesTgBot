@@ -1,4 +1,5 @@
-﻿using AdminTgBot.Infrastructure.Conversations.CatalogEditor.Models;
+﻿using AdminTgBot.Infrastructure.Conversations.Administration;
+using AdminTgBot.Infrastructure.Conversations.CatalogEditor.Models;
 using AdminTgBot.Infrastructure.Models;
 using Database;
 using Database.Tables;
@@ -20,6 +21,7 @@ using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
+using Telegram.Util.Core;
 using Telegram.Util.Core.Extensions;
 using CategoryAttribute = AdminTgBot.Infrastructure.Conversations.CatalogEditor.Models.CategoryAttribute;
 
@@ -28,6 +30,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
     internal class CatalogEditorConversation : IConversation
     {
 		private const int CATEGORIES_BY_PAGE = 5;
+		private const int SELL_LOCATIONS_BY_PAGE = 5;
 
 		private ApplicationContext _dataSource;
         private readonly AdminBotStateManager _stateManager;
@@ -36,6 +39,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
         public string? AttributeValue { get; set; }
         public Product? NewProduct { get; set; }
         public Category? NewCategory { get; set; }
+        public SellLocation? NewSellLocation { get; set; }
         public int? CategoryId { get; set; }
 
         public CatalogEditorConversation()
@@ -59,7 +63,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
                     {
                         if (message.Text == MessagesText.CommandCatalogEditor)
                         {
-                            await ShowCategoriesAsync();
+                            await WelcomeAsync();
                         }
                         break;
                     }
@@ -108,6 +112,12 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
 					{
 						return await EditNewCategoryAsync(message, CategoryAttribute.Name);
 					}
+				case State.CatalogEditorSellLocationEnterName:
+					{
+						SellLocationEnterName(message.Text);
+                        await SellLocationSuggestConfirmAsync();
+                        return Trigger.Ignore;
+					}
 			}
 
             return null;
@@ -125,6 +135,32 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
                     {
                         switch (command)
                         {
+                            case Command.AddSellLocation:
+                                {
+									await AddSellLocationSuggestEnterNameAsync();
+									return Trigger.SellLocationEnterName;
+                                }
+                            case Command.BackToWelcome:
+                                {
+									await WelcomeAsync();
+									return Trigger.Ignore;
+                                }
+                            case Command.ManageCatalog:
+                                {
+									await ShowCategoriesAsync();
+									return Trigger.Ignore;
+                                }
+                            case Command.MovePaginationSellLocations:
+                                {
+									int page = data["P"]!.Value<int>();
+									await ShowSellLocationsAsync(page);
+									return Trigger.Ignore;
+                                }
+                            case Command.ManageSellLocation:
+                                {
+									await ShowSellLocationsAsync();
+									return Trigger.Ignore;
+                                }
                             case Command.MovePaginationCategories:
                                 {
                                     int page = data["Page"]!.Value<int>();
@@ -296,10 +332,227 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
 						}
                         break;
 					}
+				case State.CatalogEditorSellLocationEnterName:
+					{
+						switch (command)
+                        {
+							case Command.BackToSellLocations:
+								{
+                                    NewSellLocation = null;
+									await ShowSellLocationsAsync();
+									return Trigger.ReturnToCatalogEditor;
+								}
+                            case Command.AddSellLocation:
+                                {
+                                    await AddSellLocationAsync();
+									await ShowSellLocationsAsync();
+									return Trigger.ReturnToCatalogEditor;
+								}
+						}
+                        break;
+					}
 			}
 
             return null;
         }
+
+		private async Task AddSellLocationAsync()
+		{
+			if (NewSellLocation == null)
+            {
+                throw new Exception("NewSellLocation не существует при попытке добавления новой точки продаж");
+            }
+
+            await _dataSource.SellLocations.AddAsync(NewSellLocation);
+            await _dataSource.SaveChangesAsync();
+
+            await _stateManager.SendMessageAsync(CatalogEditorText.SellLocationAdded);
+		}
+
+		private async Task SellLocationSuggestConfirmAsync()
+		{
+			InlineKeyboardMarkup markup = GetSellLocationSuggestConfirmAsyncButtons();
+			await _stateManager.SendMessageAsync(CatalogEditorText.SellLocationSuggestConfirm, markup);
+		}
+
+		private InlineKeyboardMarkup GetSellLocationSuggestConfirmAsyncButtons()
+		{
+			InlineKeyboardButton[] keyboard =
+			[
+				new (MessagesText.Yes)
+				{
+					CallbackData = JsonConvert.SerializeObject(new
+					{
+						Cmd = Command.AddSellLocation,
+					})
+				},
+				new (MessagesText.No)
+				{
+					CallbackData = JsonConvert.SerializeObject(new
+					{
+						Cmd = Command.BackToSellLocations,
+					})
+				},
+			];
+
+			InlineKeyboardMarkup result = new(keyboard);
+			return result;
+		}
+
+		private void SellLocationEnterName(string? text)
+		{
+            _stateManager.CheckTextAndLength(text,
+                minLength: SellLocation.MIN_NAME_LENGTH,
+                maxLength: SellLocation.MAX_NAME_LENGTH);
+
+            NewSellLocation = new SellLocation()
+            {
+                Name = text!
+			};
+		}
+
+		private async Task AddSellLocationSuggestEnterNameAsync()
+		{
+            InlineKeyboardMarkup markup = GetAddSellLocationSuggestEnterNameButtons();
+
+			await _stateManager.SendMessageAsync(CatalogEditorText.SellLocationSuggestEnterName);
+		}
+
+		private InlineKeyboardMarkup GetAddSellLocationSuggestEnterNameButtons()
+		{
+            InlineKeyboardButton[] keyboard =
+            [
+                new (CatalogEditorText.Back)
+                {
+					CallbackData = JsonConvert.SerializeObject(new
+					{
+						Cmd = Command.BackToSellLocations,
+					})
+				}
+            ];
+
+            InlineKeyboardMarkup result = new(keyboard);
+            return result;
+		}
+
+		private async Task ShowSellLocationsAsync(int page=1)
+		{
+			IQueryable<SellLocation> sellLocations = _dataSource.SellLocations
+				.Skip((page - 1) * SELL_LOCATIONS_BY_PAGE)
+				.Take(SELL_LOCATIONS_BY_PAGE);
+
+			int sellLocationsCount = _dataSource.SellLocations.Count();
+
+			InlineKeyboardMarkup markup = GetSellLocationsButtons(sellLocations, sellLocationsCount, page);
+			await _stateManager.SendMessageAsync(AdministrationText.ShowRights, markup);
+		}
+
+		private InlineKeyboardMarkup GetSellLocationsButtons(IQueryable<SellLocation> sellLocations, int sellLocationsCount, int page)
+		{
+			List<InlineKeyboardButton[]> keyboard = new List<InlineKeyboardButton[]>();
+
+			if (sellLocations.Any())
+			{
+				keyboard = sellLocations
+					.AsEnumerable()
+					.Select(sellLocations =>
+					{
+						InlineKeyboardButton[] row = new InlineKeyboardButton[]
+						{
+								new InlineKeyboardButton(sellLocations.Name)
+								{
+									CallbackData = JsonConvert.SerializeObject(new
+									{
+										Cmd = Command.SellLocationDetails,
+										SellLocationId = sellLocations.Id,
+									})
+								},
+
+						}
+						.ToArray();
+
+						return row;
+					})
+					.ToList();
+
+				InlineKeyboardButton[] pagination = TelegramHelper.GetPagination(page, sellLocationsCount, SELL_LOCATIONS_BY_PAGE, Command.MovePaginationSellLocations);
+				keyboard.Add(pagination);
+			}
+			else
+			{
+				keyboard =
+					[
+						[
+							new(MessagesText.Empty)
+							{
+								CallbackData = JsonConvert.SerializeObject(new
+								{
+									Cmd = Command.Ignore,
+								})
+							}
+						]
+					];
+			}
+
+			keyboard.AddRange(
+            [
+			    [
+				    new InlineKeyboardButton(CatalogEditorText.AddSellLocation)
+				    {
+					    CallbackData = JsonConvert.SerializeObject(new
+					    {
+						    Cmd = Command.AddSellLocation,
+					    })
+				    }
+			    ],
+			    [
+				    new InlineKeyboardButton(CatalogEditorText.Back)
+				    {
+					    CallbackData = JsonConvert.SerializeObject(new
+					    {
+						    Cmd = Command.BackToWelcome,
+					    })
+				    }
+			    ],
+            ]);
+
+			InlineKeyboardMarkup result = new InlineKeyboardMarkup(keyboard);
+			return result;
+		}
+
+		private async Task WelcomeAsync()
+		{
+            InlineKeyboardMarkup markup = GetWelcomeButtons();
+            await _stateManager.SendMessageAsync(CatalogEditorText.Welcome, markup);
+		}
+
+		private InlineKeyboardMarkup GetWelcomeButtons()
+		{
+            InlineKeyboardButton[][] keyboard =
+            [
+                [
+                    new (CatalogEditorText.ManageCatalog)
+                    {
+						CallbackData = JsonConvert.SerializeObject(new
+					    {
+						    Cmd = Command.ManageCatalog,
+					    })
+					}
+                ],
+                [
+                    new (CatalogEditorText.ManageSellLocations)
+                    {
+						CallbackData = JsonConvert.SerializeObject(new
+					    {
+						    Cmd = Command.ManageSellLocation,
+					    })
+					}
+                ],
+            ];
+
+            InlineKeyboardMarkup result = new(keyboard);
+            return result;
+		}
 
 		private async Task AddCategoryAsync()
         {
@@ -339,7 +592,9 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
 
         private async Task<Trigger> EditNewCategoryAsync(Message message, CategoryAttribute attribute)
         {
-            Trigger? result = null;
+			_stateManager.CheckText(message.Text);
+
+			Trigger? result = null;
             string? nextAttributeText = null;
 
             if(NewCategory == null)
@@ -473,16 +728,16 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
                 new InlineKeyboardButton(CatalogEditorText.Add)
                 {
                     CallbackData = JsonConvert.SerializeObject(new
-                            {
-                                Cmd = Command.AddCategory,
-                            })
+                    {
+                        Cmd = Command.AddCategory,
+                    })
                 },
                 new InlineKeyboardButton(CatalogEditorText.Cancel)
                 {
                     CallbackData = JsonConvert.SerializeObject(new
-                            {
-                                Cmd = Command.BackToCategories,
-                            })
+                    {
+                        Cmd = Command.BackToCategories,
+                    })
                 }
             };
 
@@ -680,9 +935,11 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
             await _stateManager.SendMessageAsync(CatalogEditorText.Approve, markup: markup);
         }
 
-        private async Task EditPriceAsync(string text)
+        private async Task EditPriceAsync(string? text)
         {
-            if (!decimal.TryParse(text, out var _))
+			_stateManager.CheckText(text);
+
+			if (!decimal.TryParse(text, out var _))
             {
                 await _stateManager.SendMessageAsync(CatalogEditorText.WrongValue);
                 return;
@@ -696,15 +953,9 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
             await _stateManager.SendMessageAsync(CatalogEditorText.Approve, markup: markup);
         }
 
-        private async Task EditDescriptionAsync(string text)
+        private async Task EditDescriptionAsync(string? text)
         {
-            string error = CheckTextLength(text, 255);
-			if (error != null)
-            {
-                await _stateManager.SendMessageAsync(error);
-                return;
-            }
-
+			_stateManager.CheckTextAndLength(text, maxLength:255);
 
 			AttributeValue = text;
 
@@ -717,16 +968,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
 
         private async Task EditNameAsync(string? text)
         {
-            if(text == null || text.IsEmpty())
-            {
-                await _stateManager.SendMessageAsync(CatalogEditorText.TextRequired);
-                return;
-            }
-            else if (text.Length > 255)
-            {
-				await _stateManager.SendMessageAsync(CatalogEditorText.TextTooLong);
-				return;
-			}
+			_stateManager.CheckTextAndLength(text, 255);
 
 			AttributeValue = text;
 
@@ -739,16 +981,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
 
         private async Task EditCategoryNameAsync(string? text)
         {
-            if(text == null || text.IsEmpty())
-            {
-                await _stateManager.SendMessageAsync(CatalogEditorText.TextRequired);
-                return;
-            }
-            else if (text.Length > 32)
-            {
-				await _stateManager.SendMessageAsync(CatalogEditorText.TextTooLong);
-				return;
-			}
+			_stateManager.CheckTextAndLength(text, maxLength:32);
 
 			AttributeValue = text;
 
@@ -1495,16 +1728,27 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
 			IEnumerable<InlineKeyboardButton> pagination = GetCategoriesPaginationButtons(page, categories);
             result.Add(pagination);
 
-			result.Add(new InlineKeyboardButton[]
-            {
-                new InlineKeyboardButton(CatalogEditorText.AddCategory)
-                {
-					CallbackData = JsonConvert.SerializeObject(new
-					{
-						Cmd = Command.AddCategory,
-					})
-				}
-            });
+			result.AddRange(
+            [
+                [
+                    new InlineKeyboardButton(CatalogEditorText.AddCategory)
+                    {
+					    CallbackData = JsonConvert.SerializeObject(new
+					    {
+						    Cmd = Command.AddCategory,
+					    })
+				    }
+                ],
+                [
+                    new InlineKeyboardButton(CatalogEditorText.Back)
+                    {
+					    CallbackData = JsonConvert.SerializeObject(new
+					    {
+						    Cmd = Command.BackToWelcome,
+					    })
+				    }
+                ],
+            ]);
 
             return result;
 		}

@@ -55,6 +55,7 @@ namespace AdminTgBot.Infrastructure.Models
 			.Permit(Trigger.EnterProductPhoto, State.NewProductPhotoEditor)
 			.Permit(Trigger.EditCategoryName, State.CategoryNameEditor)
 			.Permit(Trigger.EnterCategoryName, State.NewCategoryNameEditor)
+			.Permit(Trigger.SellLocationEnterName, State.CatalogEditorSellLocationEnterName)
 			.OnEntryFromAsync(Trigger.CommandCatalogEditorStarted, messageHandler);
 
 			machine.Configure(State.ProductNameEditor)
@@ -91,6 +92,10 @@ namespace AdminTgBot.Infrastructure.Models
 			.Permit(Trigger.ReturnToCatalogEditor, State.CommandCatalogEditor);
 
 			machine.Configure(State.NewCategoryNameEditor)
+			.SubstateOf(State.CommandCatalogEditor)
+			.Permit(Trigger.ReturnToCatalogEditor, State.CommandCatalogEditor);
+
+			machine.Configure(State.CatalogEditorSellLocationEnterName)
 			.SubstateOf(State.CommandCatalogEditor)
 			.Permit(Trigger.ReturnToCatalogEditor, State.CommandCatalogEditor);
 

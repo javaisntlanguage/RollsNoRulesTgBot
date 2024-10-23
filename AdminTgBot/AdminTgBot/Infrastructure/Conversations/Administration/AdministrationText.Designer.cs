@@ -412,6 +412,15 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Просмотр всех прав пользователей.
+        /// </summary>
+        internal static string ShowRights {
+            get {
+                return ResourceManager.GetString("ShowRights", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Отдельные права.
         /// </summary>
         internal static string UserRights {

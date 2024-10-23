@@ -97,7 +97,7 @@ namespace AdminTgBot.Infrastructure {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Редактор товаров.
+        ///   Looks up a localized string similar to Товары и точки продаж.
         /// </summary>
         internal static string CommandCatalogEditor {
             get {

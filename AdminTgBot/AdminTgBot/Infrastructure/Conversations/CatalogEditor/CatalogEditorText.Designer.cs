@@ -88,6 +88,15 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Добавить точку продаж.
+        /// </summary>
+        internal static string AddSellLocation {
+            get {
+                return ResourceManager.GetString("AddSellLocation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Подтвердить?.
         /// </summary>
         internal static string Approve {
@@ -102,6 +111,15 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor {
         internal static string AttributeNoValue {
             get {
                 return ResourceManager.GetString("AttributeNoValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Вернуться в предыдущий раздел.
+        /// </summary>
+        internal static string Back {
+            get {
+                return ResourceManager.GetString("Back", resourceCulture);
             }
         }
         
@@ -254,6 +272,24 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Товары и категории.
+        /// </summary>
+        internal static string ManageCatalog {
+            get {
+                return ResourceManager.GetString("ManageCatalog", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Точки продаж.
+        /// </summary>
+        internal static string ManageSellLocations {
+            get {
+                return ResourceManager.GetString("ManageSellLocations", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Не забудьте изменить видимость категории. По умолчанию она отключена.
         /// </summary>
         internal static string NewCategoryRemind {
@@ -375,6 +411,33 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Новая точка продаж успешно добавлена.
+        /// </summary>
+        internal static string SellLocationAdded {
+            get {
+                return ResourceManager.GetString("SellLocationAdded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Создать новую точку продаж?.
+        /// </summary>
+        internal static string SellLocationSuggestConfirm {
+            get {
+                return ResourceManager.GetString("SellLocationSuggestConfirm", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Введите наименование новой торговой точки.
+        /// </summary>
+        internal static string SellLocationSuggestEnterName {
+            get {
+                return ResourceManager.GetString("SellLocationSuggestEnterName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Показать товары.
         /// </summary>
         internal static string ShowProducts {
@@ -416,6 +479,15 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor {
         internal static string VisibilityOn {
             get {
                 return ResourceManager.GetString("VisibilityOn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Добро пожаловать в раздел управления товарам и категориями. А также точками продаж.
+        /// </summary>
+        internal static string Welcome {
+            get {
+                return ResourceManager.GetString("Welcome", resourceCulture);
             }
         }
         

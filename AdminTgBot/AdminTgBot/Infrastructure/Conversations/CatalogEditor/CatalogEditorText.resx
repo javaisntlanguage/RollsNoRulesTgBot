@@ -126,11 +126,17 @@
   <data name="AddProduct" xml:space="preserve">
     <value>Добавить новый товар</value>
   </data>
+  <data name="AddSellLocation" xml:space="preserve">
+    <value>Добавить точку продаж</value>
+  </data>
   <data name="Approve" xml:space="preserve">
     <value>Подтвердить?</value>
   </data>
   <data name="AttributeNoValue" xml:space="preserve">
     <value>* Значение отсутствует *</value>
+  </data>
+  <data name="Back" xml:space="preserve">
+    <value>Вернуться в предыдущий раздел</value>
   </data>
   <data name="BackToCategories" xml:space="preserve">
     <value>Вернуться к категориям</value>
@@ -184,6 +190,12 @@
   <data name="LookPhoto" xml:space="preserve">
     <value>* Смотри фото *</value>
   </data>
+  <data name="ManageCatalog" xml:space="preserve">
+    <value>Товары и категории</value>
+  </data>
+  <data name="ManageSellLocations" xml:space="preserve">
+    <value>Точки продаж</value>
+  </data>
   <data name="NewCategoryRemind" xml:space="preserve">
     <value>Не забудьте изменить видимость категории. По умолчанию она отключена</value>
   </data>
@@ -227,6 +239,15 @@
   <data name="ReturnToProduct" xml:space="preserve">
     <value>Вернуться к товару</value>
   </data>
+  <data name="SellLocationAdded" xml:space="preserve">
+    <value>Новая точка продаж успешно добавлена</value>
+  </data>
+  <data name="SellLocationSuggestConfirm" xml:space="preserve">
+    <value>Создать новую точку продаж?</value>
+  </data>
+  <data name="SellLocationSuggestEnterName" xml:space="preserve">
+    <value>Введите наименование новой торговой точки</value>
+  </data>
   <data name="ShowProducts" xml:space="preserve">
     <value>Показать товары</value>
   </data>
@@ -241,6 +262,9 @@
   </data>
   <data name="VisibilityOn" xml:space="preserve">
     <value>Показать</value>
+  </data>
+  <data name="Welcome" xml:space="preserve">
+    <value>Добро пожаловать в раздел управления товарам и категориями. А также точками продаж</value>
   </data>
   <data name="WrongValue" xml:space="preserve">
     <value>Введите корректное значение</value>

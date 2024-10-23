@@ -427,6 +427,7 @@ namespace AdminTgBot.Infrastructure
 		BackToAdministration,
 		EnterRightGroupDescription,
 		BackToEnterRightGroupName,
+		SellLocationEnterName,
 	}
 
     public enum State
@@ -464,5 +465,6 @@ namespace AdminTgBot.Infrastructure
 		CommandAdministration,
 		AdministrationEnterRightGroupName,
 		AdministrationEnterRightGroupDescription,
+		CatalogEditorSellLocationEnterName,
 	}
 }

@@ -151,7 +151,7 @@
     <value>Выберите сотрудника</value>
   </data>
   <data name="UserRights" xml:space="preserve">
-    <value>Отдельные права пользователей</value>
+    <value>Отдельные права</value>
   </data>
   <data name="Users" xml:space="preserve">
     <value>Пользователи</value>
@@ -181,5 +181,72 @@
   </data>
   <data name="RightTurnOn" xml:space="preserve">
     <value>✅ Добавить</value>
+  </data>
+  <data name="RightsMenu" xml:space="preserve">
+    <value>Управление правами и группами прав</value>
+  </data>
+  <data name="GroupManaging" xml:space="preserve">
+    <value>Управление группами прав</value>
+  </data>
+  <data name="AddRightGroup" xml:space="preserve">
+    <value>Добавить группу прав</value>
+  </data>
+  <data name="EnterRightGroupName" xml:space="preserve">
+    <value>Введите имя группы прав</value>
+  </data>
+  <data name="BackFromAddRightGroupName" xml:space="preserve">
+    <value>Вернуться к списку групп</value>
+  </data>
+  <data name="EnterRightGroupDescription" xml:space="preserve">
+    <value>Введите описание группы</value>
+  </data>
+  <data name="BackToEnterRightGroupName" xml:space="preserve">
+    <value>Вернуться к вводу имени группы</value>
+  </data>
+  <data name="NewRightGroupLost" xml:space="preserve">
+    <value>Данные утеряны. Попробуйте заново добавить группу</value>
+  </data>
+  <data name="ApproveAddingRightGroup" xml:space="preserve">
+    <value>Добавить группу прав?</value>
+  </data>
+  <data name="RightGroupAdded" xml:space="preserve">
+    <value>Группа "{0}" успешно добавлена</value>
+  </data>
+  <data name="RightGroupLost" xml:space="preserve">
+    <value>Группа прав не найдена</value>
+  </data>
+  <data name="GroupRights" xml:space="preserve">
+    <value>Управление группой прав
+
+Наименование: {0}
+Описание: {1}</value>
+  </data>
+  <data name="DeleteGroup" xml:space="preserve">
+    <value>Удалить</value>
+  </data>
+  <data name="ManageGroupRights" xml:space="preserve">
+    <value>Управление правами группы</value>
+  </data>
+  <data name="RightGroupNotFound" xml:space="preserve">
+    <value>Группа прав с id "{0}" не найдена</value>
+  </data>
+  <data name="GroupDeleted" xml:space="preserve">
+    <value>Группа "{0}" удалена успешно</value>
+  </data>
+  <data name="DeleteGroupApprove" xml:space="preserve">
+    <value>Вы уверены? Все пользователи будут исключены из этой группы после удаления</value>
+  </data>
+  <data name="GroupRightsManaging" xml:space="preserve">
+    <value>Управление правами группы</value>
+  </data>
+  <data name="AdminRightsManaging" xml:space="preserve">
+    <value>Управление отдельными правами пользователя</value>
+  </data>
+  <data name="RightNotFound" xml:space="preserve">
+    <value>Права с id "{0}" не найдены</value>
+  </data>
+  <data name="RightDetails" xml:space="preserve">
+    <value>Наименование: {0}
+Описание: {1}</value>
   </data>
 </root>

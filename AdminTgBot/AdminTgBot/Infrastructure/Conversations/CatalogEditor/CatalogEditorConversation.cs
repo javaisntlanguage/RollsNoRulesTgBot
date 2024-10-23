@@ -372,7 +372,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
                 InlineKeyboardButton[] add = GetAddNewCategoryButton();
                 InlineKeyboardMarkup markup = new InlineKeyboardMarkup(add);
 
-                await _stateManager.SendMessageAsync(text, replyMarkup: markup);
+                await _stateManager.SendMessageAsync(text, markup: markup);
             }
             else
             {
@@ -455,7 +455,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
                 InlineKeyboardButton[] AddProduct = GetAddNewProductButton();
                 InlineKeyboardMarkup markup = new InlineKeyboardMarkup(AddProduct);
 
-                await _stateManager.SendMessageAsync(caption, parseMode: ParseMode.Html, replyMarkup: markup, photo: NewProduct.Photo);
+                await _stateManager.SendMessageAsync(caption, parseMode: ParseMode.Html, markup: markup, photo: NewProduct.Photo);
             }
             else
             {
@@ -516,7 +516,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
             InlineKeyboardButton[] back = GetBackCategoryButton();
             InlineKeyboardMarkup markup = new InlineKeyboardMarkup(back);
 
-            await _stateManager.SendMessageAsync(text, replyMarkup: markup);
+            await _stateManager.SendMessageAsync(text, markup: markup);
         }
 
         private async Task ChangeCategoryAttributeValueAsync(bool isVisible)
@@ -677,7 +677,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
             InlineKeyboardButton[] yesNo = GetYesNoChangeAttributeButtons(ProductAttribute.Photo);
             InlineKeyboardMarkup markup = new InlineKeyboardMarkup(yesNo);
 
-            await _stateManager.SendMessageAsync(CatalogEditorText.Approve, replyMarkup: markup);
+            await _stateManager.SendMessageAsync(CatalogEditorText.Approve, markup: markup);
         }
 
         private async Task EditPriceAsync(string text)
@@ -693,7 +693,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
             InlineKeyboardButton[] yesNo = GetYesNoChangeAttributeButtons(ProductAttribute.Price);
 			InlineKeyboardMarkup markup = new InlineKeyboardMarkup(yesNo);
 
-            await _stateManager.SendMessageAsync(CatalogEditorText.Approve, replyMarkup: markup);
+            await _stateManager.SendMessageAsync(CatalogEditorText.Approve, markup: markup);
         }
 
         private async Task EditDescriptionAsync(string text)
@@ -712,7 +712,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
 
             InlineKeyboardMarkup markup = new InlineKeyboardMarkup(yesNo);
 
-            await _stateManager.SendMessageAsync(CatalogEditorText.Approve, replyMarkup: markup);
+            await _stateManager.SendMessageAsync(CatalogEditorText.Approve, markup: markup);
         }
 
         private async Task EditNameAsync(string? text)
@@ -734,7 +734,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
 
             InlineKeyboardMarkup markup = new InlineKeyboardMarkup(yesNo);
 
-            await _stateManager.SendMessageAsync(CatalogEditorText.Approve, replyMarkup: markup);
+            await _stateManager.SendMessageAsync(CatalogEditorText.Approve, markup: markup);
         }
 
         private async Task EditCategoryNameAsync(string? text)
@@ -756,7 +756,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
 
             InlineKeyboardMarkup markup = new InlineKeyboardMarkup(yesNo);
 
-            await _stateManager.SendMessageAsync(CatalogEditorText.Approve, replyMarkup: markup);
+            await _stateManager.SendMessageAsync(CatalogEditorText.Approve, markup: markup);
         }
 
         private InlineKeyboardButton[] GetYesNoChangeAttributeButtons(ProductAttribute productAttribute)
@@ -834,7 +834,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
 
             InlineKeyboardMarkup markup = new InlineKeyboardMarkup(returnToAttributeMenu);
 
-            await _stateManager.SendMessageAsync(CatalogEditorText.EnterValue, replyMarkup: markup);
+            await _stateManager.SendMessageAsync(CatalogEditorText.EnterValue, markup: markup);
 
             return result;
         }
@@ -873,7 +873,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
 
             InlineKeyboardMarkup markup = new InlineKeyboardMarkup(returnToAttributeMenu);
 
-            await _stateManager.SendMessageAsync(CatalogEditorText.EnterValue, replyMarkup: markup);
+            await _stateManager.SendMessageAsync(CatalogEditorText.EnterValue, markup: markup);
 
             return result;
         }
@@ -895,7 +895,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
 				default:
 					{
 						ProductId = null;
-						throw new Exception($"SuggestEditCategoryAsync Незивестный тип аттрибута: CategoryAttribute={categoryAttribute.ToString()}");
+						throw new Exception($"SuggestEditCategoryAsync Неизвестный тип атрибута: CategoryAttribute={categoryAttribute.ToString()}");
 					}
 			}
 		}
@@ -928,7 +928,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
 				returnToCategory
 			});
 
-			await _stateManager.SendMessageAsync(text, parseMode: ParseMode.Html, replyMarkup: markup);
+			await _stateManager.SendMessageAsync(text, parseMode: ParseMode.Html, markup: markup);
 		}
 
 		private async Task SuggestEditCategoryNameAsync(int categoryId)
@@ -953,7 +953,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
 				returnToCategory
 			});
 
-			await _stateManager.SendMessageAsync(text, parseMode: ParseMode.Html, replyMarkup: markup);
+			await _stateManager.SendMessageAsync(text, parseMode: ParseMode.Html, markup: markup);
 		}
 
 		private async Task SuggestEditProductAsync(int productId, ProductAttribute productAttribute)
@@ -988,7 +988,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
                 default:
                     {
                         ProductId = null;
-                        throw new Exception($"SuggestEditProductAsync Незивестный тип аттрибута: ProductAttribute={productAttribute.ToString()}");
+                        throw new Exception($"SuggestEditProductAsync Неизвестный тип атрибута: ProductAttribute={productAttribute.ToString()}");
                     }
             }
         }
@@ -1017,11 +1017,11 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
             });
 
 
-            await _stateManager.SendMessageAsync(text, ParseMode.Html, markup);
+            await _stateManager.SendMessageAsync(text, markup, ParseMode.Html);
         }
         private async Task SuggestEditProductPhotoAsync(int productId)
         {
-            string attributeValue = _dataSource.Products.FirstOrDefault(product => product.Id == productId)?.Photo;
+            string? attributeValue = _dataSource.Products.FirstOrDefault(product => product.Id == productId)?.Photo;
 
             InlineKeyboardButton[] editAttribute = GetEditProductAttributeButton(productId, ProductAttribute.Photo);
             InlineKeyboardButton[] returnToProduct = GetReturnToProductButton(productId);
@@ -1040,12 +1040,12 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
                 returnToProduct
             });
 
-            await _stateManager.SendMessageAsync(text, ParseMode.Html, markup, photo: attributeValue);
+            await _stateManager.SendMessageAsync(text, markup, ParseMode.Html, photo: attributeValue);
         }
 
         private async Task SuggestEditProductPriceAsync(int productId)
         {
-            string attributeValue = _dataSource.Products.FirstOrDefault(product => product.Id == productId)?.Price.ToString();
+            string? attributeValue = _dataSource.Products.FirstOrDefault(product => product.Id == productId)?.Price.ToString();
 
             if (attributeValue.IsNullOrEmpty())
             {
@@ -1067,7 +1067,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
                 returnToProduct
             });
 
-            await _stateManager.SendMessageAsync(text, parseMode: ParseMode.Html, replyMarkup: markup);
+            await _stateManager.SendMessageAsync(text, parseMode: ParseMode.Html, markup: markup);
         }
 
         private async Task SuggestEditProductDescriptionAsync(int productId)
@@ -1094,7 +1094,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
                 returnToProduct
             });
 
-            await _stateManager.SendMessageAsync(text, parseMode: ParseMode.Html, replyMarkup: markup);
+            await _stateManager.SendMessageAsync(text, parseMode: ParseMode.Html, markup: markup);
         }
 
         private async Task SuggestEditProductNameAsync(int productId)
@@ -1121,7 +1121,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
                 returnToProduct
             });
 
-            await _stateManager.SendMessageAsync(text, parseMode: ParseMode.Html, replyMarkup: markup);
+            await _stateManager.SendMessageAsync(text, parseMode: ParseMode.Html, markup: markup);
         }
 
         private InlineKeyboardButton[] GetReturnToProductButton(int productId)
@@ -1319,7 +1319,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
 
             InlineKeyboardMarkup markup = new InlineKeyboardMarkup(keyboard);
 
-            await _stateManager.SendMessageAsync(text, ParseMode.Html, markup, photo: product?.Photo);
+            await _stateManager.SendMessageAsync(text, markup, ParseMode.Html, photo: product?.Photo);
         }
 
         /// <summary>
@@ -1418,7 +1418,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
 			List<IEnumerable<InlineKeyboardButton>> categoriesButtons = GetCategoriesButtons(categories, filteredCategories, page);
             InlineKeyboardMarkup markup = new InlineKeyboardMarkup(categoriesButtons);
 
-            await _stateManager.SendMessageAsync(CatalogEditorText.ChoosingCategory, replyMarkup: markup);
+            await _stateManager.SendMessageAsync(CatalogEditorText.ChoosingCategory, markup: markup);
         }
 
         private IEnumerable<InlineKeyboardButton> GetCategoriesPaginationButtons(int page, IEnumerable<Category> categories)
@@ -1532,7 +1532,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
             InlineKeyboardButton[][] actions = GetCategoryButtons(category);
             InlineKeyboardMarkup markup = new InlineKeyboardMarkup(actions);
 
-            await _stateManager.SendMessageAsync(text, replyMarkup: markup);
+            await _stateManager.SendMessageAsync(text, markup: markup);
         }
 
         /// <summary>

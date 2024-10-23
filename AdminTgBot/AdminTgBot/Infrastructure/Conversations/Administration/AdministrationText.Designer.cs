@@ -61,6 +61,15 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Добавить группу прав.
+        /// </summary>
+        internal static string AddRightGroup {
+            get {
+                return ResourceManager.GetString("AddRightGroup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0} ({1})
         ///
         ///Группы прав: {2}
@@ -111,11 +120,65 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Управление отдельными правами пользователя.
+        /// </summary>
+        internal static string AdminRightsManaging {
+            get {
+                return ResourceManager.GetString("AdminRightsManaging", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Добавить группу прав?.
+        /// </summary>
+        internal static string ApproveAddingRightGroup {
+            get {
+                return ResourceManager.GetString("ApproveAddingRightGroup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Вернуться в предыдущий раздел.
         /// </summary>
         internal static string Back {
             get {
                 return ResourceManager.GetString("Back", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Вернуться к списку групп.
+        /// </summary>
+        internal static string BackFromAddRightGroupName {
+            get {
+                return ResourceManager.GetString("BackFromAddRightGroupName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Вернуться к вводу имени группы.
+        /// </summary>
+        internal static string BackToEnterRightGroupName {
+            get {
+                return ResourceManager.GetString("BackToEnterRightGroupName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Удалить.
+        /// </summary>
+        internal static string DeleteGroup {
+            get {
+                return ResourceManager.GetString("DeleteGroup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Вы уверены? Все пользователи будут исключены из этой группы после удаления.
+        /// </summary>
+        internal static string DeleteGroupApprove {
+            get {
+                return ResourceManager.GetString("DeleteGroupApprove", resourceCulture);
             }
         }
         
@@ -138,6 +201,63 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Введите описание группы.
+        /// </summary>
+        internal static string EnterRightGroupDescription {
+            get {
+                return ResourceManager.GetString("EnterRightGroupDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Введите имя группы прав.
+        /// </summary>
+        internal static string EnterRightGroupName {
+            get {
+                return ResourceManager.GetString("EnterRightGroupName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Группа &quot;{0}&quot; удалена успешно.
+        /// </summary>
+        internal static string GroupDeleted {
+            get {
+                return ResourceManager.GetString("GroupDeleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Управление группами прав.
+        /// </summary>
+        internal static string GroupManaging {
+            get {
+                return ResourceManager.GetString("GroupManaging", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Управление группой прав
+        ///
+        ///Наименование: {0}
+        ///Описание: {1}.
+        /// </summary>
+        internal static string GroupRights {
+            get {
+                return ResourceManager.GetString("GroupRights", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Управление правами группы.
+        /// </summary>
+        internal static string GroupRightsManaging {
+            get {
+                return ResourceManager.GetString("GroupRightsManaging", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to ❌Исключить.
         /// </summary>
         internal static string GroupTurnOff {
@@ -152,6 +272,24 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration {
         internal static string GroupTurnOn {
             get {
                 return ResourceManager.GetString("GroupTurnOn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Управление правами группы.
+        /// </summary>
+        internal static string ManageGroupRights {
+            get {
+                return ResourceManager.GetString("ManageGroupRights", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Данные утеряны. Попробуйте заново добавить группу.
+        /// </summary>
+        internal static string NewRightGroupLost {
+            get {
+                return ResourceManager.GetString("NewRightGroupLost", resourceCulture);
             }
         }
         
@@ -174,6 +312,43 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Наименование: {0}
+        ///Описание: {1}.
+        /// </summary>
+        internal static string RightDetails {
+            get {
+                return ResourceManager.GetString("RightDetails", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Группа &quot;{0}&quot; успешно добавлена.
+        /// </summary>
+        internal static string RightGroupAdded {
+            get {
+                return ResourceManager.GetString("RightGroupAdded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Группа прав не найдена.
+        /// </summary>
+        internal static string RightGroupLost {
+            get {
+                return ResourceManager.GetString("RightGroupLost", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Группа прав с id &quot;{0}&quot; не найдена.
+        /// </summary>
+        internal static string RightGroupNotFound {
+            get {
+                return ResourceManager.GetString("RightGroupNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Группы прав.
         /// </summary>
         internal static string RightGroups {
@@ -183,11 +358,29 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Права с id &quot;{0}&quot; не найдены.
+        /// </summary>
+        internal static string RightNotFound {
+            get {
+                return ResourceManager.GetString("RightNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Права.
         /// </summary>
         internal static string Rights {
             get {
                 return ResourceManager.GetString("Rights", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Управление правами и группами прав.
+        /// </summary>
+        internal static string RightsMenu {
+            get {
+                return ResourceManager.GetString("RightsMenu", resourceCulture);
             }
         }
         
@@ -219,7 +412,7 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Отдельные права пользователей.
+        ///   Looks up a localized string similar to Отдельные права.
         /// </summary>
         internal static string UserRights {
             get {

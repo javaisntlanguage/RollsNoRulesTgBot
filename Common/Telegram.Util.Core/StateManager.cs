@@ -99,7 +99,7 @@ namespace Telegram.Util.Core
             return default;
         }
 
-        public async Task<Message> SendMessageAsync(string text, ParseMode? parseMode = null, IReplyMarkup? replyMarkup = null, string? photo = null, bool isOutOfQueue = false)
+        public async Task<Message> SendMessageAsync(string text, IReplyMarkup? markup = null, ParseMode? parseMode = null, string? photo = null, bool isOutOfQueue = false)
         {
             Message result = null!;
 
@@ -107,13 +107,13 @@ namespace Telegram.Util.Core
 
             if (photo.IsNullOrEmpty())
             {
-                result = await _botClient.SendTextMessageAsync(ChatId, text, parseMode: parseMode, replyMarkup: replyMarkup);
+                result = await _botClient.SendTextMessageAsync(ChatId, text, parseMode: parseMode, replyMarkup: markup);
             }
             else
             {
                 await using Stream stream = new MemoryStream(Convert.FromBase64String(photo!));
                 InputFileStream inputFile = InputFile.FromStream(stream);
-                result = await _botClient.SendPhotoAsync(ChatId, inputFile, caption: text, parseMode: parseMode, replyMarkup: replyMarkup);
+                result = await _botClient.SendPhotoAsync(ChatId, inputFile, caption: text, parseMode: parseMode, replyMarkup: markup);
             }
 
             if (!isOutOfQueue)

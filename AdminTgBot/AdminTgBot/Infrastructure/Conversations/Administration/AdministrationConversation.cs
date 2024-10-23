@@ -37,6 +37,8 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration
 
 		public AdminsFilterModel AdminsFilter { get; set; }
 		public int AdminId { get; set; }
+		public Guid GroupId { get; set; }
+		public RightGroup? NewRightGroup { get; set; }
 
 		public AdministrationConversation()
 		{
@@ -66,6 +68,17 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration
 						}
 						break;
 					}
+				case State.AdministrationEnterRightGroupName:
+					{
+						await EnterRightGroupNameAsync(message.Text);
+						return Trigger.EnterRightGroupDescription;
+					}
+				case State.AdministrationEnterRightGroupDescription:
+					{
+						await EnterRightGroupDescriptionAsync(message.Text);
+						await SuggestApproveAddingRightGroupAsync();
+						return Trigger.BackToAdministration;
+					}
 			}
 
 			return null;
@@ -84,7 +97,7 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration
 					{
 						switch(command)
 						{
-							case Command.AdministrationRigths:
+							case Command.AdministrationRights:
 								{
 									await ShowRightsMenuAsync();
 									return Trigger.Ignore;
@@ -117,24 +130,46 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration
 									await ShowAdminPermissionGroupsAsync();
 									return Trigger.Ignore;
 								}
-							case Command.MovePaginationAdminGorups:
+							case Command.MovePaginationAdminGroups:
 								{
 									int page = data["Page"]!.Value<int>();
 									await ShowAdminPermissionGroupsAsync(page);
+									return Trigger.Ignore;
+								}
+							case Command.MovePaginationRightGroups:
+								{
+									int page = data["Page"]!.Value<int>();
+									await ShowRightGroupsAsync(page);
+									return Trigger.Ignore;
+								}
+							case Command.MovePaginationAdminRights:
+								{
+									int page = data["Page"]!.Value<int>();
+									await ShowAdminRightsAsync(page);
 									return Trigger.Ignore;
 								}
 							case Command.SwitchGroupForAdmin:
 								{
 									Guid groupId = (Guid)data["G"]!;
 									int page = data["P"]!.Value<int>();
-									await SwitchGroupForAdminAsync(groupId, page);
+									await SwitchGroupForAdminAsync(groupId);
+									await ShowAdminPermissionGroupsAsync(page);
 									return Trigger.Ignore;
 								}
 							case Command.SwitchRightForAdmin:
 								{
 									Guid rightId = (Guid)data["R"]!;
 									int page = data["P"]!.Value<int>();
-									await SwitchRightForAdminAsync(rightId, page);
+									await SwitchRightForAdminAsync(rightId);
+									await ShowAdminRightsAsync(page);
+									return Trigger.Ignore;
+								}
+							case Command.SwitchRightForGroup:
+								{
+									Guid rightId = (Guid)data["R"]!;
+									int page = data["P"]!.Value<int>();
+									await SwitchRightForGroupAsync(rightId);
+									await ShowGroupRightsAsync(page);
 									return Trigger.Ignore;
 								}
 							case Command.AdminGroupDetails:
@@ -148,12 +183,385 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration
 									await ShowAdminRightsAsync();
 									return Trigger.Ignore;
 								}
+							case Command.AdministrationRightGroups:
+								{
+									await ShowRightGroupsAsync();
+									return Trigger.Ignore;
+								}
+							case Command.AddRightGroup:
+								{
+									await AddRightGroupNameAsync();
+									return Trigger.EnterRightGroupName;
+								}
+							case Command.AddRightGroupApprove:
+								{
+									await SaveRightGroupAsync();
+									await ShowRightGroupsAsync();
+									return Trigger.Ignore;
+								}
+							case Command.RightGroupDetails:
+								{
+									Guid groupId = (Guid)data["GroupId"]!;
+									await ShowRightGroupDetailsAsync(groupId);
+									return Trigger.Ignore;
+								}
+							case Command.BackToRightGroups:
+								{
+									await ShowRightGroupsAsync();
+									return Trigger.Ignore;
+								}
+							case Command.DeleteGroup:
+								{
+									await ShowDeleteGroupApproveAsync();
+									return Trigger.Ignore;
+								}
+							case Command.DeleteGroupApprove:
+								{
+									await DeleteGroupApproveAsync();
+									await ShowRightGroupsAsync();
+									return Trigger.Ignore;
+								}
+							case Command.ManageGroupRights:
+								{
+									await ShowGroupRightsAsync();
+									return Trigger.Ignore;
+								}
+							case Command.MovePaginationRightsInGroup:
+								{
+									int page = data["P"]!.Value<int>();
+									await ShowGroupRightsAsync(page);
+									return Trigger.Ignore;
+								}
+							case Command.AdminGroupRightDetails:
+								{
+									Guid rightId = (Guid)data["RightId"]!;
+									await ShowAdminGroupRightDetailsAsync(rightId);
+									return Trigger.Ignore;
+								}
+							case Command.RightOfGroupDetails:
+								{
+									Guid rightId = (Guid)data["RightId"]!;
+									await ShowGroupRightDetailsAsync(rightId);
+									return Trigger.Ignore;
+								}
+						}
+						break;
+					}
+				case State.AdministrationEnterRightGroupName:
+					{
+						switch (command)
+						{
+							case Command.BackToRightGroups:
+								{
+									await ShowRightGroupsAsync();
+									return Trigger.BackToAdministration;
+								}
+						}
+						break;
+					}
+				case State.AdministrationEnterRightGroupDescription:
+					{
+						switch (command)
+						{
+							case Command.AddRightGroup:
+								{
+									await AddRightGroupNameAsync();
+									return Trigger.BackToEnterRightGroupName;
+								}
 						}
 						break;
 					}
 			}
 
 			return null;
+		}
+
+		private async Task ShowGroupRightDetailsAsync(Guid rightId)
+		{
+			Right? right = await _dataSource.Rights.FirstOrDefaultAsync(r => r.RigthId == rightId);
+
+			if (!await CheckRightAsync(right, rightId))
+			{
+				return;
+			}
+
+			InlineKeyboardMarkup markup = GetGroupRightDetailsButtons();
+			string text = string.Format(AdministrationText.RightDetails, right!.Name, right.Description);
+			
+			await _stateManager.SendMessageAsync(text, markup);
+		}
+
+		private async Task ShowAdminGroupRightDetailsAsync(Guid rightId)
+		{
+			Right? right = await _dataSource.Rights.FirstOrDefaultAsync(r => r.RigthId == rightId);
+
+			if (!await CheckRightAsync(right, rightId))
+			{
+				return;
+			}
+
+			InlineKeyboardMarkup markup = GetAdminGroupRightDetailsButtons();
+			string text = string.Format(AdministrationText.RightDetails, right!.Name, right.Description);
+			
+			await _stateManager.SendMessageAsync(text, markup);
+		}
+
+		private InlineKeyboardMarkup GetGroupRightDetailsButtons()
+		{
+			InlineKeyboardButton keyboard = new(AdministrationText.Back)
+			{
+				CallbackData = JsonConvert.SerializeObject(new
+				{
+					Cmd = Command.ManageGroupRights,
+					GroupId = GroupId
+				})
+			}; 
+
+			InlineKeyboardMarkup result = new (keyboard);
+			return result;
+		}
+
+		private InlineKeyboardMarkup GetAdminGroupRightDetailsButtons()
+		{
+			InlineKeyboardButton keyboard = new(AdministrationText.Back)
+			{
+				CallbackData = JsonConvert.SerializeObject(new
+				{
+					Cmd = Command.AdminPermissions,
+				})
+			}; 
+
+			InlineKeyboardMarkup result = new (keyboard);
+			return result;
+		}
+
+		private async Task<bool> CheckRightAsync(Right? right, Guid rightId)
+		{
+			if (right == null)
+			{
+				string errorText = string.Format(AdministrationText.RightNotFound, rightId);
+
+				await _stateManager.SendMessageAsync(errorText, isOutOfQueue: true);
+				_logger.Error(errorText);
+
+				return false;
+			}
+
+			return true;
+		}
+
+		private async Task ShowDeleteGroupApproveAsync()
+		{
+			InlineKeyboardMarkup markup = GetDeleteGroupApproveButtons();
+			await _stateManager.SendMessageAsync(AdministrationText.DeleteGroupApprove, markup);
+		}
+
+		private InlineKeyboardMarkup GetDeleteGroupApproveButtons()
+		{
+			InlineKeyboardButton[] keyboard =
+			[
+				new (MessagesText.Yes)
+				{
+					CallbackData = JsonConvert.SerializeObject(new
+					{
+						Cmd = Command.DeleteGroupApprove,
+					})
+				},
+				new (MessagesText.No)
+				{
+					CallbackData = JsonConvert.SerializeObject(new
+					{
+						Cmd = Command.BackToRightGroups,
+					})
+				},
+			];
+
+			InlineKeyboardMarkup result = new (keyboard);
+			return result;
+		}
+
+		private async Task DeleteGroupApproveAsync()
+		{
+			RightGroup? group = await _dataSource.RightGroups.FirstOrDefaultAsync(g => g.Id == GroupId);
+
+			if (!await CheckRightGroupAsync(group, GroupId))
+			{
+				return;
+			}
+
+			_dataSource.RightGroups.Remove(group!);
+			await _dataSource.SaveChangesAsync();
+
+			string text = string.Format(AdministrationText.GroupDeleted, group!.Name);
+			await _stateManager.SendMessageAsync(text);
+		}
+
+		private async Task ShowRightGroupDetailsAsync(Guid groupId)
+		{
+			RightGroup? group = await _dataSource.RightGroups
+				.FirstOrDefaultAsync(g => g.Id == groupId);
+
+			if (!await CheckRightGroupAsync(group, groupId))
+			{
+				return;
+			}
+
+			GroupId = groupId;
+
+			InlineKeyboardMarkup markup = GetRightGroupDetailsButtons(groupId);
+			string text = string.Format(AdministrationText.GroupRights, group!.Name, group.Description);
+
+			await _stateManager.SendMessageAsync(text, markup: markup);
+		}
+
+		private InlineKeyboardMarkup GetRightGroupDetailsButtons(Guid groupId)
+		{
+			InlineKeyboardButton[][] keyboard =
+			[
+				[
+					new (AdministrationText.DeleteGroup)
+					{
+						CallbackData = JsonConvert.SerializeObject(new
+						{
+							Cmd = Command.DeleteGroup,
+						})
+					}
+				],
+				[
+					new (AdministrationText.ManageGroupRights)
+					{
+						CallbackData = JsonConvert.SerializeObject(new
+						{
+							GroupId = groupId,
+							Cmd = Command.ManageGroupRights,
+						})
+					}
+				],
+				[
+					new (AdministrationText.Back)
+					{
+						CallbackData = JsonConvert.SerializeObject(new
+						{
+							Cmd = Command.BackToRightGroups,
+						})
+					}
+				],
+			];
+
+			InlineKeyboardMarkup result = new (keyboard);
+			return result;
+		}
+
+		private async Task SaveRightGroupAsync()
+		{
+			if (NewRightGroup == null)
+			{
+				await _stateManager.SendMessageAsync(AdministrationText.NewRightGroupLost);
+				return;
+			}
+
+			await _dataSource.RightGroups.AddAsync(NewRightGroup);
+			await _dataSource.SaveChangesAsync();
+
+			string text = string.Format(AdministrationText.RightGroupAdded, NewRightGroup.Name);
+			await _stateManager.SendMessageAsync(text);
+		}
+
+		private async Task SuggestApproveAddingRightGroupAsync()
+		{
+			InlineKeyboardMarkup markup = GetApproveAddingRightGroupButtons();
+			await _stateManager.SendMessageAsync(AdministrationText.ApproveAddingRightGroup, markup: markup);
+		}
+
+		private InlineKeyboardMarkup GetApproveAddingRightGroupButtons()
+		{
+			InlineKeyboardButton[] buttons =
+			[
+				new(MessagesText.Yes)
+				{
+					CallbackData = JsonConvert.SerializeObject(new
+					{
+						Cmd = Command.AddRightGroupApprove,
+					})
+				},
+				new(MessagesText.No)
+				{
+					CallbackData = JsonConvert.SerializeObject(new
+					{
+						Cmd = Command.AdministrationRightGroups,
+					})
+				},
+			];
+
+			InlineKeyboardMarkup result = new(buttons);  
+			return result;
+		}
+
+		private async Task EnterRightGroupDescriptionAsync(string? text)
+		{
+			_stateManager.CheckTextAndLength(text, maxLength: RightGroup.DESCRIPTION_MAX_LENGTH);
+
+			if (NewRightGroup == null)
+			{
+				await _stateManager.SendMessageAsync(AdministrationText.NewRightGroupLost);
+				return;
+			}
+
+			NewRightGroup.Description = text!;
+		}
+
+		private async Task EnterRightGroupNameAsync(string? text)
+		{
+			_stateManager.CheckTextAndLength(text,
+				minLength: RightGroup.NAME_MIN_LENGTH,
+				maxLength: RightGroup.NAME_MAX_LENGTH);
+
+			NewRightGroup = new RightGroup()
+			{
+				Id = Guid.NewGuid(),
+				Name = text!
+			};
+
+			InlineKeyboardMarkup markup = GetEnterRightGroupNameButtons();
+
+			await _stateManager.SendMessageAsync(AdministrationText.EnterRightGroupDescription, markup: markup);
+		}
+
+		private InlineKeyboardMarkup GetEnterRightGroupNameButtons()
+		{
+			InlineKeyboardButton button = new(AdministrationText.BackToEnterRightGroupName)
+			{
+				CallbackData = JsonConvert.SerializeObject(new
+				{
+					Cmd = Command.AddRightGroup,
+				})
+			};
+
+			InlineKeyboardMarkup result = new(button);
+			return result;
+		}
+
+		private async Task AddRightGroupNameAsync()
+		{
+			NewRightGroup = null;
+
+			InlineKeyboardMarkup markup = GetAddRightGroupNameButtons();
+			await _stateManager.SendMessageAsync(AdministrationText.EnterRightGroupName, markup: markup);
+		}
+
+		private InlineKeyboardMarkup GetAddRightGroupNameButtons()
+		{
+			InlineKeyboardButton button = new InlineKeyboardButton(AdministrationText.BackFromAddRightGroupName)
+			{
+				CallbackData = JsonConvert.SerializeObject(new
+				{
+					Cmd = Command.BackToRightGroups,
+				})
+			};
+
+			InlineKeyboardMarkup result = new InlineKeyboardMarkup(button);
+
+			return result;
 		}
 
 		private async Task ShowAdminGroupDetailsAsync(Guid groupId)
@@ -183,7 +591,7 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration
 
 			InlineKeyboardMarkup markup = GetAdminGroupDetailsButtons(groupId);
 
-			await _stateManager.SendMessageAsync(text, replyMarkup: markup);
+			await _stateManager.SendMessageAsync(text, markup: markup);
 		}
 
 		private InlineKeyboardMarkup GetAdminGroupDetailsButtons(Guid groupId)
@@ -201,7 +609,30 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration
 			return result;
 		}
 
-		private async Task SwitchRightForAdminAsync(Guid rightId, int page)
+		private async Task SwitchRightForGroupAsync(Guid rightId)
+		{
+			RightsInGroup? rightInGroup = await _dataSource.RightInGroups
+					.FirstOrDefaultAsync(ag => ag.GroupId == GroupId && ag.RightId == rightId);
+
+			if (rightInGroup == null)
+			{
+				RightsInGroup rightInGroupNew = new RightsInGroup()
+				{
+					GroupId = GroupId,
+					RightId = rightId,
+				};
+
+				await _dataSource.RightInGroups.AddAsync(rightInGroupNew);
+			}
+			else
+			{
+				_dataSource.RightInGroups.Remove(rightInGroup);
+			}
+
+			await _dataSource.SaveChangesAsync();
+		}
+
+		private async Task SwitchRightForAdminAsync(Guid rightId)
 		{
 			AdminRight? adminRight = await _dataSource.AdminRights
 					.FirstOrDefaultAsync(ag => ag.AdminId == AdminId && ag.RightId == rightId);
@@ -222,10 +653,9 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration
 			}
 
 			await _dataSource.SaveChangesAsync();
-			await ShowAdminRightsAsync(page);
 		}
 
-		private async Task SwitchGroupForAdminAsync(Guid groupId, int page)
+		private async Task SwitchGroupForAdminAsync(Guid groupId)
 		{
 			AdminsInGroup? adminInGroup = await _dataSource.AdminInGroups
 					.FirstOrDefaultAsync(ag => ag.AdminId == AdminId && ag.GroupId == groupId);
@@ -246,7 +676,35 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration
 			}
 
 			await _dataSource.SaveChangesAsync();
-			await ShowAdminPermissionGroupsAsync(page);
+		}
+
+		private async Task ShowGroupRightsAsync(int page = 1)
+		{
+			RightGroup? group = await _dataSource.RightGroups
+				.FirstOrDefaultAsync(g => g.Id == GroupId);
+
+			if (group == null)
+			{
+				await _stateManager.SendMessageAsync(AdministrationText.RightGroupLost);
+				return;
+			}
+
+			IQueryable<RightGroupView> rightsInGroup = _dataSource.Rights
+				.Skip((page - 1) * RIGHTS_BY_PAGE)
+				.Take(RIGHTS_BY_PAGE)
+				.Include(r => r.RightInGroups)
+				.Select(r => new RightGroupView
+				{
+					Id = r.RigthId,
+					Name = r.Name,
+					IsInGroup = r.RightInGroups!.Any(rg => rg.GroupId == GroupId),
+				});
+
+			int rightsCount = _dataSource.Rights.Count();
+
+			InlineKeyboardMarkup markup = GetGroupRightsButtons(rightsInGroup, rightsCount, page);
+
+			await _stateManager.SendMessageAsync(AdministrationText.GroupRightsManaging, markup: markup);
 		}
 
 		private async Task ShowAdminRightsAsync(int page = 1)
@@ -266,16 +724,29 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration
 
 			InlineKeyboardMarkup markup = GetAdminRightsButtons(rights, rightsCount, page);
 
-			await _stateManager.SendMessageAsync(AdministrationText.AdminGroupManaging, replyMarkup: markup);
+			await _stateManager.SendMessageAsync(AdministrationText.AdminRightsManaging, markup: markup);
+		}
+
+		private async Task ShowRightGroupsAsync(int page = 1)
+		{
+			IQueryable<RightGroup> groups = _dataSource.RightGroups
+				.Skip((page - 1) * GROUPS_BY_PAGE)
+				.Take(GROUPS_BY_PAGE);
+
+			int groupsCount = _dataSource.RightGroups.Count();
+
+			InlineKeyboardMarkup markup = GetRightGroupsButtons(groups, groupsCount, page);
+
+			await _stateManager.SendMessageAsync(AdministrationText.GroupManaging, markup: markup);
 		}
 
 		private async Task ShowAdminPermissionGroupsAsync(int page=1)
 		{
-			IQueryable<GroupView> groups = _dataSource.RightGroups
+			IQueryable<AdminGroupView> groups = _dataSource.RightGroups
 				.Skip((page - 1) * GROUPS_BY_PAGE)
 				.Take(GROUPS_BY_PAGE)
 				.Include(g => g.AdminsInGroup)
-				.Select(g => new GroupView
+				.Select(g => new AdminGroupView
 				{
 					Id = g.Id,
 					Name = g.Name,
@@ -286,7 +757,7 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration
 
 			InlineKeyboardMarkup markup = GetAdminGroupsButtons(groups, groupsCount, page);
 
-			await _stateManager.SendMessageAsync(AdministrationText.AdminGroupManaging, replyMarkup: markup);
+			await _stateManager.SendMessageAsync(AdministrationText.AdminGroupManaging, markup: markup);
 		}
 
 		private InlineKeyboardMarkup GetAdminRightsButtons(IQueryable<RightView> rights, int rightsCount, int page)
@@ -305,8 +776,8 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration
 								{
 									CallbackData = JsonConvert.SerializeObject(new
 									{
-										Cmd = Command.AdminGroupDetails,
-										Right = right.Id,
+										Cmd = Command.AdminGroupRightDetails,
+										RightId = right.Id,
 									})
 								},
 
@@ -318,7 +789,7 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration
 					})
 					.ToList();
 
-				InlineKeyboardButton[] pagination = TelegramHelper.GetPagination(page, rightsCount, GROUPS_BY_PAGE, Command.MovePaginationAdminGorups);
+				InlineKeyboardButton[] pagination = TelegramHelper.GetPagination(page, rightsCount, GROUPS_BY_PAGE, Command.MovePaginationAdminRights);
 				keyboard.Add(pagination);
 			}
 			else
@@ -353,7 +824,143 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration
 			return result;
 		}
 
-		private InlineKeyboardMarkup GetAdminGroupsButtons(IQueryable<GroupView> groupsView, int groupsCount, int page)
+		private InlineKeyboardMarkup GetGroupRightsButtons(IQueryable<RightGroupView> rightsInGroup, int rightsCount, int page)
+		{
+			List<InlineKeyboardButton[]> keyboard = new List<InlineKeyboardButton[]>();
+
+			if (rightsInGroup.Any())
+			{
+				keyboard = rightsInGroup
+					.AsEnumerable()
+					.Select(right =>
+					{
+						InlineKeyboardButton[] row = new InlineKeyboardButton[]
+						{
+								new InlineKeyboardButton(right.Name)
+								{
+									CallbackData = JsonConvert.SerializeObject(new
+									{
+										Cmd = Command.RightOfGroupDetails,
+										RightId = right.Id,
+									})
+								},
+
+						}
+						.Union([GetSwitchRightInGroupButton(right, page)])
+						.ToArray();
+
+						return row;
+					})
+					.ToList();
+
+				InlineKeyboardButton[] pagination = TelegramHelper.GetPagination(page, rightsCount, GROUPS_BY_PAGE, Command.MovePaginationRightsInGroup);
+				keyboard.Add(pagination);
+			}
+			else
+			{
+				keyboard =
+					[
+						[
+							new(MessagesText.Empty)
+							{
+								CallbackData = JsonConvert.SerializeObject(new
+								{
+									Cmd = Command.Ignore,
+								})
+							}
+						]
+					];
+			}
+
+			keyboard.Add(
+			[
+				new InlineKeyboardButton(AdministrationText.Back)
+				{
+					CallbackData = JsonConvert.SerializeObject(new
+					{
+						Cmd = Command.RightGroupDetails,
+						GroupId = GroupId,
+					})
+				}
+			]);
+
+			InlineKeyboardMarkup result = new InlineKeyboardMarkup(keyboard);
+			return result;
+		}
+
+		private InlineKeyboardMarkup GetRightGroupsButtons(IQueryable<RightGroup> groups, int groupsCount, int page)
+		{
+			List<InlineKeyboardButton[]> keyboard = new List<InlineKeyboardButton[]>();
+
+			if (groups.Any())
+			{
+				keyboard = groups
+					.AsEnumerable()
+					.Select(group =>
+					{
+						InlineKeyboardButton[] row = new InlineKeyboardButton[]
+						{
+								new InlineKeyboardButton(group.Name)
+								{
+									CallbackData = JsonConvert.SerializeObject(new
+									{
+										Cmd = Command.RightGroupDetails,
+										GroupId = group.Id,
+									})
+								},
+						}
+						.ToArray();
+
+						return row;
+					})
+					.ToList();
+
+				InlineKeyboardButton[] pagination = TelegramHelper.GetPagination(page, groupsCount, GROUPS_BY_PAGE, Command.MovePaginationRightGroups);
+				keyboard.Add(pagination);
+			}
+			else
+			{
+				keyboard =
+					[
+						[
+							new(MessagesText.Empty)
+							{
+								CallbackData = JsonConvert.SerializeObject(new
+								{
+									Cmd = Command.Ignore,
+								})
+							}
+						]
+					];
+			}
+
+			keyboard.AddRange(
+			[
+				[
+					new InlineKeyboardButton(AdministrationText.AddRightGroup)
+					{
+						CallbackData = JsonConvert.SerializeObject(new
+						{
+							Cmd = Command.AddRightGroup,
+						})
+					}
+				],
+				[
+					new InlineKeyboardButton(AdministrationText.Back)
+					{
+						CallbackData = JsonConvert.SerializeObject(new
+						{
+							Cmd = Command.AdministrationRights,
+						})
+					}
+				]
+			]);
+
+			InlineKeyboardMarkup result = new InlineKeyboardMarkup(keyboard);
+			return result;
+		}
+
+		private InlineKeyboardMarkup GetAdminGroupsButtons(IQueryable<AdminGroupView> groupsView, int groupsCount, int page)
 		{
 			List<InlineKeyboardButton[]> keyboard = new List<InlineKeyboardButton[]>();
 
@@ -382,7 +989,7 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration
 					})
 					.ToList();
 
-				InlineKeyboardButton[] pagination = TelegramHelper.GetPagination(page, groupsCount, GROUPS_BY_PAGE, Command.MovePaginationAdminGorups);
+				InlineKeyboardButton[] pagination = TelegramHelper.GetPagination(page, groupsCount, GROUPS_BY_PAGE, Command.MovePaginationAdminGroups);
 				keyboard.Add(pagination);
 			}
 			else
@@ -435,7 +1042,24 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration
 			return result;
 		}
 
-		private InlineKeyboardButton GetSwitchGroupButton(GroupView groupView, int page)
+		private InlineKeyboardButton GetSwitchRightInGroupButton(RightGroupView rightGroupView, int page)
+		{
+			string text = rightGroupView.IsInGroup ? AdministrationText.GroupTurnOff : AdministrationText.GroupTurnOn;
+			bool groupMode = !rightGroupView.IsInGroup;
+
+			InlineKeyboardButton result = new(text)
+			{
+				CallbackData = JsonConvert.SerializeObject(new
+				{
+					Cmd = Command.SwitchRightForGroup,
+					R = rightGroupView.Id,
+					P = page
+				})
+			};
+
+			return result;
+		}
+		private InlineKeyboardButton GetSwitchGroupButton(AdminGroupView groupView, int page)
 		{
 			string text = groupView.IsInGroup ? AdministrationText.GroupTurnOff : AdministrationText.GroupTurnOn;
 			bool groupMode = !groupView.IsInGroup;
@@ -476,31 +1100,57 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration
 				rigthsCount);
 
 			InlineKeyboardMarkup markup = GetAdminDetailsButtons(adminId);
-			await _stateManager.SendMessageAsync(text, replyMarkup: markup);
+			await _stateManager.SendMessageAsync(text, markup: markup);
 		}
 
 		private InlineKeyboardMarkup GetAdminDetailsButtons(int adminId)
 		{
-			InlineKeyboardButton[] keyboard =
+			InlineKeyboardButton[][] keyboard =
 			[
-				new InlineKeyboardButton(AdministrationText.PermissionGroups)
-				{
-					CallbackData = JsonConvert.SerializeObject(new
+				[
+					new InlineKeyboardButton(AdministrationText.PermissionGroups)
 					{
-						Cmd = Command.AdminPermissionGroups,
-					})
-				},
-				new InlineKeyboardButton(AdministrationText.Permissions)
-				{
-					CallbackData = JsonConvert.SerializeObject(new
+						CallbackData = JsonConvert.SerializeObject(new
+						{
+							Cmd = Command.AdminPermissionGroups,
+						})
+					},
+					new InlineKeyboardButton(AdministrationText.Permissions)
 					{
-						Cmd = Command.AdminPermissions,
-					})
-				},
+						CallbackData = JsonConvert.SerializeObject(new
+						{
+							Cmd = Command.AdminPermissions,
+						})
+					},
+				],
+				[
+					new InlineKeyboardButton(AdministrationText.Back)
+					{
+						CallbackData = JsonConvert.SerializeObject(new
+						{
+							Cmd = Command.AdministrationUsers,
+						})
+					},
+				]
 			];
 
 			InlineKeyboardMarkup result = new InlineKeyboardMarkup(keyboard);
 			return result;
+		}
+
+		private async Task<bool> CheckRightGroupAsync(RightGroup? group, Guid groupId)
+		{
+			if (group == null)
+			{
+				string errorText = string.Format(AdministrationText.RightGroupNotFound, groupId);
+
+				await _stateManager.SendMessageAsync(errorText, isOutOfQueue: true);
+				_logger.Error(errorText);
+
+				return false;
+			}
+
+			return true;
 		}
 
 		private async Task<bool> CheckAdminAsync(AdminCredential? admin, int adminId)
@@ -545,7 +1195,7 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration
 						.ToList();
 
 			InlineKeyboardMarkup markup = GetAdminsSearchButtons(pageAdmins, page, admins);
-			await _stateManager.SendMessageAsync(AdministrationText.ShowAdminList, replyMarkup: markup);
+			await _stateManager.SendMessageAsync(AdministrationText.ShowAdminList, markup: markup);
 		}
 
 		private InlineKeyboardMarkup GetAdminsSearchButtons(IEnumerable<AdminCredential> pageAdmins, int page, IQueryable<AdminCredential> admins)
@@ -658,6 +1308,9 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration
 		private async Task ShowRightsMenuAsync()
 		{
 			InlineKeyboardButton[][] buttons = GetRightsMenuButtons();
+			InlineKeyboardMarkup markup = new InlineKeyboardMarkup(buttons);
+
+			await _stateManager.SendMessageAsync(AdministrationText.RightsMenu, markup: markup);
 		}
 
 		private InlineKeyboardButton[][] GetRightsMenuButtons()
@@ -679,7 +1332,16 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration
 							Cmd = Command.AdministrationUserRights,
 						})
 					},
-				]
+				],
+				[
+					new InlineKeyboardButton(AdministrationText.Back)
+					{
+						CallbackData = JsonConvert.SerializeObject(new
+						{
+							Cmd = Command.BackToAdministration,
+						})
+					},
+				],
 			];
 
 			return result;
@@ -688,7 +1350,7 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration
 		private async Task WelcomeAsync()
 		{
 			InlineKeyboardButton[][] buttons = GetMenuButtons();
-			await _stateManager.SendMessageAsync(AdministrationText.Welcome, replyMarkup: buttons.ToInlineMarkup());
+			await _stateManager.SendMessageAsync(AdministrationText.Welcome, markup: buttons.ToInlineMarkup());
 		}
 
 		private InlineKeyboardButton[][] GetMenuButtons()
@@ -700,7 +1362,7 @@ namespace AdminTgBot.Infrastructure.Conversations.Administration
 					{
 						CallbackData = JsonConvert.SerializeObject(new
 						{
-							Cmd = Command.AdministrationRigths,
+							Cmd = Command.AdministrationRights,
 						})
 					},
 					new InlineKeyboardButton(AdministrationText.Users)

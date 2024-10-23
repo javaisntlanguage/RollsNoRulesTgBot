@@ -423,6 +423,10 @@ namespace AdminTgBot.Infrastructure
 		EnterNewPassword,
 		SuggestConfirmNewAdminPassword,
 		CommandAdministrationStarted,
+		EnterRightGroupName,
+		BackToAdministration,
+		EnterRightGroupDescription,
+		BackToEnterRightGroupName,
 	}
 
     public enum State
@@ -458,5 +462,7 @@ namespace AdminTgBot.Infrastructure
 		LkkEnterNewPassword,
 		LkkConfirmNewPassword,
 		CommandAdministration,
+		AdministrationEnterRightGroupName,
+		AdministrationEnterRightGroupDescription,
 	}
 }

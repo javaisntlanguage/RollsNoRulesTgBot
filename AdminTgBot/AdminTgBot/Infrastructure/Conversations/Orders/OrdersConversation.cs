@@ -251,7 +251,7 @@ namespace AdminTgBot.Infrastructure.Conversations.Orders
 			};
 			InlineKeyboardMarkup markup = new InlineKeyboardMarkup(keyboard);
 
-			await _stateManager.SendMessageAsync(text, replyMarkup: markup);
+			await _stateManager.SendMessageAsync(text, markup: markup);
 		}
 
 		private InlineKeyboardButton[] GetIdResetButton()
@@ -382,7 +382,7 @@ namespace AdminTgBot.Infrastructure.Conversations.Orders
 			.ToArray();
 			InlineKeyboardMarkup markup = new InlineKeyboardMarkup(keyboard);
 
-			await _stateManager.SendMessageAsync(text, replyMarkup: markup);
+			await _stateManager.SendMessageAsync(text, markup: markup);
 		}
 
 		private InlineKeyboardButton[][] GetDateSuggestionButtons(bool mode)
@@ -506,7 +506,7 @@ namespace AdminTgBot.Infrastructure.Conversations.Orders
 			states.Add(back);
 			InlineKeyboardMarkup markup = new InlineKeyboardMarkup(states);
 
-			await _stateManager.SendMessageAsync(OrdersText.ChooseOrderState, replyMarkup: markup);
+			await _stateManager.SendMessageAsync(OrdersText.ChooseOrderState, markup: markup);
 		}
 
 		private InlineKeyboardButton[] GetbackToFilterButton()
@@ -600,7 +600,7 @@ namespace AdminTgBot.Infrastructure.Conversations.Orders
 
 			InlineKeyboardMarkup markup = new InlineKeyboardMarkup(keyboard);
 
-			await _stateManager.SendMessageAsync(text, replyMarkup: markup);
+			await _stateManager.SendMessageAsync(text, markup: markup);
 		}
 
 		private InlineKeyboardButton[] GetNewOrderActionButtons(int orderId)
@@ -644,7 +644,7 @@ namespace AdminTgBot.Infrastructure.Conversations.Orders
 			};
 			InlineKeyboardMarkup markup = new InlineKeyboardMarkup(keyboard);
 
-			await _stateManager.SendMessageAsync(OrdersText.ChooseFilter, replyMarkup: markup);
+			await _stateManager.SendMessageAsync(OrdersText.ChooseFilter, markup: markup);
 			
 		}
 
@@ -872,7 +872,7 @@ namespace AdminTgBot.Infrastructure.Conversations.Orders
 			orderButtons.Add(changefilter);
 
 			InlineKeyboardMarkup markup = new InlineKeyboardMarkup(orderButtons);
-			await _stateManager.SendMessageAsync(text, replyMarkup: markup);
+			await _stateManager.SendMessageAsync(text, markup: markup);
 		}
 
 		private List<InlineKeyboardButton> GetChangeFilterButton()

@@ -49,7 +49,7 @@ namespace AdminTgBot.Infrastructure.Models
 		EditName,
 		EditPassword,
 		ForgotPassword,
-		AdministrationRigths,
+		AdministrationRights,
 		AdministrationUsers,
 		AdministrationRightGroups,
 		AdministrationUserRights,
@@ -60,8 +60,21 @@ namespace AdminTgBot.Infrastructure.Models
 		AdminPermissions,
 		AdminGroupDetails,
 		BackToAdminManaging,
-		MovePaginationAdminGorups,
+		MovePaginationAdminGroups,
 		SwitchGroupForAdmin,
-		SwitchRightForAdmin
+		SwitchRightForAdmin,
+		MovePaginationAdminRights,
+		MovePaginationRightGroups,
+		RightGroupDetails,
+		AddRightGroup,
+		BackToRightGroups,
+		AddRightGroupApprove,
+		DeleteGroup,
+		ManageGroupRights,
+		DeleteGroupApprove,
+		MovePaginationRightsInGroup,
+		SwitchRightForGroup,
+		RightOfGroupDetails,
+		AdminGroupRightDetails
 	}
 }

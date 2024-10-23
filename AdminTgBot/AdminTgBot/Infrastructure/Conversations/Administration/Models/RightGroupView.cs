@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AdminTgBot.Infrastructure.Conversations.Administration.Models
 {
-	internal class GroupView
+	internal class RightGroupView
 	{
 		public Guid Id { get; set; }
 		public string Name { get; set; }

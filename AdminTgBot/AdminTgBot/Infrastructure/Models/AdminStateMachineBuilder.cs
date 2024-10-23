@@ -162,7 +162,18 @@ namespace AdminTgBot.Infrastructure.Models
 
 			machine.Configure(State.CommandAdministration)
 			.SubstateOf(State.New)
-			.OnEntryFromAsync(Trigger.CommandAdministrationStarted, messageHandler);
+			.OnEntryFromAsync(Trigger.CommandAdministrationStarted, messageHandler)
+			.Permit(Trigger.EnterRightGroupName, State.AdministrationEnterRightGroupName);
+
+			machine.Configure(State.AdministrationEnterRightGroupName)
+			.SubstateOf(State.CommandAdministration)
+			.Permit(Trigger.BackToAdministration, State.CommandAdministration)
+			.Permit(Trigger.EnterRightGroupDescription, State.AdministrationEnterRightGroupDescription);
+
+			machine.Configure(State.AdministrationEnterRightGroupDescription)
+			.SubstateOf(State.CommandAdministration)
+			.Permit(Trigger.BackToEnterRightGroupName, State.AdministrationEnterRightGroupName)
+			.Permit(Trigger.BackToAdministration, State.CommandAdministration);
 		}
 	}
 }

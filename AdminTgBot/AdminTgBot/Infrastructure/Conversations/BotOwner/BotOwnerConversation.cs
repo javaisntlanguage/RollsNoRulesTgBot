@@ -202,7 +202,7 @@ namespace AdminTgBot.Infrastructure.Conversations.BotOwner
 			InlineKeyboardButton[][] adminButtons = GetResetSuperAdminPasswordButtons(superAdmins);
 			InlineKeyboardMarkup markup = new(adminButtons);
 
-			await _stateManager.SendMessageAsync(BotOwnerText.ChooseSuperAdminForResetPassowrd, replyMarkup: markup);
+			await _stateManager.SendMessageAsync(BotOwnerText.ChooseSuperAdminForResetPassowrd, markup: markup);
 			return Trigger.Ignore;
 		}
 
@@ -282,13 +282,13 @@ namespace AdminTgBot.Infrastructure.Conversations.BotOwner
 			if (messageText!.Length < AdminCredential.NAME_MIN_LENGTH)
 			{
 				string errorText = string.Format(MessagesText.ValueTooShort, AdminCredential.NAME_MIN_LENGTH);
-				await _stateManager.SendMessageAsync(errorText, replyMarkup: markup);
+				await _stateManager.SendMessageAsync(errorText, markup: markup);
 			}
 
 			if (messageText!.Length > AdminCredential.NAME_MAX_LENGTH)
 			{
 				string errorText = string.Format(MessagesText.ValueTooLong, AdminCredential.NAME_MAX_LENGTH);
-				await _stateManager.SendMessageAsync(errorText, replyMarkup: markup);
+				await _stateManager.SendMessageAsync(errorText, markup: markup);
 			}
 
 			NewAdminCredential.Name = messageText;
@@ -297,7 +297,7 @@ namespace AdminTgBot.Infrastructure.Conversations.BotOwner
 			InlineKeyboardButton[] confirmButtons = GetConfirmAddSuperAdminButtons();
 			markup = new InlineKeyboardMarkup(confirmButtons);
 
-			await _stateManager.SendMessageAsync(text, replyMarkup: markup);
+			await _stateManager.SendMessageAsync(text, markup: markup);
 		}
 
 		private InlineKeyboardButton[] GetConfirmAddSuperAdminButtons()
@@ -337,13 +337,13 @@ namespace AdminTgBot.Infrastructure.Conversations.BotOwner
 			if (messageText!.Length < AdminCredential.PASSWORD_MIN_LENGTH)
 			{
 				string errorText = string.Format(MessagesText.ValueTooShort, AdminCredential.PASSWORD_MIN_LENGTH);
-				await _stateManager.SendMessageAsync(errorText, replyMarkup: markup);
+				await _stateManager.SendMessageAsync(errorText, markup: markup);
 				return Trigger.Ignore;
 			}
 
 			NewAdminCredential.SetPassword(messageText!);
 
-			await _stateManager.SendMessageAsync(BotOwnerText.EnterName, replyMarkup: markup);
+			await _stateManager.SendMessageAsync(BotOwnerText.EnterName, markup: markup);
 
 			return Trigger.EnterAdminName;
 		}
@@ -357,28 +357,28 @@ namespace AdminTgBot.Infrastructure.Conversations.BotOwner
 			if(messageText!.Length > AdminCredential.LOGIN_MAX_LENGTH)
 			{
 				string errorText = string.Format(MessagesText.ValueTooLong, AdminCredential.LOGIN_MAX_LENGTH);
-				await _stateManager.SendMessageAsync(errorText, replyMarkup: markup);
+				await _stateManager.SendMessageAsync(errorText, markup: markup);
 				return Trigger.Ignore;
 			}
 
 			if(messageText.Length < AdminCredential.LOGIN_MIN_LENGTH)
 			{
 				string errorText = string.Format(MessagesText.ValueTooShort, AdminCredential.LOGIN_MIN_LENGTH);
-				await _stateManager.SendMessageAsync(errorText, replyMarkup: markup);
+				await _stateManager.SendMessageAsync(errorText, markup: markup);
 				return Trigger.Ignore;
 			}
 
 			if(_dataSource.AdminCredentials.Any(ac => ac.Login == messageText))
 			{
 				string errorText = string.Format(BotOwnerText.LoginAlreadyExists, AdminCredential.LOGIN_MAX_LENGTH);
-				await _stateManager.SendMessageAsync(errorText, replyMarkup: markup);
+				await _stateManager.SendMessageAsync(errorText, markup: markup);
 				return Trigger.Ignore;
 			}
 
 			NewAdminCredential = new AdminCredential();
 			NewAdminCredential.Login = messageText;
 
-			await _stateManager.SendMessageAsync(BotOwnerText.EnterPassword, replyMarkup: markup);
+			await _stateManager.SendMessageAsync(BotOwnerText.EnterPassword, markup: markup);
 
 			return Trigger.EnterPassword;
 		}
@@ -395,7 +395,7 @@ namespace AdminTgBot.Infrastructure.Conversations.BotOwner
 			InlineKeyboardButton[][] actions = GetMenuActions();
 			InlineKeyboardMarkup markup = new InlineKeyboardMarkup(actions);
 
-			await _stateManager.SendMessageAsync(BotOwnerText.SelectMenu, replyMarkup: markup);
+			await _stateManager.SendMessageAsync(BotOwnerText.SelectMenu, markup: markup);
 
 			return Trigger.Ignore;
 		}
@@ -430,7 +430,7 @@ namespace AdminTgBot.Infrastructure.Conversations.BotOwner
 		private async Task<Trigger> SuggestCreateNewSuperAdminAsync()
 		{
 			InlineKeyboardMarkup? markup = GetBackToMenuActionsButton();
-			await _stateManager.SendMessageAsync(BotOwnerText.EnterLogin, replyMarkup: markup);
+			await _stateManager.SendMessageAsync(BotOwnerText.EnterLogin, markup: markup);
 			return Trigger.EnterLogin;
 		}
 

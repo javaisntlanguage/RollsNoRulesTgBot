@@ -10,12 +10,17 @@ namespace Database.Tables
 {
 	public class RightGroup
 	{
+		public const int NAME_MIN_LENGTH = 3;
+		public const int NAME_MAX_LENGTH = 64;
+		public const int DESCRIPTION_MAX_LENGTH = 255;
+
 		public Guid Id { get; set; }
 		[Required]
-		[MaxLength(64)]
+		[MaxLength(NAME_MAX_LENGTH)]
+		[MinLength(NAME_MIN_LENGTH)]
 		public string Name { get; set; }
 		[Required]
-		[MaxLength(255)]
+		[MaxLength(DESCRIPTION_MAX_LENGTH)]
 		public string Description { get; set; }
 
 		public List<RightsInGroup>? RightInGroups { get; set; }

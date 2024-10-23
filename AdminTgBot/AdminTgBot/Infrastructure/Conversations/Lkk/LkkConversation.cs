@@ -172,7 +172,7 @@ namespace AdminTgBot.Infrastructure.Conversations.Lkk
 				InlineKeyboardButton button = GetForgotPasswordButton();
 				InlineKeyboardMarkup markup = new InlineKeyboardMarkup(button);
 
-				await _stateManager.SendMessageAsync(LkkConversationText.WrongOldPassword, replyMarkup: markup);
+				await _stateManager.SendMessageAsync(LkkConversationText.WrongOldPassword, markup: markup);
 				return Trigger.Ignore;
 			}
 
@@ -186,7 +186,7 @@ namespace AdminTgBot.Infrastructure.Conversations.Lkk
 			InlineKeyboardButton button = GetForgotPasswordButton();
 			InlineKeyboardMarkup markup = new InlineKeyboardMarkup(button);
 
-			await _stateManager.SendMessageAsync(LkkConversationText.SuggestEditPassword, replyMarkup: markup);
+			await _stateManager.SendMessageAsync(LkkConversationText.SuggestEditPassword, markup: markup);
 		}
 
 		private InlineKeyboardButton GetForgotPasswordButton()
@@ -241,7 +241,7 @@ namespace AdminTgBot.Infrastructure.Conversations.Lkk
 			InlineKeyboardButton[][] buttons = GetWelcomeButtons();
 			InlineKeyboardMarkup markup = new InlineKeyboardMarkup(buttons);
 
-			await _stateManager.SendMessageAsync(text, replyMarkup: markup);
+			await _stateManager.SendMessageAsync(text, markup: markup);
 		}
 
 		private InlineKeyboardButton[][] GetWelcomeButtons()

@@ -34,9 +34,10 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
         private const int SMS_RESEND_TIMER = 30;
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
         private static readonly RabbitEventHandler _rabbitEventHandler = new RabbitEventHandler(_logger);
-        private static readonly int _smsLength = int.Parse(MenuTgBotMain.Configuration["SmsLength"]);
+        private readonly int _smsLength;
 		private readonly MenuBotStateManager _stateManager;
-        private ApplicationContext _dataSource;
+		private readonly MenuBotSettings _config;
+		private ApplicationContext _dataSource;
 
         public DeliveryType? OrderDeliveryType { get; set; }
         public Address OrderAddress { get; set; }
@@ -48,10 +49,12 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
 
         public OrdersConversation() { }
 
-        public OrdersConversation(MenuBotStateManager statesManager)
+        public OrdersConversation(MenuBotStateManager statesManager, MenuBotSettings config)
         {
             _stateManager = statesManager;
-        }
+			_config = config;
+            _smsLength = int.Parse(_config.SmsLength);
+		}
 
         public async Task<Trigger?> TryNextStepAsync(ApplicationContext dataSource, Message message)
         {
@@ -319,7 +322,7 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
                 currentOrder.Sum,
 				status);
 
-            await _stateManager.SendMessageAsync(text, replyMarkup: markup);
+            await _stateManager.SendMessageAsync(text, markup);
         }
 
         private InlineKeyboardMarkup GetOrdersMarkup(List<Order> orders, Order currentOrder)
@@ -469,7 +472,7 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
                 InlineKeyboardButton[] buttons = GetResendSmsButton();
                 InlineKeyboardMarkup markup = new InlineKeyboardMarkup(buttons);
 
-                await _stateManager.SendMessageAsync(OrdersText.ResendSmsAvaliable, replyMarkup: markup);
+                await _stateManager.SendMessageAsync(OrdersText.ResendSmsAvaliable, markup);
             }
         }
 
@@ -553,7 +556,7 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
 
             ReplyKeyboardMarkup markup = new ReplyKeyboardMarkup(requestPhoneButton);
 
-            await _stateManager.SendMessageAsync(OrdersText.EnterPhone, replyMarkup: markup);
+            await _stateManager.SendMessageAsync(OrdersText.EnterPhone, markup);
         }
 
         private async Task<Trigger> AddNewAddressAsync()
@@ -719,7 +722,7 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
             InlineKeyboardButton[] addAddress = GetAddAddressButtons();
             InlineKeyboardMarkup markup = new InlineKeyboardMarkup(addAddress);
 
-            await _stateManager.SendMessageAsync(text, replyMarkup: markup);
+            await _stateManager.SendMessageAsync(text, markup);
         }
 
         private InlineKeyboardButton[] GetAddAddressButtons()
@@ -796,7 +799,7 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
                 markup = new InlineKeyboardMarkup(skip);
             }
 
-            await _stateManager.SendMessageAsync(text, replyMarkup: markup);
+            await _stateManager.SendMessageAsync(text, markup);
         }
 
         private InlineKeyboardButton[] GetSkipAddressStageButton()
@@ -880,7 +883,7 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
             InlineKeyboardButton[][] locationButtons = GetSellLocationButtons(locations);
             InlineKeyboardMarkup markup = new InlineKeyboardMarkup(locationButtons);
 
-            await _stateManager.SendMessageAsync(OrdersText.SelectSellLocation, replyMarkup: markup);
+            await _stateManager.SendMessageAsync(OrdersText.SelectSellLocation, markup);
 
         }
 
@@ -945,7 +948,7 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
             List<InlineKeyboardButton[]> deliverySettings = GetDeliverySettingsButtons();
             InlineKeyboardMarkup markup = new InlineKeyboardMarkup(deliverySettings);
 
-            await _stateManager.SendMessageAsync(text, replyMarkup: markup);
+            await _stateManager.SendMessageAsync(text, markup);
         }
 
         private List<InlineKeyboardButton[]> GetDeliverySettingsButtons()
@@ -1017,7 +1020,7 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
             List<InlineKeyboardButton[]> addressesButtons = GetAddressesButtons(addresses);
             InlineKeyboardMarkup markup = new InlineKeyboardMarkup(addressesButtons);
 
-            await _stateManager.SendMessageAsync(text, replyMarkup: markup);
+            await _stateManager.SendMessageAsync(text, markup);
         }
 
         private List<InlineKeyboardButton[]> GetAddressesButtons(Address[] addresses)
@@ -1090,7 +1093,7 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
             IEnumerable<InlineKeyboardButton> deliveryTypes = GetDeliveryTypes();
             InlineKeyboardMarkup markup = new InlineKeyboardMarkup(deliveryTypes);
 
-            await _stateManager.SendMessageAsync(OrdersText.ChooseDeliveryType, replyMarkup: markup);
+            await _stateManager.SendMessageAsync(OrdersText.ChooseDeliveryType, markup);
         }
 
         private IEnumerable<InlineKeyboardButton> GetDeliveryTypes()

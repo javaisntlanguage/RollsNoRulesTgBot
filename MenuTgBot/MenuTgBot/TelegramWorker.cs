@@ -12,46 +12,51 @@ using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Util.Core.Exceptions;
+using Telegram.Util.Core.Interfaces;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using Update = Telegram.Bot.Types.Update;
 
 namespace MenuTgBot
 {
-    internal class TelegramWorker
-    {
-        private static readonly ReceiverOptions _receiverOptions = new ReceiverOptions
-        {
-            AllowedUpdates = new UpdateType[]
-            {
-                UpdateType.Message,
-                UpdateType.CallbackQuery
-            },
-            ThrowPendingUpdates = true,
-        };
-        private readonly Logger _logger;
-        private readonly CancellationTokenSource _cancellationTokenSource;
-        private readonly ContextFactory _contextFactory;
-        private readonly MenuBotCommandsManager _commandsManager;
-        private readonly ThreadsManager _threadsManager;
+    internal class TelegramWorker : ITelegramWorker
+	{
+		private static readonly ReceiverOptions _receiverOptions;
+		private readonly ILogger _logger;
+		private readonly IThreadsManager _threadsManager;
+		private readonly ITelegramBotClient _telegramClient;
 
-        public TelegramWorker(TelegramBotClient telegramClient, string connectionString, Logger logger, int timeout, CancellationTokenSource cancellationTokenSource)
+        static TelegramWorker()
         {
-            TelegramClient = telegramClient;
-            _logger = logger;
-            _cancellationTokenSource = cancellationTokenSource;
-            _contextFactory = new ContextFactory(connectionString);
-            _commandsManager = new MenuBotCommandsManager(TelegramClient, _contextFactory);
-            _threadsManager = new ThreadsManager(TelegramClient, _commandsManager, timeout);
-        }
+			_receiverOptions = new ReceiverOptions
+			{
+				AllowedUpdates = new UpdateType[]
+	            {
+		            UpdateType.Message,
+		            UpdateType.CallbackQuery
+	            },
+				ThrowPendingUpdates = true,
+			};
+		}
 
-        public TelegramBotClient TelegramClient { get; }
-        
-        public void Start()
-        {
-            TelegramClient.StartReceiving(UpdateHandler, ErrorHandler, _receiverOptions, _cancellationTokenSource.Token);
-        }
+		public TelegramWorker(
+			ITelegramBotClient telegramBotClient,
+			ILogger logger,
+			IThreadsManager threadsManager)
+		{
+			_telegramClient = telegramBotClient;
+			_logger = logger;
+			_threadsManager = threadsManager;
 
-        private void UpdateHandler(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
+		}
+
+		public TelegramBotClient TelegramClient { get; }
+
+		public void Start()
+		{
+			_telegramClient.StartReceiving(UpdateHandler, ErrorHandler, _receiverOptions);
+		}
+
+		private void UpdateHandler(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
             Task.Run(() => ProcessUpdateAsync(update));
         }

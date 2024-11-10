@@ -10,6 +10,9 @@ namespace Telegram.Util.Core.Interfaces
 {
     public interface IStateMachineBuilder<TState, TTrigger>
     {
-        StateMachine<TState, TTrigger> Build(Func<TState> stateAccessor, Action<TState> stateMutator, Func<Task> messageHandler);
+        StateMachine<TState, TTrigger> Build(Func<TState> stateAccessor,
+            Action<TState> stateMutator,
+            Func<Task> messageHandler, 
+            Func<Task> queryHandler);
     }
 }

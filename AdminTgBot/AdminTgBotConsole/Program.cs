@@ -14,14 +14,14 @@ if(EF.IsDesignTime)
     return;
 }
 
-IocBuilder iocbuilder = new();
+IocBuilder iocBuilder = new();
 string basePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
 
-IConfigurationRoot config = iocbuilder
+IConfigurationRoot config = iocBuilder
     .CreateConfigurationBuilder(basePath, "appsettings.json")
     .Build();
 
-ServiceProvider iocContainer = iocbuilder
+ServiceProvider iocContainer = iocBuilder
     .CreateIocContainer()
     .UseStartup<Startup>(config)
     .BuildServiceProvider();

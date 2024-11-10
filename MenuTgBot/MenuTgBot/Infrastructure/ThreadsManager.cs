@@ -1,4 +1,6 @@
-﻿using NLog;
+﻿using MenuTgBot.Infrastructure.Models;
+using Microsoft.Extensions.Options;
+using NLog;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -10,22 +12,26 @@ using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Util.Core.Exceptions;
+using Telegram.Util.Core.Interfaces;
+using Telegram.Util.Core.Models;
 
 namespace MenuTgBot.Infrastructure
 {
-    internal class ThreadsManager
-    {
+    internal class ThreadsManager : IThreadsManager
+	{
         private static readonly ConcurrentDictionary<long, object> Users = new ConcurrentDictionary<long, object>();
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
-        private readonly TelegramBotClient _telegramClient;
-        private readonly MenuBotCommandsManager _commandsManager;
-        private readonly int _messageTimeout;
+        private readonly ITelegramBotClient _telegramClient;
+        private readonly ICommandsManager _commandsManager;
+        private readonly MenuBotSettings _config;
 
-        public ThreadsManager(TelegramBotClient telegramClient, MenuBotCommandsManager commandsManager, int timeout) 
+        public ThreadsManager(ITelegramBotClient telegramClient,
+            ICommandsManager commandsManager,
+			IOptions<MenuBotSettings> options) 
         {
             _telegramClient = telegramClient;
             _commandsManager = commandsManager;
-            _messageTimeout = timeout;
+            _config = options.Value;
         }
 
         public async Task<bool> ProcessUpdate(Update update)
@@ -55,7 +61,7 @@ namespace MenuTgBot.Infrastructure
 
         private void SetMessageTimeout(long chatId)
         {
-            Thread.Sleep(_messageTimeout * 1000);
+            Thread.Sleep(_config.MessageTimeoutSec * 1000);
             Users.TryRemove(chatId, out _);
         }
 

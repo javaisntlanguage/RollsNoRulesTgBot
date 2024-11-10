@@ -17,44 +17,46 @@ namespace MenuTgBot.Infrastructure.Models
 {
     internal class UserConversations
     {
+        public StartConversation Start { get; set; }
+        public CatalogConversation Catalog { get; set; }
         public CartConversation Cart { get; set; }
         public OrdersConversation Orders { get; set; }
 
-        public Dictionary<string, IConversation> GetHandlers(MenuBotStateManager statesManager)
+        public Dictionary<string, IConversation> GetHandlers(MenuBotStateManager stateManager, MenuBotSettings config)
         {
-            Dictionary<string, IConversation> result = new Dictionary<string, IConversation>
-            {
-                { nameof(StartConversation), new StartConversation(statesManager) },
-                { nameof(CatalogConversation), new CatalogConversation(statesManager) },
-            };
+			Dictionary<string, IConversation> result = new Dictionary<string, IConversation>();
 
-            CartConversation cartConversation = new CartConversation(statesManager);
-            
-            if (Cart.IsNotNull())
-            {
-                SetPublicProperties(Cart, cartConversation);
-            }
-
-            result.Add(nameof(CartConversation), cartConversation);
-
-            OrdersConversation ordersConversation = new OrdersConversation(statesManager);
-
-            if(Orders.IsNotNull())
-            {
-                SetPublicProperties(Orders, ordersConversation);
-            }
-
-            result.Add(nameof(OrdersConversation), ordersConversation);             
+			AddToHandlers(stateManager, result, Start);
+			AddToHandlers(stateManager, result, Catalog);
+			AddToHandlers(stateManager, result, Cart);
+			AddToHandlers(stateManager, result, Orders, [config]);        
 
             return result;
         }
 
-        private void SetPublicProperties<T>(T source, T target) where T : class, new()
-        {
-            typeof(T)
-                .GetProperties(BindingFlags.Instance | BindingFlags.Public)
-                .ForEach(p => 
-                p.SetValue(target, p.GetValue(source)));
-        }
-    }
+		private void AddToHandlers<T>(MenuBotStateManager stateManager, Dictionary<string, IConversation> result, T source, List<object>? sourceParameters = null) where T : class, IConversation, new()
+		{
+			Type type = typeof(T);
+
+			sourceParameters ??= new List<object>();
+			sourceParameters.Insert(0, stateManager);
+
+			T conversation = (T)Activator.CreateInstance(type, sourceParameters.ToArray())!;
+
+			if (source.IsNotNull())
+			{
+				SetPublicProperties(source, conversation);
+			}
+
+			result.Add(type.Name!, conversation);
+		}
+
+		private void SetPublicProperties<T>(T source, T target) where T : class, new()
+		{
+			typeof(T)
+				.GetProperties(BindingFlags.Instance | BindingFlags.Public)
+				.ForEach(p =>
+				p.SetValue(target, p.GetValue(source)));
+		}
+	}
 }

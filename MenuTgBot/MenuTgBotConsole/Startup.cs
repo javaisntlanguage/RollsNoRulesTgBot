@@ -1,8 +1,6 @@
-﻿using AdminTgBot;
-using AdminTgBot.Infrastructure.Extensions;
-using AdminTgBot.Infrastructure.Models;
-using AdminTgBotConsole.Models;
-using DependencyInjection.Inferfaces;
+﻿using DependencyInjection.Inferfaces;
+using MenuTgBot.Infrastructure.Extensions;
+using MenuTgBotConsole.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NLog;
@@ -12,9 +10,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AdminTgBotConsole
+namespace MenuTgBotConsole
 {
-    internal class Startup
+	internal class Startup
 	{
 		public Startup(IConfiguration configuration)
 		{

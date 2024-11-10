@@ -1,6 +1,13 @@
-﻿using MenuTgBot;
+﻿using DependencyInjection;
+using DependencyInjection.Inferfaces;
+using DependencyInjection.Extensions;
+using MenuTgBot;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using NLog.Fluent;
+using System.Reflection;
+using MenuTgBotConsole;
 
 // чтобы при обновлении бд не запускалась программа
 if (EF.IsDesignTime)
@@ -8,13 +15,19 @@ if (EF.IsDesignTime)
     return;
 }
 
-IConfiguration Configuration = new ConfigurationBuilder()
-   .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-   .AddEnvironmentVariables()
-   .AddCommandLine(args)
-   .Build();
+IocBuilder iocBuilder = new();
+string basePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
 
-MenuTgBotMain telegram = new MenuTgBotMain(Configuration);
-telegram.Start();
+IConfigurationRoot config = iocBuilder
+	.CreateConfigurationBuilder(basePath, "appsettings.json")
+	.Build();
+
+ServiceProvider iocContainer = iocBuilder
+	.CreateIocContainer()
+	.UseStartup<Startup>(config)
+	.BuildServiceProvider();
+
+IApplicationRunner runner = iocContainer.GetRequiredService<IApplicationRunner>();
+runner.Run();
 
 await Task.Delay(-1);

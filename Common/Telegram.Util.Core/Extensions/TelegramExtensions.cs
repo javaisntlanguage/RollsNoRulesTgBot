@@ -10,9 +10,8 @@ using static System.Net.Mime.MediaTypeNames;
 
 namespace Telegram.Util.Core.Extensions
 {
-    public static class TelegramExstension
+    public static class TelegramExtensions
     {
-        public const string PRICE_FORMAT = "0.## ₽";
         public static string GetPhotoFileId(this Message message)
         {
             if (message.Photo != null)

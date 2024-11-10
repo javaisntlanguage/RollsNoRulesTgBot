@@ -14,6 +14,7 @@ namespace Telegram.Util.Core
 {
 	public class TelegramHelper
 	{
+		public const string PRICE_FORMAT = "0.## ₽";
 		public static InlineKeyboardButton[] GetPagination<TCommand>(
 			int page,
 			int pagesCount,

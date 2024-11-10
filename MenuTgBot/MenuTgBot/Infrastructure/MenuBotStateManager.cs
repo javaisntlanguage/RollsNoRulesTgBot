@@ -25,143 +25,53 @@ using Telegram.Bot.Types.ReplyMarkups;
 using Telegram.Util.Core.Exceptions;
 using Microsoft.EntityFrameworkCore.Internal;
 using Telegram.Util.Core.Interfaces;
+using Database.Classes;
+using Microsoft.Extensions.Options;
+using MenuTgBot.Infrastructure.Interfaces;
 
 namespace MenuTgBot.Infrastructure
 {
     internal class MenuBotStateManager : StateManager
     {
-        private readonly IDbContextFactory<ApplicationContext> _contextFactory;
-        private StateMachine<State, Trigger> _machine;
+        private readonly StateMachine<State, Trigger> _machine;
+		private readonly MenuBotSettings _config;
         private Dictionary<string, IConversation> _handlers;
 
-        public State CurrentState { get; private set; }
-        public HashSet<RolesList> Roles { get; set; }
+		public State CurrentState { get; private set; }
 
+		public MenuBotStateManager(ITelegramBotClient botClient,
+			IDbContextFactory<ApplicationContext> contextFactory,
+			IMenuHandler menuHandler,
+			IMenuBotStateMachineBuilder stateMachineBuilder,
+			IOptions<MenuBotSettings> options,
+			long chatId) : base(botClient, contextFactory, menuHandler)
+		{
+			_message = new Message();
+			_machine = stateMachineBuilder.Build(
+				stateAccessor: () => CurrentState,
+				stateMutator: s =>
+				{
+					CurrentState = s;
+				},
+				messageHandler: NextStateMessageAsync,
+                queryHandler: NextStateQueryAsync
+			);
+			_handlers = new Dictionary<string, IConversation>();
+			_config = options.Value;
 
-        private MenuBotStateManager(ITelegramBotClient botClient, IDbContextFactory<ApplicationContext> contextFactory, MenuBotCommandsManager commandsManager, long chatId)
-        {
-            ChatId = chatId;
+			ChatId = chatId;
+		}
+		#region Private Methods
 
-            _message = new Message();
-            _commandsManager = commandsManager;
-            _machine = new StateMachine<State, Trigger>(() => CurrentState,
-                s =>
-                {
-                    CurrentState = s;
-                });
-            _handlers = new Dictionary<string, IConversation>();
-            _botClient = botClient;
-            _contextFactory = contextFactory;
-            ConfigureMachine();
-            ConfigureHandlers();
-        }
-        #region Private Methods
-
-        /// <summary>
-        /// назначение классов-обработчиков команд
-        /// </summary>
-        protected override void ConfigureHandlers()
+		/// <summary>
+		/// назначение классов-обработчиков команд
+		/// </summary>
+		public override void ConfigureHandlers()
         {
             SetHandler(new StartConversation(this));
             SetHandler(new CatalogConversation(this));
             SetHandler(new CartConversation(this));
-            SetHandler(new OrdersConversation(this));
-        }
-
-        /// <summary>
-        /// конфигурация конечного автомата
-        /// для всех новых триггеров добавлять:
-        /// Permit (для обработки)
-        /// Ignore (для пропуска)
-        /// но добавлять одно из этого обязательно
-        /// </summary>
-        protected override void ConfigureMachine()
-        {
-            _machine.Configure(State.New)
-            .Permit(Trigger.CommandStartStarted, State.CommandStart)
-            .Permit(Trigger.CommandShopCatalogStarted, State.CommandShopCatalog)
-            .Permit(Trigger.CommandCartStarted, State.CommandCart)
-            .Permit(Trigger.CommandOrdersStarted, State.CommandOrders)
-            .Ignore(Trigger.Ignore);
-
-            _machine.Configure(State.CommandStart)
-            .SubstateOf(State.New) 
-            .OnEntryFromAsync(Trigger.CommandStartStarted, CatalogAfterSetRoleAsync);
-
-            _machine.Configure(State.CommandShopCatalog)
-            .SubstateOf(State.New)
-            .PermitReentry(Trigger.ChooseCategory)
-            .PermitReentry(Trigger.ProductAddedToCart)
-            .Permit(Trigger.DecreasedCountCart, State.CatalogCartActions)
-            .Permit(Trigger.IncreasedCountCart, State.CatalogCartActions)
-            .Permit(Trigger.AddToCartFromCategoryShowProduct, State.CatalogCartActions)
-            .OnEntryFromAsync(Trigger.ChooseCategory, NextStateQueryAsync)
-            .OnEntryFromAsync(Trigger.CommandShopCatalogStarted, NextStateMessageAsync);
-
-            _machine.Configure(State.CatalogCartActions)
-            .SubstateOf(State.CommandShopCatalog)
-            .Permit(Trigger.ToCatalogState, State.CommandShopCatalog)
-            .OnEntryFromAsync(Trigger.AddToCartFromCategoryShowProduct, NextStateQueryAsync)
-            .OnEntryFromAsync(Trigger.DecreasedCountCart, NextStateQueryAsync)
-            .OnEntryFromAsync(Trigger.IncreasedCountCart, NextStateQueryAsync);
-
-            _machine.Configure(State.CommandCart)
-            .SubstateOf(State.New)
-            .Permit(Trigger.ClientTookOrder, State.CommandOrders)
-            .OnEntryFromAsync(Trigger.CommandCartStarted, NextStateMessageAsync);
-
-            _machine.Configure(State.CommandOrders)
-            .SubstateOf(State.New)
-            .OnEntryFromAsync(Trigger.ClientTookOrder, NextStateQueryAsync)
-            .OnEntryFromAsync(Trigger.CommandOrdersStarted, NextStateMessageAsync)
-            .Permit(Trigger.EnterAddressCity, State.OrderNewAddressCityEditor)
-            .Permit(Trigger.EnterAddressStreet, State.OrderNewAddressStreetEditor)
-            .Permit(Trigger.EnterAddressHouseNumber, State.OrderNewAddressHouseNumberEditor)
-            .Permit(Trigger.EnterAddressBuilding, State.OrderNewAddressBuildingEditor)
-            .Permit(Trigger.EnterAddressFlat, State.OrderNewAddressFlatEditor)
-            .Permit(Trigger.EnterAddressComment, State.OrderNewAddressCommentEditor)
-            .Permit(Trigger.AddressAddedNextPhone, State.OrderPhone)
-            .Permit(Trigger.EmptyPhone, State.OrderPhone)
-            .Permit(Trigger.ChangePhone, State.OrderPhone);
-
-            _machine.Configure(State.OrderNewAddressCityEditor)
-            .SubstateOf(State.CommandOrders);
-
-            _machine.Configure(State.OrderNewAddressStreetEditor)
-            .SubstateOf(State.CommandOrders);
-
-            _machine.Configure(State.OrderNewAddressHouseNumberEditor)
-            .SubstateOf(State.CommandOrders);
-
-            _machine.Configure(State.OrderNewAddressBuildingEditor)
-            .SubstateOf(State.CommandOrders);
-
-            _machine.Configure(State.OrderNewAddressFlatEditor)
-            .SubstateOf(State.CommandOrders);
-
-            _machine.Configure(State.OrderNewAddressCommentEditor)
-            .SubstateOf(State.CommandOrders)
-            .Permit(Trigger.AddressAddedReturnToDeliverySettings, State.CommandOrders)
-            .Permit(Trigger.CancelAddNewAddress, State.CommandOrders);
-
-            _machine.Configure(State.OrderPhone)
-            .SubstateOf(State.CommandOrders)
-            .OnEntryFromAsync(Trigger.AddressAddedNextPhone, NextStateQueryAsync)
-            .OnEntryFromAsync(Trigger.EmptyPhone, NextStateQueryAsync)
-            .Permit(Trigger.SendedSms, State.SmsPhone)
-            .Permit(Trigger.BackFromPhone, State.CommandOrders);
-
-            _machine.Configure(State.SmsPhone)
-            .SubstateOf(State.OrderPhone)
-            .Permit(Trigger.EnteredSms, State.CommandOrders);
-
-
-        }
-
-        private async Task CatalogAfterSetRoleAsync()
-        {
-            await NextStateMessageAsync();
-            await _machine.FireAsync(Trigger.CommandShopCatalogStarted);
+            SetHandler(new OrdersConversation(this, _config));
         }
 
         /// <summary>
@@ -179,42 +89,14 @@ namespace MenuTgBot.Infrastructure
             await dataSource.UserStates_Set(ChatId, (int)CurrentState, data, _lastMessageId);
         }
 
-        /// <summary>
-        /// восстановление состояния
-        /// </summary>
-        /// <param name="userState"></param>
-        /// <returns></returns>
-        private async Task StateRecoveryAsync(ApplicationContext dataSource)
-        {
-            UserState userState = await dataSource.UserStates
-                    .FirstOrDefaultAsync(us => us.UserId == ChatId);
-
-            if (userState.IsNull())
-            {
-                CurrentState = State.New;
-                Roles = new() { RolesList.User };
-            }
-            else
-            {
-                Roles = dataSource
-                    .GetUserRoles(ChatId)
-                    .ToHashSet();
-
-                CurrentState = (State)userState.StateId;
-                _lastMessageId = userState.LastMessageId;
-
-                RecoverHandlers(userState.Data);
-            }
-        }
-
-        private void RecoverHandlers(string data)
+        private void RecoverHandlers(string? data)
         {
             if (data.IsNotNullOrEmpty())
             {
                 try
                 {
                     UserConversations conversations = JsonConvert.DeserializeObject<UserConversations>(data);
-                    _handlers = conversations.GetHandlers(this);
+                    _handlers = conversations.GetHandlers(this, _config);
                 }
                 catch (Exception ex)
                 {
@@ -300,17 +182,6 @@ namespace MenuTgBot.Infrastructure
             await _machine.FireAsync(Trigger.CommandOrdersStarted);
         }
 
-        public static async Task<MenuBotStateManager> CreateAsync(ITelegramBotClient botClient,
-            IDbContextFactory<ApplicationContext> contextFactory, MenuBotCommandsManager commandsManager, long chatId)
-        {
-            await using ApplicationContext dataSource = await contextFactory.CreateDbContextAsync();
-            MenuBotStateManager stateManager = new MenuBotStateManager(botClient, contextFactory, commandsManager, chatId);
-
-            await stateManager.StateRecoveryAsync(dataSource);
-
-            return stateManager;
-        }
-
         /// <summary>
         /// обработка сообщения
         /// </summary>
@@ -369,9 +240,32 @@ namespace MenuTgBot.Infrastructure
 
             return default;
         }
-       
-        #endregion Public Methods
-    }
+
+		/// <summary>
+		/// восстановление состояния
+		/// </summary>
+		/// <param name="userState"></param>
+		/// <returns></returns>
+		public async Task StateRecoveryAsync(ApplicationContext dataSource)
+		{
+			UserState userState = await dataSource.UserStates
+					.FirstOrDefaultAsync(us => us.UserId == ChatId);
+
+			if (userState == null)
+			{
+				CurrentState = State.New;
+			}
+			else
+			{
+				CurrentState = (State)userState.StateId;
+				_lastMessageId = userState.LastMessageId;
+
+				RecoverHandlers(userState.Data);
+			}
+		}
+
+		#endregion Public Methods
+	}
 
     public enum Trigger
     {
@@ -380,7 +274,6 @@ namespace MenuTgBot.Infrastructure
         CommandShopCatalogStarted,
         Ignore,
         RoleSet,
-        ChooseCategory,
         ProductAddedToCart,
         AddToCartFromCategory,
         AddToCartFromCategoryShowProduct,

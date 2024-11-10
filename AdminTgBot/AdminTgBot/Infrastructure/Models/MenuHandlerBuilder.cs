@@ -53,6 +53,5 @@ namespace AdminTgBot.Infrastructure.Models
 					CommandDisplay.ButtonMenu),
 			];
 		}
-
 	}
 }

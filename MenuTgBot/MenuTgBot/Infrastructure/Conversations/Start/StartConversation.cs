@@ -19,7 +19,9 @@ namespace MenuTgBot.Infrastructure.Conversations.Start
         private readonly MenuBotStateManager _stateManager;
         private ApplicationContext _dataSource;
 
-        public StartConversation(MenuBotStateManager statesManager)
+        public StartConversation() { }
+
+		public StartConversation(MenuBotStateManager statesManager)
         {
             _stateManager = statesManager;
             _chatId = _stateManager.ChatId;
@@ -34,9 +36,8 @@ namespace MenuTgBot.Infrastructure.Conversations.Start
             {
                 case State.CommandStart:
                     {
-                        SetRole();
                         await SetMenuButtonsAsync();
-                        return Trigger.Ignore;
+                        return Trigger.CommandShopCatalogStarted;
                     }
             }
 
@@ -51,13 +52,6 @@ namespace MenuTgBot.Infrastructure.Conversations.Start
         private async Task SetMenuButtonsAsync()
         {
             await _stateManager.ShowButtonMenuAsync(StartText.Welcome);
-        }
-
-        private void SetRole()
-        {
-            _stateManager.Roles = _dataSource
-                .GetUserRoles(_stateManager.ChatId)
-                .ToHashSet();
         }
     }
 }

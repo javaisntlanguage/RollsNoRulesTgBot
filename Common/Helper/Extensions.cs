@@ -147,7 +147,7 @@ namespace Helper
         }
 
         [System.Diagnostics.DebuggerNonUserCode()]
-        public static bool In(this string sValue, params string[] values)
+        public static bool In(this string? sValue, params string[] values)
         {
             return sValue.In(false, values);
         }
@@ -158,7 +158,7 @@ namespace Helper
         }
 
         [System.Diagnostics.DebuggerNonUserCode()]
-        public static bool In(this string sValue, bool bIgnoreCase, params string[] values)
+        public static bool In(this string? sValue, bool bIgnoreCase, params string[] values)
         {
             return values.IsNotNullOrEmpty() && values.Contains(sValue, bIgnoreCase ? StringComparer.InvariantCultureIgnoreCase : StringComparer.InvariantCulture);
         }

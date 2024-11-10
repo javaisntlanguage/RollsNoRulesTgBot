@@ -10,15 +10,15 @@ namespace Telegram.Util.Core.Models
 {
 	public abstract class StateMachineBuilderBase<TState, TTrigger> : IStateMachineBuilder<TState, TTrigger>
 	{
-		public StateMachine<TState, TTrigger> Build(Func<TState> stateAccessor, Action<TState> stateMutator, Func<Task> messageHandler)
+		public StateMachine<TState, TTrigger> Build(Func<TState> stateAccessor, Action<TState> stateMutator, Func<Task> messageHandler, Func<Task> queryHandler)
 		{
 			StateMachine<TState, TTrigger> result = new(stateAccessor, stateMutator);
 
-			ConfigureMachine(result, messageHandler);
+			ConfigureMachine(result, messageHandler, queryHandler);
 
 			return result;
 		}
 
-		protected abstract void ConfigureMachine(StateMachine<TState, TTrigger> result, Func<Task> messageHandler);
+		protected abstract void ConfigureMachine(StateMachine<TState, TTrigger> machine, Func<Task> messageHandler, Func<Task> queryHandler);
 	}
 }

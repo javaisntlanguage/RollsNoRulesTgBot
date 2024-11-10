@@ -27,7 +27,9 @@ namespace MenuTgBot.Infrastructure.Conversations.Catalog
         private readonly MenuBotStateManager _stateManager;
         private ApplicationContext _dataSource;
 
-        public CatalogConversation(MenuBotStateManager statesManager)
+		public CatalogConversation() { }
+
+		public CatalogConversation(MenuBotStateManager statesManager)
         {
             _stateManager = statesManager;
             _chatId = _stateManager.ChatId;
@@ -40,7 +42,7 @@ namespace MenuTgBot.Infrastructure.Conversations.Catalog
             {
                 case State.CommandShopCatalog:
                     {
-                        if (message.Text == MessagesText.CommandShopCatalog || message.Text == MessagesText.CommandStart)
+                        if (message.Text.In(MessagesText.CommandShopCatalog, MessagesText.CommandStart))
                         {
                             await ShowCategoriesAsync();
                             return Trigger.Ignore;
@@ -159,7 +161,7 @@ namespace MenuTgBot.Infrastructure.Conversations.Catalog
                 product.Description,
                 product.Price.ToString(TelegramHelper.PRICE_FORMAT));
 
-            await _stateManager.SendMessageAsync(text, ParseMode.Html, markup, product.Photo);
+            await _stateManager.SendMessageAsync(text, markup, ParseMode.Html, product.Photo);
         }
 
         private async Task ShowCategoryProductsAsync(int categoryId)
@@ -176,7 +178,7 @@ namespace MenuTgBot.Infrastructure.Conversations.Catalog
                 InlineKeyboardButton[] returnToCatalog = GetReturnToCatalogButton();
                 InlineKeyboardMarkup markup = new InlineKeyboardMarkup(returnToCatalog);
 
-                await _stateManager.SendMessageAsync(CatalogText.ProductsEmpty, replyMarkup: markup);
+                await _stateManager.SendMessageAsync(CatalogText.ProductsEmpty, markup);
                 
                 return;
             }
@@ -398,7 +400,7 @@ namespace MenuTgBot.Infrastructure.Conversations.Catalog
 
             if (markup.InlineKeyboard.Any())
             {
-                await _stateManager.SendMessageAsync(CatalogText.ChooseCategory, replyMarkup: markup);
+                await _stateManager.SendMessageAsync(CatalogText.ChooseCategory, markup);
             }
             else
             {

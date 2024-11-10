@@ -34,8 +34,9 @@ namespace AdminTgBot.Infrastructure
     internal class AdminBotStateManager : StateManager
     {
         private readonly StateMachine<State, Trigger> _machine;
+		private readonly AdminSettings _config;
         private Dictionary<string, IConversation> _handlers;
-		private AdminSettings _config;
+
 		private static readonly Dictionary<State, Guid> Rights;
 
 		public State CurrentState { get; private set; }
@@ -64,25 +65,16 @@ namespace AdminTgBot.Infrastructure
                 stateMutator: s =>
 			    {
 				    CurrentState = s;
-			    }, 
-                messageHandler: NextStateMessageAsync
+			    },
+                messageHandler: NextStateMessageAsync,
+                queryHandler: NextStateQueryAsync
             );
             _handlers = new Dictionary<string, IConversation>();
             _config = options.Value;
 
             ChatId = chatId;
 		}
-        #region Private Methods
-        public override void ConfigureHandlers()
-        {
-            SetHandler(new StartConversation(this));
-            SetHandler(new CatalogEditorConversation(this));
-            SetHandler(new OrdersConversation(this));
-            SetHandler(new BotOwnerConversation(this, _config));
-            SetHandler(new LkkConversation(this));
-            SetHandler(new AdministrationConversation(this));
-        }
-
+		#region Private Methods
 		/// <summary>
 		/// сохранить состояние пользователя
 		/// </summary>
@@ -100,34 +92,6 @@ namespace AdminTgBot.Infrastructure
             });
 
             await dataSource.SetAdminState(ChatId, (int)CurrentState, data, _lastMessageId);
-        }
-
-        /// <summary>
-        /// восстановление состояния
-        /// </summary>
-        /// <param name="userState"></param>
-        /// <returns></returns>
-        public async Task StateRecoveryAsync(ApplicationContext dataSource)
-        {
-            AdminState? adminState = await dataSource.AdminStates
-                    .FirstOrDefaultAsync(us => us.UserId == ChatId);
-
-            if (adminState == null)
-            {
-                CurrentState = State.New;
-            }
-            else
-            {
-                CurrentState = (State)adminState.StateId;
-                _lastMessageId = adminState.LastMessageId;
-
-                IsAuth = !_machine.IsInState(State.CommandStart) && CurrentState != State.New;
-
-                RecoverHandlers(adminState.Data, dataSource);
-
-				StartConversation start = GetHandler<StartConversation>()!;
-                AdminId = start.AdminId;
-            }
         }
 
         private void RecoverHandlers(string? data, ApplicationContext dataSource)
@@ -288,6 +252,47 @@ namespace AdminTgBot.Infrastructure
 			_message = message;
 
 			await _machine.FireAsync(Trigger.CommandAdministrationStarted);
+		}
+
+		/// <summary>
+		/// назначение классов-обработчиков команд
+		/// </summary>
+		public override void ConfigureHandlers()
+		{
+			SetHandler(new StartConversation(this));
+			SetHandler(new CatalogEditorConversation(this));
+			SetHandler(new OrdersConversation(this));
+			SetHandler(new BotOwnerConversation(this, _config));
+			SetHandler(new LkkConversation(this));
+			SetHandler(new AdministrationConversation(this));
+		}
+
+		/// <summary>
+		/// восстановление состояния
+		/// </summary>
+		/// <param name="userState"></param>
+		/// <returns></returns>
+		public async Task StateRecoveryAsync(ApplicationContext dataSource)
+		{
+			AdminState? adminState = await dataSource.AdminStates
+					.FirstOrDefaultAsync(us => us.UserId == ChatId);
+
+			if (adminState == null)
+			{
+				CurrentState = State.New;
+			}
+			else
+			{
+				CurrentState = (State)adminState.StateId;
+				_lastMessageId = adminState.LastMessageId;
+
+				IsAuth = !_machine.IsInState(State.CommandStart) && CurrentState != State.New;
+
+				RecoverHandlers(adminState.Data, dataSource);
+
+				StartConversation start = GetHandler<StartConversation>()!;
+				AdminId = start.AdminId;
+			}
 		}
 
 		public async Task<string> GetFileAsync(string fileId)

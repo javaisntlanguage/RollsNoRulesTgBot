@@ -13,7 +13,7 @@ namespace AdminTgBot.Infrastructure.Models
 {
 	public class AdminStateMachineBuilder : StateMachineBuilderBase<State, Trigger>, IAdminStateMachineBuilder
 	{
-		protected override void ConfigureMachine(StateMachine<State, Trigger> machine, Func<Task> messageHandler)
+		protected override void ConfigureMachine(StateMachine<State, Trigger> machine, Func<Task> messageHandler, Func<Task> queryHandler)
 		{
 			machine.Configure(State.New)
 			.Permit(Trigger.CommandButtonsStarted, State.CommandStart)

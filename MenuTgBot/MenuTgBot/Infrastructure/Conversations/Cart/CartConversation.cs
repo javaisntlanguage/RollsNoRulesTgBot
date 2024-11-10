@@ -18,6 +18,7 @@ using Telegram.Util.Core;
 using Telegram.Bot.Types.Enums;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Telegram.Util.Core.Interfaces;
+using Telegram.Util.Core.Extensions;
 
 namespace MenuTgBot.Infrastructure.Conversations.Cart
 {
@@ -314,7 +315,7 @@ namespace MenuTgBot.Infrastructure.Conversations.Cart
                 product.Price.ToString(TelegramHelper.PRICE_FORMAT),
                 totalSum);
 
-            await _stateManager.SendMessageAsync(text, ParseMode.Html, markup, product.Photo);
+            await _stateManager.SendMessageAsync(text, markup, ParseMode.Html, product.Photo);
 
 
         }
@@ -356,7 +357,7 @@ namespace MenuTgBot.Infrastructure.Conversations.Cart
                 productSum,
                 totalSum);
 
-            await _stateManager.SendMessageAsync(text, ParseMode.Html, markup, product.Photo);
+            await _stateManager.SendMessageAsync(text, markup, ParseMode.Html, product.Photo);
         }
 
         private InlineKeyboardButton[] GetTakeOrderButton(bool forDelete)

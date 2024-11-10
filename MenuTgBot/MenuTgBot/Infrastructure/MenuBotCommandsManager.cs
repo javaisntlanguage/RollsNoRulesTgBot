@@ -20,50 +20,19 @@ using Telegram.Util.Core.Enums;
 using MenuTgBot.Infrastructure.Commands;
 using Microsoft.EntityFrameworkCore.Internal;
 using Telegram.Util.Core.Interfaces;
+using Microsoft.Extensions.Options;
+using MenuTgBot.Infrastructure.Models;
+using MenuTgBot.Infrastructure.Interfaces;
 
 namespace MenuTgBot.Infrastructure
 {
     internal class MenuBotCommandsManager : CommandsManager
-    {
-        private readonly IDbContextFactory<ApplicationContext> _contextFactory;
-
-        public MenuBotCommandsManager(ITelegramBotClient client, IDbContextFactory<ApplicationContext> contextFactory)
-        {
-            _botClient = client;
-            _contextFactory = contextFactory;
-            _stateManagers = new Dictionary<long, StateManager>();
-            Commands = GetComands();
-        }
-
-        #region Private Methods
-
-        protected override async Task InitStateManagerIfNotExistsAsync(long chatId)
-        {
-            if (!_stateManagers.ContainsKey(chatId))
-            {
-                _stateManagers[chatId] = await MenuBotStateManager.CreateAsync(_botClient, _contextFactory, this, chatId);
-            }
-        }
-
-        protected override IBotCommandHandler[] GetComands()
-        {
-            return new MenuBotCommandHandler[]
-            {
-                new StartCommand(
-                        MessagesText.CommandStart,
-                        CommandDisplay.None),
-                new CatalogCommand(
-                    MessagesText.CommandShopCatalog,
-                    CommandDisplay.ButtonMenu),
-                new CartCommand(
-                    MessagesText.CommandCart,
-                    CommandDisplay.ButtonMenu),
-                new OrdersCommand(
-                    MessagesText.CommandOrder,
-                    CommandDisplay.ButtonMenu)
-            };
-        }
-
-        #endregion
-    }
+	{
+		public MenuBotCommandsManager(ITelegramBotClient botClient,
+			IMenuHandler menuHandler,
+			IMenuBotStateManagerFactory stateManagerFactory,
+			IOptions<MenuBotSettings> options) : base(botClient, menuHandler, stateManagerFactory)
+		{
+		}
+	}
 }

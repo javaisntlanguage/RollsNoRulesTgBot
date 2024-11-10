@@ -908,7 +908,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
                 string caption = string.Format(CatalogEditorText.ProductDetails,
                 NewProduct.Name,
                 NewProduct.Description,
-                NewProduct.Price.ToString(TelegramExstension.PRICE_FORMAT));
+                NewProduct.Price.ToString(TelegramHelper.PRICE_FORMAT));
 
                 InlineKeyboardButton[] AddProduct = GetAddNewProductButton();
                 InlineKeyboardMarkup markup = new InlineKeyboardMarkup(AddProduct);
@@ -1741,7 +1741,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
                 text = string.Format(CatalogEditorText.ProductDetails,
                 product.Name,
                 product.Description,
-                product.Price.ToString(TelegramExstension.PRICE_FORMAT));
+                product.Price.ToString(TelegramHelper.PRICE_FORMAT));
 
                 InlineKeyboardButton[] pagination = GetPaginationProduct(categoryId.Value, product.Id);
 

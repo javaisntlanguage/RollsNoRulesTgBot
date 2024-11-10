@@ -164,8 +164,17 @@
   <data name="Change" xml:space="preserve">
     <value>Изменить</value>
   </data>
+  <data name="ChangeSellLocation" xml:space="preserve">
+    <value>Изменить наименование</value>
+  </data>
   <data name="ChoosingCategory" xml:space="preserve">
     <value>Выберите категорию</value>
+  </data>
+  <data name="DeleteSellLocation" xml:space="preserve">
+    <value>Удалить</value>
+  </data>
+  <data name="DeleteSellLocationConfirm" xml:space="preserve">
+    <value>Вы хотите удалить точку продаж?</value>
   </data>
   <data name="EditCategory" xml:space="preserve">
     <value>Изменить</value>
@@ -242,6 +251,18 @@
   <data name="SellLocationAdded" xml:space="preserve">
     <value>Новая точка продаж успешно добавлена</value>
   </data>
+  <data name="SellLocationChangeSuccess" xml:space="preserve">
+    <value>Точка продаж успешно изменена</value>
+  </data>
+  <data name="SellLocationDeleteSuccess" xml:space="preserve">
+    <value>Точка продаж успешно удалена</value>
+  </data>
+  <data name="SellLocationDetails" xml:space="preserve">
+    <value>Точка продаж "{0}"</value>
+  </data>
+  <data name="SellLocations" xml:space="preserve">
+    <value>Управление точками продаж</value>
+  </data>
   <data name="SellLocationSuggestConfirm" xml:space="preserve">
     <value>Создать новую точку продаж?</value>
   </data>
@@ -250,6 +271,9 @@
   </data>
   <data name="ShowProducts" xml:space="preserve">
     <value>Показать товары</value>
+  </data>
+  <data name="SuggestChangeSellLocationName" xml:space="preserve">
+    <value>Введите наименование</value>
   </data>
   <data name="TextRequired" xml:space="preserve">
     <value>Необходимо ввести текст</value>

@@ -22,6 +22,7 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 using Telegram.Util.Core;
+using Telegram.Util.Core.Exceptions;
 using Telegram.Util.Core.Extensions;
 using CategoryAttribute = AdminTgBot.Infrastructure.Conversations.CatalogEditor.Models.CategoryAttribute;
 
@@ -36,6 +37,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
         private readonly AdminBotStateManager _stateManager;
 
         public int? ProductId { get; set; }
+        public int? SellLocationChangingId { get; set; }
         public string? AttributeValue { get; set; }
         public Product? NewProduct { get; set; }
         public Category? NewCategory { get; set; }
@@ -118,6 +120,12 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
                         await SellLocationSuggestConfirmAsync();
                         return Trigger.Ignore;
 					}
+				case State.CatalogEditorSellLocationEnterNameChange:
+					{
+						await SellLocationChangeSaveAsync(message.Text);
+                        await ShowSellLocationsAsync();
+                        return Trigger.ReturnToCatalogEditor;
+					}
 			}
 
             return null;
@@ -135,6 +143,31 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
                     {
                         switch (command)
                         {
+                            case Command.DeleteSellLocationConfirm:
+                                {
+									int sellLocationId = data["SellLocationId"]!.Value<int>();
+									await DeleteSellLocationConfirmAsync(sellLocationId);
+                                    await ShowSellLocationsAsync();
+									return Trigger.Ignore;
+                                }
+                            case Command.DeleteSellLocation:
+                                {
+									int sellLocationId = data["SellLocationId"]!.Value<int>();
+									await DeleteSellLocationAsync(sellLocationId);
+									return Trigger.Ignore;
+                                }
+                            case Command.ChangeSellLocation:
+                                {
+									int sellLocationId = data["SellLocationId"]!.Value<int>();
+									await SuggestChangeSellLocationNameAsync(sellLocationId);
+									return Trigger.SellLocationEnterNameChange;
+                                }
+                            case Command.SellLocationDetails:
+                                {
+									int sellLocationId = data["SellLocationId"]!.Value<int>();
+									await ShowSellLocationDetailsAsync(sellLocationId);
+									return Trigger.Ignore;
+                                }
                             case Command.AddSellLocation:
                                 {
 									await AddSellLocationSuggestEnterNameAsync();
@@ -156,7 +189,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
 									await ShowSellLocationsAsync(page);
 									return Trigger.Ignore;
                                 }
-                            case Command.ManageSellLocation:
+                            case Command.ManageSellLocations:
                                 {
 									await ShowSellLocationsAsync();
 									return Trigger.Ignore;
@@ -351,10 +384,180 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
 						}
                         break;
 					}
+				case State.CatalogEditorSellLocationEnterNameChange:
+					{
+						switch (command)
+                        {
+							case Command.SellLocationDetails:
+								{
+									int sellLocationId = data["SellLocationId"]!.Value<int>();
+									await ShowSellLocationDetailsAsync(sellLocationId);
+									return Trigger.ReturnToCatalogEditor;
+								}
+						}
+                        break;
+					}
 			}
 
             return null;
         }
+
+		private async Task DeleteSellLocationConfirmAsync(int sellLocationId)
+		{
+            TryGetSellLocation(sellLocationId, out SellLocation sellLocation);
+
+            _dataSource.SellLocations.Remove(sellLocation);
+            await _dataSource.SaveChangesAsync();
+
+            await _stateManager.SendMessageAsync(CatalogEditorText.SellLocationDeleteSuccess);
+		}
+
+		private async Task DeleteSellLocationAsync(int sellLocationId)
+		{
+			CheckSellLocation(sellLocationId);
+
+            InlineKeyboardMarkup markup = GetDeleteSellLocationConfirmButtons(sellLocationId);
+            await _stateManager.SendMessageAsync(CatalogEditorText.DeleteSellLocationConfirm, markup);
+		}
+
+		private InlineKeyboardMarkup GetDeleteSellLocationConfirmButtons(int sellLocationId)
+		{
+			InlineKeyboardButton[] keyboard =
+			[
+				new (MessagesText.Yes)
+				{
+					CallbackData = JsonConvert.SerializeObject(new
+					{
+						Cmd = Command.DeleteSellLocationConfirm,
+                        SellLocationId = sellLocationId
+					})
+				},
+				new (MessagesText.No)
+				{
+					CallbackData = JsonConvert.SerializeObject(new
+					{
+						Cmd = Command.SellLocationDetails,
+                        SellLocationId = sellLocationId
+					})
+				},
+			];
+
+			InlineKeyboardMarkup result = new(keyboard);
+			return result;
+		}
+
+		private async Task SellLocationChangeSaveAsync(string? text)
+		{
+			_stateManager.CheckTextAndLength(text,
+				minLength: SellLocation.MIN_NAME_LENGTH,
+				maxLength: SellLocation.MAX_NAME_LENGTH);
+
+            if (SellLocationChangingId == null)
+            {
+                throw new CustomMessageException("Данные утеряны. Попробуйте еще раз от главного меню");
+            }
+
+            TryGetSellLocation(SellLocationChangingId.Value, out SellLocation sellLocation);
+
+            sellLocation.Name = text!;
+            _dataSource.SellLocations.Update(sellLocation);
+            await _dataSource.SaveChangesAsync();
+
+            await _stateManager.SendMessageAsync(CatalogEditorText.SellLocationChangeSuccess);
+		}
+
+		private async Task SuggestChangeSellLocationNameAsync(int sellLocationId)
+		{
+			TryGetSellLocation(sellLocationId, out SellLocation sellLocation);
+
+            SellLocationChangingId = sellLocationId;
+
+			InlineKeyboardMarkup markup = GetChangeSellLocationNameButtons(sellLocationId);
+
+			await _stateManager.SendMessageAsync(CatalogEditorText.SuggestChangeSellLocationName, markup);
+		}
+
+		private InlineKeyboardMarkup GetChangeSellLocationNameButtons(int sellLocationId)
+		{
+			InlineKeyboardButton keyboard = new (CatalogEditorText.Back)
+			{
+				CallbackData = JsonConvert.SerializeObject(new
+				{
+					Cmd = Command.SellLocationDetails,
+                    SellLocationId = sellLocationId
+				})
+			};
+
+			InlineKeyboardMarkup result = new(keyboard);
+			return result;
+		}
+
+		private async Task ShowSellLocationDetailsAsync(int sellLocationId)
+		{
+            TryGetSellLocation(sellLocationId, out SellLocation sellLocation);
+
+            InlineKeyboardMarkup markup = GetSellLocationDetailsButtons(sellLocationId);
+            string text = string.Format(CatalogEditorText.SellLocationDetails, sellLocation!.Name);
+            await _stateManager.SendMessageAsync(text, markup);
+		}
+
+		private void CheckSellLocation(int sellLocationId)
+        {
+            TryGetSellLocation(sellLocationId, out _);
+        }
+
+		private void TryGetSellLocation(int sellLocationId, out SellLocation sellLocation)
+		{
+			SellLocation? sellLocationNullable = _dataSource.SellLocations
+				.FirstOrDefault(sl => sl.Id == sellLocationId);
+
+			if (sellLocationNullable == null)
+			{
+				throw new CustomMessageException("Точка продаж не найдена", 
+                    "Id точки продаж не найдено при попытке просмотра подробностей о точке продаж");
+			}
+
+            sellLocation = sellLocationNullable;
+		}
+
+		private InlineKeyboardMarkup GetSellLocationDetailsButtons(int sellLocationId)
+		{
+            InlineKeyboardButton[][] keyboard =
+            [
+                [
+                    new (CatalogEditorText.ChangeSellLocation)
+                    {
+						CallbackData = JsonConvert.SerializeObject(new
+					    {
+						    Cmd = Command.ChangeSellLocation,
+                            SellLocationId = sellLocationId
+					    })
+					}
+                ],
+                [
+                    new (CatalogEditorText.DeleteSellLocation)
+                    {
+						CallbackData = JsonConvert.SerializeObject(new
+					    {
+						    Cmd = Command.DeleteSellLocation,
+							SellLocationId = sellLocationId
+						})
+					}
+                ],
+                [
+                    new (CatalogEditorText.Back)
+                    {
+						CallbackData = JsonConvert.SerializeObject(new
+					    {
+						    Cmd = Command.ManageSellLocations
+						})
+					}
+                ],
+            ];
+
+			InlineKeyboardMarkup result = new(keyboard);
+			return result;
+		}
 
 		private async Task AddSellLocationAsync()
 		{
@@ -444,7 +647,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
 			int sellLocationsCount = _dataSource.SellLocations.Count();
 
 			InlineKeyboardMarkup markup = GetSellLocationsButtons(sellLocations, sellLocationsCount, page);
-			await _stateManager.SendMessageAsync(AdministrationText.ShowRights, markup);
+			await _stateManager.SendMessageAsync(CatalogEditorText.SellLocations, markup);
 		}
 
 		private InlineKeyboardMarkup GetSellLocationsButtons(IQueryable<SellLocation> sellLocations, int sellLocationsCount, int page)
@@ -544,7 +747,7 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
                     {
 						CallbackData = JsonConvert.SerializeObject(new
 					    {
-						    Cmd = Command.ManageSellLocation,
+						    Cmd = Command.ManageSellLocations,
 					    })
 					}
                 ],

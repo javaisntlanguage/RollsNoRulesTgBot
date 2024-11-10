@@ -138,7 +138,7 @@ namespace AdminTgBot.Infrastructure
                 {
                     AdminConversations conversations = JsonConvert.DeserializeObject<AdminConversations>(data!)!;
 
-					_handlers = conversations.GetHandlers(dataSource, this);
+					_handlers = conversations.GetHandlers(dataSource, this, _config);
                 }
                 catch (Exception ex)
                 {
@@ -428,6 +428,7 @@ namespace AdminTgBot.Infrastructure
 		EnterRightGroupDescription,
 		BackToEnterRightGroupName,
 		SellLocationEnterName,
+		SellLocationEnterNameChange,
 	}
 
     public enum State
@@ -466,5 +467,6 @@ namespace AdminTgBot.Infrastructure
 		AdministrationEnterRightGroupName,
 		AdministrationEnterRightGroupDescription,
 		CatalogEditorSellLocationEnterName,
+		CatalogEditorSellLocationEnterNameChange,
 	}
 }

@@ -198,11 +198,38 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Изменить наименование.
+        /// </summary>
+        internal static string ChangeSellLocation {
+            get {
+                return ResourceManager.GetString("ChangeSellLocation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Выберите категорию.
         /// </summary>
         internal static string ChoosingCategory {
             get {
                 return ResourceManager.GetString("ChoosingCategory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Удалить.
+        /// </summary>
+        internal static string DeleteSellLocation {
+            get {
+                return ResourceManager.GetString("DeleteSellLocation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Вы хотите удалить точку продаж?.
+        /// </summary>
+        internal static string DeleteSellLocationConfirm {
+            get {
+                return ResourceManager.GetString("DeleteSellLocationConfirm", resourceCulture);
             }
         }
         
@@ -420,6 +447,42 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Точка продаж успешно изменена.
+        /// </summary>
+        internal static string SellLocationChangeSuccess {
+            get {
+                return ResourceManager.GetString("SellLocationChangeSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Точка продаж успешно удалена.
+        /// </summary>
+        internal static string SellLocationDeleteSuccess {
+            get {
+                return ResourceManager.GetString("SellLocationDeleteSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Точка продаж &quot;{0}&quot;.
+        /// </summary>
+        internal static string SellLocationDetails {
+            get {
+                return ResourceManager.GetString("SellLocationDetails", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Управление точками продаж.
+        /// </summary>
+        internal static string SellLocations {
+            get {
+                return ResourceManager.GetString("SellLocations", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Создать новую точку продаж?.
         /// </summary>
         internal static string SellLocationSuggestConfirm {
@@ -443,6 +506,15 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor {
         internal static string ShowProducts {
             get {
                 return ResourceManager.GetString("ShowProducts", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Введите наименование.
+        /// </summary>
+        internal static string SuggestChangeSellLocationName {
+            get {
+                return ResourceManager.GetString("SuggestChangeSellLocationName", resourceCulture);
             }
         }
         

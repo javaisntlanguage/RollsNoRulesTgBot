@@ -99,6 +99,11 @@ namespace AdminTgBot.Infrastructure
 			{
 				await _telegramClient.SendTextMessageAsync(chatId, MessagesText.NotEnoughRights);
 			}
+			catch (CustomMessageException ex)
+			{
+				await _telegramClient.SendTextMessageAsync(chatId, ex.UserMessage);
+				_logger.Error(ex);
+			}
 			catch (MessageTextException)
 			{
 				await _telegramClient.SendTextMessageAsync(chatId, MessagesText.MessageTextExcepted);

@@ -79,12 +79,15 @@ namespace AdminTgBot.Infrastructure.Models
 		RightDetails,
 		MovePaginationRights,
 		ManageCatalog,
-		ManageSellLocation,
+		ManageSellLocations,
 		SellLocationDetails,
 		MovePaginationSellLocations,
 		BackToWelcome,
 		AddSellLocation,
 		BackToSellLocations,
-		RejectSellLocation
+		RejectSellLocation,
+		ChangeSellLocation,
+		DeleteSellLocation,
+		DeleteSellLocationConfirm
 	}
 }

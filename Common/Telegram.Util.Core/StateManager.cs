@@ -188,7 +188,7 @@ namespace Telegram.Util.Core
         {
             if (minLength == null &&  maxLength == null)
             {
-                throw new ArgumentException("Минимальная или максимальная длина должны быть заданы");
+                throw new ArgumentException("Минимальная или максимальная длины должны быть заданы");
             }
 
 			if (minLength != null && text!.Length < minLength)

@@ -26,24 +26,28 @@ namespace AdminTgBot.Infrastructure.Models
 		public required LkkConversation Lkk { get; set; }
 		public required AdministrationConversation Administration { get; set; }
 
-		internal Dictionary<string, IConversation> GetHandlers(ApplicationContext dataSource, AdminBotStateManager statesManager)
+		internal Dictionary<string, IConversation> GetHandlers(ApplicationContext dataSource, AdminBotStateManager stateManager, AdminSettings config)
         {
             Dictionary<string, IConversation> result = new Dictionary<string, IConversation>();
 
-			AddToHandlers(statesManager, result, Start);
-			AddToHandlers(statesManager, result, CatalogEditor);
-			AddToHandlers(statesManager, result, Orders);
-			AddToHandlers(statesManager, result, BotOwner);
-			AddToHandlers(statesManager, result, Lkk);
-			AddToHandlers(statesManager, result, Administration);
+			AddToHandlers(stateManager, result, Start);
+			AddToHandlers(stateManager, result, CatalogEditor);
+			AddToHandlers(stateManager, result, Orders);
+			AddToHandlers(stateManager, result, BotOwner, [config]);
+			AddToHandlers(stateManager, result, Lkk);
+			AddToHandlers(stateManager, result, Administration);
 
             return result;
         }
 
-        private void AddToHandlers<T>(AdminBotStateManager statesManager, Dictionary<string, IConversation> result, T source) where T : class, IConversation, new()
+        private void AddToHandlers<T>(AdminBotStateManager stateManager, Dictionary<string, IConversation> result, T source, List<object>? sourceParameters=null) where T : class, IConversation, new()
 		{
 			Type type = typeof(T);
-			T conversation = (T)Activator.CreateInstance(type, statesManager)!;
+
+			sourceParameters ??= new List<object>();
+			sourceParameters.Insert(0, stateManager);
+
+			T conversation = (T)Activator.CreateInstance(type, sourceParameters.ToArray())!;
 
 			if (source.IsNotNull())
 			{

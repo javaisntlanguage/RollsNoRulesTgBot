@@ -4,6 +4,6 @@ namespace Telegram.Util.Core.Interfaces
 {
 	public interface IThreadsManager
 	{
-		Task<bool> ProcessUpdate(Update update);
+		Task<bool> ProcessUpdateAsync(Update update);
 	}
 }

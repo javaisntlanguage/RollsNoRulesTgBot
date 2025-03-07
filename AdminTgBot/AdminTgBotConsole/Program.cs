@@ -1,14 +1,20 @@
 ﻿using AdminTgBot;
+using AdminTgBot.Infrastructure.Consumers;
 using AdminTgBotConsole;
 using DependencyInjection;
 using DependencyInjection.Extensions;
 using DependencyInjection.Inferfaces;
+using MessageContracts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
+using RabbitClient;
 using System;
 using System.Reflection;
 
+// для сборки при накате EF
 if(EF.IsDesignTime)
 {
     return;
@@ -21,12 +27,12 @@ IConfigurationRoot config = iocBuilder
     .CreateConfigurationBuilder(basePath, "appsettings.json")
     .Build();
 
-ServiceProvider iocContainer = iocBuilder
+IHost host = iocBuilder
     .CreateIocContainer()
     .UseStartup<Startup>(config)
-    .BuildServiceProvider();
+    .BuildHost();
 
-IApplicationRunner runner = iocContainer.GetRequiredService<IApplicationRunner>();
+IApplicationRunner runner = host.Services.GetRequiredService<IApplicationRunner>();
+
 runner.Run();
-
-await Task.Delay(-1);
+await host.RunAsync();

@@ -6,6 +6,9 @@ using Telegram.Bot.Types.Enums;
 using AdminTgBot.Infrastructure.Commands;
 using Telegram.Util.Core.Interfaces;
 using ILogger = NLog.ILogger;
+using AdminTgBot.Infrastructure.Consumers;
+using RabbitClient.Connection;
+using RabbitMQ.Client;
 
 namespace AdminTgBot
 {
@@ -37,14 +40,11 @@ namespace AdminTgBot
 			_telegramClient = telegramBotClient;
             _logger = logger;
             _threadsManager = threadsManager;
-
         }
 
         
         public void Start()
         {
-			//DefaultCommands defaultCommands = new DefaultCommands();
-			//TelegramClient.SetMyCommandsAsync(defaultCommands.Commands);
 			_telegramClient.StartReceiving(UpdateHandler, ErrorHandler, _receiverOptions);
         }
 
@@ -57,7 +57,7 @@ namespace AdminTgBot
 		{
 			try
 			{
-				while (!await _threadsManager.ProcessUpdate(update))
+				while (!await _threadsManager.ProcessUpdateAsync(update))
 				{
 					continue;
 				}

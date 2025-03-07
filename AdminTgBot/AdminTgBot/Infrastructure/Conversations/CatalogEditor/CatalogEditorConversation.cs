@@ -1,5 +1,4 @@
-﻿using AdminTgBot.Infrastructure.Conversations.Administration;
-using AdminTgBot.Infrastructure.Conversations.CatalogEditor.Models;
+﻿using AdminTgBot.Infrastructure.Conversations.CatalogEditor.Models;
 using AdminTgBot.Infrastructure.Models;
 using Database;
 using Database.Tables;
@@ -48,7 +47,6 @@ namespace AdminTgBot.Infrastructure.Conversations.CatalogEditor
         {
             _stateManager = null!;
 			_dataSource = null!;
-
 		}
 
         public CatalogEditorConversation(AdminBotStateManager statesManager)

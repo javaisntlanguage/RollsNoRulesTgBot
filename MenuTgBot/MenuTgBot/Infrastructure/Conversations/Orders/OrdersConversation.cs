@@ -26,6 +26,9 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Resources;
 using Database.Classes;
+using RabbitMQ.Client;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
+using Command = MenuTgBot.Infrastructure.Models.Command;
 
 namespace MenuTgBot.Infrastructure.Conversations.Orders
 {
@@ -1174,10 +1177,45 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
                 sellLocationId = OrderSellLocationId;
             }
 
-            Order order = await _dataSource.TakeOrderAsync(_stateManager.ChatId, orderCart, sum, Phone, addressId, sellLocationId);
-            
-            cart.Clear();
+            //TODO: вынести это все отсюда
+            /*var ConnectionFactory = new ConnectionFactory { HostName = "localhost" };
+            var connection = ConnectionFactory.CreateConnection();
+            IModel channel = connection.CreateModel();
+            try
+            {
+                _dataSource.Database.BeginTransaction();
+                Order order = await _dataSource.TakeOrderAsync(_stateManager.ChatId, orderCart, sum, Phone, addressId, sellLocationId);
+                int message = order.Id;
 
+                channel.TxSelect();
+                string queue = typeof(IOrder).FullName;
+
+                channel.QueueDeclare(
+                    queue: queue,
+                    durable: false,
+                    exclusive: false,
+                    autoDelete: false,
+                    arguments: null);
+
+                string sMessage = JsonConvert.SerializeObject(message);
+                byte[] body = Encoding.UTF8.GetBytes(sMessage);
+
+                channel.BasicPublish(exchange: string.Empty,
+                         routingKey: queue,
+                         mandatory: false,
+                         basicProperties: null,
+                         body: body);
+
+                _dataSource.Database.CommitTransaction();
+                channel.TxCommit();
+                cart.Clear();
+            }
+            catch (Exception ex)
+            {
+                _dataSource.Database.RollbackTransaction();
+            }*/
+
+            Order order = await _dataSource.TakeOrderAsync(_stateManager.ChatId, orderCart, sum, Phone, addressId, sellLocationId);
             SendAdmins(order.Id);
 
             string text = string.Format(OrdersText.NewOrder, order.Number);

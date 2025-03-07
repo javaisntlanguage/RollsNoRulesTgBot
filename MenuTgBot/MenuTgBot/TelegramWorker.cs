@@ -65,7 +65,7 @@ namespace MenuTgBot
         {
             try
             {
-                while (!await _threadsManager.ProcessUpdate(update))
+                while (!await _threadsManager.ProcessUpdateAsync(update))
                 {
                     continue;
                 }

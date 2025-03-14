@@ -74,7 +74,7 @@ namespace Helper
         }
 
         [System.Diagnostics.DebuggerNonUserCode()]
-        public static bool IsNotNullOrEmpty(this IEnumerable e)
+        public static bool IsNotNullOrEmpty(this IEnumerable? e)
         {
             return e.IsNotNull() && e.Cast<object>().Any();
         }

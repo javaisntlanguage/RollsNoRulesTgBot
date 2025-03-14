@@ -32,7 +32,6 @@ namespace AdminTgBotConsole
 				.AddSingleton<IApplicationRunner, ApplicationRunner>();
 		}
 
-
 		public IConfiguration Configuration { get; }
 	}
 }

@@ -23,7 +23,7 @@ namespace RabbitClient
         public void Publish<TQueue>(object message)
         {
             IModel channel = _connection.CreateModel();
-            string queue = typeof(TQueue).FullName;
+            string queue = typeof(TQueue).FullName!;
 
             channel.QueueDeclare(
                 queue: queue,
@@ -47,7 +47,7 @@ namespace RabbitClient
         public void Consume<TQueue>(IConsumer consumerObj)
         {
             IModel channel = _connection.CreateModel();
-            string queue = typeof(TQueue).FullName;
+            string queue = typeof(TQueue).FullName!;
 
             channel.QueueDeclare(
                 queue: queue,

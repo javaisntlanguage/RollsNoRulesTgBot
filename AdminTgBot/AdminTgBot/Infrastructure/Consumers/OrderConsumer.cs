@@ -19,16 +19,20 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace AdminTgBot.Infrastructure.Consumers
 {
-    internal class OrderConsumer : IConsumer, IOrder
+    internal class OrderConsumer : IOrderConsumer
     {
-        private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
-        private readonly TelegramBotClient _botClient;
+        private readonly ITelegramBotClient _botClient;
         private readonly IDbContextFactory<ApplicationContext> _contextFactory;
+        private readonly ILogger _logger;
 
-        public OrderConsumer(TelegramBotClient telegramBotClient, IDbContextFactory<ApplicationContext> contextFactory) 
+        public OrderConsumer(
+            ITelegramBotClient telegramBotClient,
+            IDbContextFactory<ApplicationContext> contextFactory,
+            ILogger logger) 
         {
             _botClient = telegramBotClient;
             _contextFactory = contextFactory;
+            _logger = logger;
         }
 
         public async Task ConsumeAsync(string message)
@@ -39,9 +43,9 @@ namespace AdminTgBot.Infrastructure.Consumers
                 .ToArray();
 
             int orderId = JsonConvert.DeserializeObject<int>(message);
-            Order order = db.Orders.Find(orderId);
+            Order? order = db.Orders.Find(orderId);
 
-            if (order.IsNull())
+            if (order == null)
             {
                 _logger.Error($"Не удалось найти заказ id={orderId}");
                 return;

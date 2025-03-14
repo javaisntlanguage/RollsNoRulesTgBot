@@ -1,6 +1,8 @@
-﻿using AdminTgBot.Infrastructure.Interfaces;
+﻿using AdminTgBot.Infrastructure.Consumers;
+using AdminTgBot.Infrastructure.Interfaces;
 using AdminTgBot.Infrastructure.Models;
 using Database;
+using MessageContracts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,6 +16,9 @@ using Telegram.Bot;
 using Telegram.Util.Core.Extensions;
 using Telegram.Util.Core.Interfaces;
 using Telegram.Util.Core.Models;
+using RabbitClient;
+using RabbitMQ.Client;
+using RabbitClient.Connection;
 
 namespace AdminTgBot.Infrastructure.Extensions
 {
@@ -22,7 +27,8 @@ namespace AdminTgBot.Infrastructure.Extensions
 		public static IServiceCollection AddTelegramBot(this IServiceCollection services, IConfiguration configuration)
 		{
 			services
-				.Configure<AdminSettings>(configuration.GetSection("AdminSettings"));
+				.Configure<AdminSettings>(configuration.GetSection("AdminSettings"))
+				.Configure<RabbitMqSettings>(configuration.GetSection("RabbitMqSettings"));
 			services
 				.AddTelegramBotClient(configuration)
 				.AddSingleton<IDbContextFactory<ApplicationContext>, ContextFactory>()
@@ -32,7 +38,12 @@ namespace AdminTgBot.Infrastructure.Extensions
 				.AddSingleton<IAdminStateMachineBuilder, AdminStateMachineBuilder>()
 				.AddSingleton<IAdminStateManagerFactory, StateManagerFactory>()
 				.AddSingleton<IThreadsManager, ThreadsManager>()
+				.AddSingleton<IOrderConsumer, OrderConsumer>()
+				.AddSingleton<IBaseConnectionCreator, BaseConnectionCreator>()
+				.AddSingleton<IConnection>(service => service.GetRequiredService<IBaseConnectionCreator>().Create())
 				.AddSingleton<ITelegramWorker, TelegramWorker>();
+			services
+				.AddHostedService<ConsumerService<IOrder, IOrderConsumer>>();
 
 			return services;
 		}

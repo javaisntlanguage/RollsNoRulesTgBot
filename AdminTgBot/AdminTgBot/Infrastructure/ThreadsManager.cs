@@ -34,7 +34,7 @@ namespace AdminTgBot.Infrastructure
 			_config = options.Value;
 		}
 
-		public async Task<bool> ProcessUpdate(Update update)
+		public async Task<bool> ProcessUpdateAsync(Update update)
 		{
 			long chatId = update.Message?.Chat.Id ?? update.CallbackQuery!.Message!.Chat.Id;
 

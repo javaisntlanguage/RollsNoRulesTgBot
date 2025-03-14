@@ -26,6 +26,11 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Resources;
 using Database.Classes;
+using RabbitMQ.Client;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
+using Command = MenuTgBot.Infrastructure.Models.Command;
+using Database.Models;
+using Database.Exceptions;
 
 namespace MenuTgBot.Infrastructure.Conversations.Orders
 {
@@ -1174,11 +1179,7 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
                 sellLocationId = OrderSellLocationId;
             }
 
-            Order order = await _dataSource.TakeOrderAsync(_stateManager.ChatId, orderCart, sum, Phone, addressId, sellLocationId);
-            
-            cart.Clear();
-
-            SendAdmins(order.Id);
+            Order order = await TakeOrderAsync(_stateManager.ChatId, orderCart, sum, Phone, addressId, sellLocationId);
 
             string text = string.Format(OrdersText.NewOrder, order.Number);
 
@@ -1186,9 +1187,46 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
 
         }
 
-        private void SendAdmins(int orderId)
+        private async Task<Order> TakeOrderAsync(long chatId, List<OrderCart> orderCart, decimal sum, string phone, long? addressId, int? sellLocationId)
         {
-            _rabbitEventHandler.Publish<IOrder>(orderId);
+            StartTakingOrderModel startTakingOrderModel = new ()
+            {
+                UserId = chatId,
+                Cart = orderCart,
+                Sum = sum,
+                Phone = phone,
+                AddressId = addressId,
+                SellLocationId = sellLocationId,
+            };
+
+            StartTakingOrderResult startTakingOrderResult = await _dataSource.StartTakingOrderAsync(startTakingOrderModel);
+
+            if (startTakingOrderResult == null ||
+                startTakingOrderResult.TargetOrder == null ||
+                startTakingOrderResult.TargetOrder.Id == 0)
+            {
+                throw new TakingOrderException("Не удалось создать заказ. Не удалось получить Id заказа");
+            }
+
+            FinishTakingOrderModel finishTakingOrderModel = new()
+            {
+                Transaction = startTakingOrderResult.Transaction,
+                Cart = orderCart,
+                TargetOrder = startTakingOrderResult.TargetOrder,
+                EventsToPublish = 
+                [
+                    new OutboxMessage()
+                    {
+                        Id = Guid.NewGuid(),
+                        Queue = nameof(IOrder),
+                        Message = startTakingOrderResult.TargetOrder.Id.ToString(),
+                        CreationDateTime = DateTime.UtcNow,
+                    }
+                ],
+            };
+
+            Order order = await _dataSource.FinishTakingOrderAsync(finishTakingOrderModel);
+            return order;
         }
     }
 }

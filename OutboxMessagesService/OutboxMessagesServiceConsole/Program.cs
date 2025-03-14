@@ -1,5 +1,4 @@
-﻿using AdminTgBotConsole;
-using DependencyInjection;
+﻿using DependencyInjection;
 using DependencyInjection.Extensions;
 using DependencyInjection.Inferfaces;
 using Microsoft.EntityFrameworkCore;
@@ -9,7 +8,7 @@ using Microsoft.Extensions.Hosting;
 using System.Reflection;
 
 // для сборки при накате EF
-if(EF.IsDesignTime)
+if (EF.IsDesignTime)
 {
     return;
 }

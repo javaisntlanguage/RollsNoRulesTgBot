@@ -5,6 +5,7 @@ using AdminTgBotConsole.Models;
 using DependencyInjection.Inferfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using NLog;
 using System;
 using System.Collections.Generic;
@@ -19,7 +20,7 @@ namespace AdminTgBotConsole
 		public Startup(IConfiguration configuration)
 		{
 			Configuration = configuration;
-		}
+        }
 
 
 		public void ConfigureServices(IServiceCollection services)
@@ -30,7 +31,6 @@ namespace AdminTgBotConsole
 				.AddTelegramBot(Configuration)
 				.AddSingleton<IApplicationRunner, ApplicationRunner>();
 		}
-
 
 		public IConfiguration Configuration { get; }
 	}

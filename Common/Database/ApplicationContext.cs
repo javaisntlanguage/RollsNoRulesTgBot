@@ -16,6 +16,8 @@ using System.Threading.Tasks;
 using Database.Enums;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Database.Resources;
+using Database.Models;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Database
 {
@@ -37,6 +39,7 @@ namespace Database
         public DbSet<RightsInGroup> RightInGroups { get; set; }
         public DbSet<AdminsInGroup> AdminInGroups { get; set; }
         public DbSet<RightGroup> RightGroups { get; set; }
+        public DbSet<OutboxMessage> OutboxMessages { get; set; }
 
         public ApplicationContext(DbContextOptions options) : base(options)
         {
@@ -101,11 +104,14 @@ namespace Database
 
             await SaveChangesAsync();
         }
-        public async Task<Order> TakeOrderAsync(long userId, IEnumerable<OrderCart> cart, decimal sum, string phone, long? arddressId, int? sellLocationId)
+
+        public async Task<StartTakingOrderResult> StartTakingOrderAsync(StartTakingOrderModel model)
         {
+            IDbContextTransaction transaction = await Database.BeginTransactionAsync();
+
             IQueryable<Order> currentDayOrders = Orders
                 .Where(order => order.DateFrom.Date == DateTimeOffset.Now.Date);
-            int? lastOrderNumber = currentDayOrders.Any() ? 
+            int? lastOrderNumber = currentDayOrders.Any() ?
                 currentDayOrders
                     .Max(order => order.Number) :
                 null;
@@ -114,32 +120,47 @@ namespace Database
 
             Order order = new Order()
             {
-                UserId = userId,
+                UserId = model.UserId,
                 Number = newOrderNumber,
                 DateFrom = DateTimeOffset.Now,
-                Phone = phone,
-                Sum = sum,
-                AddressId = arddressId,
-                SellLocationId = sellLocationId,
+                Phone = model.Phone,
+                Sum = model.Sum,
+                AddressId = model.AddressId,
+                SellLocationId = model.SellLocationId,
             };
 
 
             await Orders.AddAsync(order);
-
             await SaveChangesAsync();
 
-            cart = cart.Select(orderCart =>
+            StartTakingOrderResult result = new()
+            {
+                TargetOrder = order,
+                Transaction = transaction,
+            };
+
+            return result;
+        }
+        public async Task<Order> FinishTakingOrderAsync(FinishTakingOrderModel model)
+        {
+            model.Cart = model.Cart.Select(orderCart =>
             {
                 OrderCart orderCartNew = orderCart;
-                orderCartNew.OrderId = order.Id;
+                orderCartNew.OrderId = model.TargetOrder.Id;
                 return orderCartNew;
             });
 
-            await OrderCarts.AddRangeAsync(cart);
+            await OrderCarts.AddRangeAsync(model.Cart);
+
+            if (model.EventsToPublish.IsNotNullOrEmpty())
+            {
+                await OutboxMessages.AddRangeAsync(model.EventsToPublish!);
+            }
 
             await SaveChangesAsync();
+            await model.Transaction.CommitAsync();
 
-            return order;
+            return model.TargetOrder;
         }
 
         protected override void OnModelCreating(ModelBuilder builder)

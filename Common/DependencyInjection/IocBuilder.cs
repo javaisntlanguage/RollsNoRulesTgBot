@@ -15,6 +15,10 @@ namespace DependencyInjection
 				.AddEnvironmentVariables();
 		}
 
+		/// <summary>
+		/// создает коллекцию сервисов
+		/// </summary>
+		/// <returns></returns>
 		public IServiceCollection CreateIocContainer()
 		{
 			ServiceCollection services = new();

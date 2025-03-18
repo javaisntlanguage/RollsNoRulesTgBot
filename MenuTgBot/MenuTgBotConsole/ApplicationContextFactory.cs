@@ -10,6 +10,9 @@ using System.Threading.Tasks;
 
 namespace MenuTgBotConsole
 {
+    /// <summary>
+    /// позволяет выполнять обновления базы через консоль PM
+    /// </summary>
     public class ApplicationContextFactory : IDesignTimeDbContextFactory<ApplicationContext>
     {
         ApplicationContext IDesignTimeDbContextFactory<ApplicationContext>.CreateDbContext(string[] args)
@@ -19,8 +22,8 @@ namespace MenuTgBotConsole
             .AddJsonFile("appsettings.json")
                 .Build();
 
-            var builder = new DbContextOptionsBuilder<ApplicationContext>();
-            var connectionString = configuration["ConnectionString"];
+            DbContextOptionsBuilder<ApplicationContext> builder = new();
+            string? connectionString = configuration.GetConnectionString("RollsNoRules");
 
             builder.UseSqlServer(connectionString);
 

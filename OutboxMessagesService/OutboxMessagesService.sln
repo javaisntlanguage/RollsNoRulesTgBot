@@ -15,6 +15,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RabbitClient", "..\Common\R
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MessageContracts", "..\Common\MessageContracts\MessageContracts.csproj", "{67D0FC40-E590-413D-A4B2-CB409EAD6983}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OutboxMessagesServiceConsole", "OutboxMessagesServiceConsole\OutboxMessagesServiceConsole.csproj", "{B257CC4D-B60F-48DD-9DFB-157F58E86CB8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OutboxMessagesService", "OutboxMessagesService\OutboxMessagesService.csproj", "{6DC23779-088A-4111-93CE-931D57FD4EA9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +45,14 @@ Global
 		{67D0FC40-E590-413D-A4B2-CB409EAD6983}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{67D0FC40-E590-413D-A4B2-CB409EAD6983}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{67D0FC40-E590-413D-A4B2-CB409EAD6983}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B257CC4D-B60F-48DD-9DFB-157F58E86CB8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B257CC4D-B60F-48DD-9DFB-157F58E86CB8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B257CC4D-B60F-48DD-9DFB-157F58E86CB8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B257CC4D-B60F-48DD-9DFB-157F58E86CB8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6DC23779-088A-4111-93CE-931D57FD4EA9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6DC23779-088A-4111-93CE-931D57FD4EA9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6DC23779-088A-4111-93CE-931D57FD4EA9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6DC23779-088A-4111-93CE-931D57FD4EA9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

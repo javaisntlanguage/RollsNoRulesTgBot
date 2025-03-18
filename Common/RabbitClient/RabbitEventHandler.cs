@@ -7,24 +7,47 @@ using System.Text;
 
 namespace RabbitClient
 {
-    public class RabbitEventHandler
+    public class RabbitEventHandler : IRabbitEventHandler
     {
-        ConnectionFactory ConnectionFactory { get; set; }
-        IConnection _connection;
-        private Logger _logger;
+        private readonly IConnection _connection;
+        private readonly ILogger _logger;
 
-        public RabbitEventHandler(Logger logger)
+        public RabbitEventHandler(ILogger logger, IConnection connection)
         {
             _logger = logger;
-            ConnectionFactory = new ConnectionFactory { HostName = "localhost" };
-            _connection = ConnectionFactory.CreateConnection();
+            _connection = connection;
         }
 
         public void Publish<TQueue>(object message)
         {
-            IModel channel = _connection.CreateModel();
             string queue = typeof(TQueue).FullName!;
+            Publish(queue, message);
+        }
 
+        public void Publish(string queue, object message)
+        {
+            IModel channel = _connection.CreateModel();
+            Publish(channel, queue, message);
+        }
+
+        public IModel PublishWithTransaction<TQueue>(object message)
+        {
+            string queue = typeof(TQueue).FullName!;
+            IModel result = PublishWithTransaction(queue, message);
+
+            return result;
+        }
+        public IModel PublishWithTransaction(string queue, object message)
+        {
+            IModel channel = _connection.CreateModel();
+            channel.TxSelect();
+            Publish(channel, queue, message);
+
+            return channel;
+        }
+
+        private IModel Publish(IModel channel, string queue, object message)
+        {
             channel.QueueDeclare(
                 queue: queue,
                 durable: false,
@@ -42,8 +65,10 @@ namespace RabbitClient
                      body: body);
 
             _logger.Info($"Сообщение отправлено. Очередь: '{queue}'. Сообщение: '{sMessage}'");
-        }
 
+            return channel;
+        }
+        
         public void Consume<TQueue>(IConsumer consumerObj)
         {
             IModel channel = _connection.CreateModel();

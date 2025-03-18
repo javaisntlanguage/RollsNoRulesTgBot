@@ -38,7 +38,6 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
     {
         private const int SMS_RESEND_TIMER = 30;
         private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
-        private static readonly RabbitEventHandler _rabbitEventHandler = new RabbitEventHandler(_logger);
         private readonly int _smsLength;
 		private readonly MenuBotStateManager _stateManager;
 		private readonly MenuBotSettings _config;

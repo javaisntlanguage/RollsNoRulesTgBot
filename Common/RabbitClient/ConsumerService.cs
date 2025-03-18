@@ -14,14 +14,14 @@ namespace RabbitClient
     /// <summary>
     /// сервис запускает прием из очереди <see cref="TQueue"/> на получателя <see cref="TConsumer"/> 
     /// </summary>
-    /// <typeparam name="TQueue"></typeparam>
-    /// <typeparam name="TConsumer"></typeparam>
+    /// <typeparam name="TQueue">очередь</typeparam>
+    /// <typeparam name="TConsumer">получатель сообщений</typeparam>
     public class ConsumerService<TQueue, TConsumer> : BackgroundService where TConsumer : IConsumer
     {
         private readonly ILogger _logger;
         private readonly IServiceProvider _serviceProvider;
-        private IConnection _connection;
-        private IModel _channel;
+        private readonly IConnection _connection;
+        private readonly IModel _channel;
 
         public ConsumerService(
             ILogger logger,
@@ -38,14 +38,14 @@ namespace RabbitClient
         {
             stoppingToken.ThrowIfCancellationRequested();
 
-            string queue = typeof(TQueue).FullName!;
+            string queue = typeof(TQueue).Name!;
             TConsumer specificConsumer = _serviceProvider.GetRequiredService<TConsumer>();
 
             _channel.QueueDeclare(
                 queue: queue,
                 durable: false,
                 exclusive: false,
-            autoDelete: false,
+                autoDelete: false,
                 arguments: null);
 
             EventingBasicConsumer consumer = new EventingBasicConsumer(_channel);

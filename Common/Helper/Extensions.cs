@@ -688,6 +688,12 @@ namespace Helper
 
 
         #endregion
+        #region StringBuilder extensions
+        public static StringBuilder AppendFormatLine(this StringBuilder sb, string format, object arg0)
+        {
+            return sb.AppendFormat(format, arg0).AppendLine();
+        }
+        #endregion StringBuilder extensions
         #region Http Extensions
 
 

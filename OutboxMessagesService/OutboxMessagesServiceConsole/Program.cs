@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using OutboxMessagesServiceConsole;
 using System.Reflection;
 
 // для сборки при накате EF
@@ -25,7 +26,4 @@ IHost host = iocBuilder
     .UseStartup<Startup>(config)
     .BuildHost();
 
-IApplicationRunner runner = host.Services.GetRequiredService<IApplicationRunner>();
-
-runner.Run();
 await host.RunAsync();

@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AdminTgBotConsole.Models
+namespace OutboxMessagesServiceConsole
 {
     /// <summary>
     /// позволяет выполнять обновления базы через консоль PM

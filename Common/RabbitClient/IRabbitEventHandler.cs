@@ -27,9 +27,5 @@ namespace RabbitClient
         /// <param name="message"></param>
         /// <returns>канал, где можно закоммитить или откатить транзакцию</returns>
         IModel PublishWithTransaction<TQueue>(object message);
-
-        [Obsolete(@"используется ""ConsumerService""")]
-        void Consume<TQueue>(IConsumer consumerObj);
-
     }
 }

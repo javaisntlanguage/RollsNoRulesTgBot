@@ -1,4 +1,5 @@
 ﻿using Helper;
+using MessageContracts;
 using Newtonsoft.Json;
 using NLog;
 using RabbitMQ.Client;
@@ -20,7 +21,7 @@ namespace RabbitClient
 
         public void Publish<TQueue>(object message)
         {
-            string queue = typeof(TQueue).FullName!;
+            string queue = nameof(TQueue);
             Publish(queue, message);
         }
 
@@ -32,7 +33,7 @@ namespace RabbitClient
 
         public IModel PublishWithTransaction<TQueue>(object message)
         {
-            string queue = typeof(TQueue).FullName!;
+            string queue = nameof(TQueue);
             IModel result = PublishWithTransaction(queue, message);
 
             return result;
@@ -55,7 +56,7 @@ namespace RabbitClient
                 autoDelete: false,
                 arguments: null);
 
-            string sMessage = JsonConvert.SerializeObject(message);
+            string sMessage = message is string ? message.ToString()! : JsonConvert.SerializeObject(message);
             byte[] body = Encoding.UTF8.GetBytes(sMessage);
 
             channel.BasicPublish(exchange: string.Empty,
@@ -67,34 +68,6 @@ namespace RabbitClient
             _logger.Info($"Сообщение отправлено. Очередь: '{queue}'. Сообщение: '{sMessage}'");
 
             return channel;
-        }
-        
-        public void Consume<TQueue>(IConsumer consumerObj)
-        {
-            IModel channel = _connection.CreateModel();
-            string queue = typeof(TQueue).FullName!;
-
-            channel.QueueDeclare(
-                queue: queue,
-                durable: false,
-                exclusive: false,
-                autoDelete: false,
-                arguments: null);
-
-            EventingBasicConsumer consumer = new EventingBasicConsumer(channel);
-            consumer.Received += async (model, ea) =>
-            {
-                byte[] body = ea.Body.ToArray();
-                string message = Encoding.UTF8.GetString(body);
-
-                _logger.Info($"Сообщение получено. Очередь: '{queue}'. Сообщение: '{message}'");
-
-                await consumerObj.ConsumeAsync(message);
-            };
-
-            channel.BasicConsume(queue: queue,
-                     autoAck: true,
-                     consumer: consumer);
         }
     }
 }

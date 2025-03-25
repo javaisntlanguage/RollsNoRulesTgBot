@@ -8,6 +8,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
+using Newtonsoft.Json;
+using MessageContracts;
+using Helper.Converters;
+using Newtonsoft.Json.Linq;
+using static System.Net.Mime.MediaTypeNames;
+using System.Text.RegularExpressions;
 
 namespace RabbitClient
 {
@@ -16,21 +22,26 @@ namespace RabbitClient
     /// </summary>
     /// <typeparam name="TQueue">очередь</typeparam>
     /// <typeparam name="TConsumer">получатель сообщений</typeparam>
-    public class ConsumerService<TQueue, TConsumer> : BackgroundService where TConsumer : IConsumer
+    public class ConsumerService<TQueue, TConsumer> : BackgroundService 
+        where TConsumer : IConsumer<TQueue> 
+        where TQueue : IMessage
     {
         private readonly ILogger _logger;
         private readonly IServiceProvider _serviceProvider;
         private readonly IConnection _connection;
+        private readonly MessageJsonSerializerSettings _messageJsonSerializerSettings;
         private readonly IModel _channel;
 
         public ConsumerService(
             ILogger logger,
             IServiceProvider serviceProvider,
-            IConnection connection)
+            IConnection connection,
+            MessageJsonSerializerSettings messageJsonSerializerSettings)
         {
             _logger = logger;
             _serviceProvider = serviceProvider;
             _connection = connection;
+            _messageJsonSerializerSettings = messageJsonSerializerSettings;
             _channel = _connection.CreateModel();
         }
 
@@ -39,7 +50,8 @@ namespace RabbitClient
             stoppingToken.ThrowIfCancellationRequested();
 
             string queue = typeof(TQueue).Name!;
-            TConsumer specificConsumer = _serviceProvider.GetRequiredService<TConsumer>();
+            IIdempotentConsumer<TQueue, TConsumer> idempotentConsumer = _serviceProvider
+                .GetRequiredService<IIdempotentConsumer<TQueue, TConsumer>>();
 
             _channel.QueueDeclare(
                 queue: queue,
@@ -54,8 +66,10 @@ namespace RabbitClient
                 byte[] body = ea.Body.ToArray();
                 string message = Encoding.UTF8.GetString(body);
 
+                TQueue messageObject = JsonConvert.DeserializeObject<TQueue>(message, _messageJsonSerializerSettings)!;
+
                 _logger.Info($"Сообщение получено. Очередь: '{queue}'. Сообщение: '{message}'");
-                await specificConsumer.ConsumeAsync(message);
+                await idempotentConsumer.HandleAsync(messageObject);
             };
 
             _channel.BasicConsume(queue: queue,

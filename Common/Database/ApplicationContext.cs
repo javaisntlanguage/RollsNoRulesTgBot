@@ -40,9 +40,17 @@ namespace Database
         public DbSet<AdminsInGroup> AdminInGroups { get; set; }
         public DbSet<RightGroup> RightGroups { get; set; }
         public DbSet<OutboxMessage> OutboxMessages { get; set; }
+        public DbSet<OutboxMessageProcessed> OutboxMessagesProcessed { get; set; }
 
         public ApplicationContext(DbContextOptions options) : base(options)
         {
+        }
+
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            base.OnModelCreating(builder);
+            builder.ApplyConfigurationsFromAssembly(typeof(ApplicationContext).Assembly);
+            SetDecimal(builder);
         }
 
         public void User_Add(long id)
@@ -163,13 +171,6 @@ namespace Database
             return model.TargetOrder;
         }
 
-        protected override void OnModelCreating(ModelBuilder builder)
-        {
-            base.OnModelCreating(builder);
-            builder.ApplyConfigurationsFromAssembly(typeof(ApplicationContext).Assembly);
-            SetDecimal(builder);
-        }
-
         private void SetDecimal(ModelBuilder builder)
         {
             IEnumerable<IMutableProperty> decimalProps = builder.Model
@@ -202,5 +203,34 @@ namespace Database
 
 			return false;
 		}
-	}
+
+        public async Task<bool> IsOutboxMessageProcessedAsync(Guid id)
+        {
+            Guid outboxMessageId = await OutboxMessagesProcessed.Where(om => om.Id == id)
+                .Select(om => om.Id)
+                .FirstOrDefaultAsync();
+
+            if (outboxMessageId == default)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public async Task MarkOutboxMessageAsProcessed(OutboxMessageProcessed message)
+        {
+            message.ProcessingDateTime = DateTime.UtcNow;
+            await OutboxMessagesProcessed.AddAsync(message);
+            await SaveChangesAsync();
+        }
+
+        public async Task SetOutboxMessageError(OutboxMessageProcessed message, Exception ex)
+        {
+            message.ProcessingDateTime = DateTime.UtcNow;
+            message.Error = ExcDetails.Get(ex);
+            await OutboxMessagesProcessed.AddAsync(message);
+            await SaveChangesAsync();
+        }
+    }
 }

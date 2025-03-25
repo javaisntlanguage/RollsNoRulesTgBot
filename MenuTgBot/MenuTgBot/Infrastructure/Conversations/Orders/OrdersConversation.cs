@@ -31,6 +31,7 @@ using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 using Command = MenuTgBot.Infrastructure.Models.Command;
 using Database.Models;
 using Database.Exceptions;
+using Order = Database.Tables.Order;
 
 namespace MenuTgBot.Infrastructure.Conversations.Orders
 {
@@ -1180,6 +1181,10 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
 
             Order order = await TakeOrderAsync(_stateManager.ChatId, orderCart, sum, Phone, addressId, sellLocationId);
 
+#if !DEBUG
+            cart?.Clear();
+#endif
+
             string text = string.Format(OrdersText.NewOrder, order.Number);
 
             await _stateManager.SendMessageAsync(text);
@@ -1207,6 +1212,8 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
                 throw new TakingOrderException("Не удалось создать заказ. Не удалось получить Id заказа");
             }
 
+            Guid messageId = Guid.NewGuid();
+
             FinishTakingOrderModel finishTakingOrderModel = new()
             {
                 Transaction = startTakingOrderResult.Transaction,
@@ -1216,9 +1223,13 @@ namespace MenuTgBot.Infrastructure.Conversations.Orders
                 [
                     new OutboxMessage()
                     {
-                        Id = Guid.NewGuid(),
+                        Id = messageId,
                         Queue = nameof(IOrder),
-                        Message = startTakingOrderResult.TargetOrder.Id.ToString(),
+                        Message = JsonConvert.SerializeObject(new MessageContracts.Order()
+                        {
+                            Id = messageId,
+                            OrderId = startTakingOrderResult.TargetOrder.Id
+                        }),
                         CreationDateTime = DateTime.UtcNow,
                     }
                 ],

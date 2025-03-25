@@ -3,6 +3,7 @@ using Database.Tables;
 using Helper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
+using Newtonsoft.Json;
 using NLog;
 using RabbitClient;
 using RabbitMQ.Client;
@@ -10,7 +11,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace OutboxMessagesService
 {
@@ -39,7 +42,6 @@ namespace OutboxMessagesService
             {
                 try
                 {
-                    throw new Exception("123123");
                     await PushPendingMessagesAsync();
                 }
                 catch (Exception ex)

@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore.Internal;
 using Newtonsoft.Json;
 using NLog;
 using RabbitClient;
+using RabbitClient.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,10 +17,11 @@ using System.Text;
 using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Types.ReplyMarkups;
+using Order = Database.Tables.Order;
 
 namespace AdminTgBot.Infrastructure.Consumers
 {
-    internal class OrderConsumer : IOrderConsumer
+    internal class OrderConsumer : IConsumer<IOrder>
     {
         private readonly ITelegramBotClient _botClient;
         private readonly IDbContextFactory<ApplicationContext> _contextFactory;
@@ -35,26 +37,23 @@ namespace AdminTgBot.Infrastructure.Consumers
             _logger = logger;
         }
 
-        public async Task ConsumeAsync(string message)
+        public async Task ConsumeAsync(IOrder message)
         {
             await using ApplicationContext db = _contextFactory.CreateDbContext();
             AdminState[] admins = db.AdminStates
                 .Select(x => x)
                 .ToArray();
 
-            int orderId = JsonConvert.DeserializeObject<int>(message);
-            Order? order = db.Orders.Find(orderId);
+            Order? order = db.Orders.Find(message.OrderId);
 
             if (order == null)
             {
-                _logger.Error($"Не удалось найти заказ id={orderId}");
-                return;
+                throw new MessageHandlingException($"Не удалось найти заказ id={message.OrderId}");
             }
 
             if(order.State != OrderState.New)
             {
-                _logger.Warn($"Заказ уже обработан id={orderId}");
-                return;
+                throw new MessageHandlingException($"Заказ уже обработан id={message.OrderId}");
             }
 
             string[] orderCart = db.OrderCarts

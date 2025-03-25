@@ -6,8 +6,9 @@ using System.Threading.Tasks;
 
 namespace MessageContracts
 {
-    public interface IOrder : IMessage
+    public class Order : IOrder
     {
-        int OrderId { get; set; }
+        public int OrderId { get; set; }
+        public Guid Id { get; set; }
     }
 }

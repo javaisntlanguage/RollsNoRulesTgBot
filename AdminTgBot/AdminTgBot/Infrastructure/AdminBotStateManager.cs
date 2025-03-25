@@ -144,7 +144,7 @@ namespace AdminTgBot.Infrastructure
 		private bool IsOutOfQueue(CallbackQuery query)
 		{
 			JObject data = JObject.Parse(query.Data!);
-            return data["OutOfQueue"]?.Value<bool?>() ?? false;
+            return data["IsOutOfQueue"]?.Value<bool?>() ?? false;
 		}
 
 		private bool HasRight(Guid right)

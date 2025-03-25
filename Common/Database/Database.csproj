@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Helper\Helper.csproj" />
+    <ProjectReference Include="..\MessageContracts\MessageContracts.csproj" />
   </ItemGroup>
 
   <ItemGroup>

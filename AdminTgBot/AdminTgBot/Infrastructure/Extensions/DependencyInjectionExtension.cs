@@ -38,12 +38,14 @@ namespace AdminTgBot.Infrastructure.Extensions
 				.AddSingleton<IAdminStateMachineBuilder, AdminStateMachineBuilder>()
 				.AddSingleton<IAdminStateManagerFactory, StateManagerFactory>()
 				.AddSingleton<IThreadsManager, ThreadsManager>()
-				.AddSingleton<IOrderConsumer, OrderConsumer>()
+				.AddSingleton<IConsumer<IOrder>, OrderConsumer>()
+				.AddSingleton<IIdempotentConsumer<IOrder, IConsumer<IOrder>>, IdempotentConsumer<IOrder, IConsumer<IOrder>>>()
 				.AddSingleton<IBaseConnectionCreator, BaseConnectionCreator>()
 				.AddSingleton<IConnection>(service => service.GetRequiredService<IBaseConnectionCreator>().Create())
-				.AddSingleton<ITelegramWorker, TelegramWorker>();
+				.AddSingleton<ITelegramWorker, TelegramWorker>()
+				.AddSingleton<MessageJsonSerializerSettings>();
 			services
-				.AddHostedService<ConsumerService<IOrder, IOrderConsumer>>();
+				.AddHostedService<ConsumerService<IOrder, IConsumer<IOrder>>>();
 
 			return services;
 		}
